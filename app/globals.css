@@ -1,12 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Urbanist:wght@600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Global body font */
+body {
+  font-family: var(--font-body);
+}
 
-
-
+/* Apply Urbanist to all headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
 
 @custom-variant dark (&:is(.dark *));
-
 
 @theme inline {
   --color-background: var(--background);
@@ -50,6 +56,10 @@
 
 :root {
   --radius: 0.625rem;
+
+  /* font */
+  --font-body: 'Roboto', sans-serif;
+  --font-heading: 'Urbanist', sans-serif;
 
   /* Base */
   --background: oklch(1 0 0);
@@ -96,7 +106,6 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.644 0.2 248.2 / 50%);
 }
-
 
 .dark {
   --background: oklch(0.145 0 0);
