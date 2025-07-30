@@ -1,0 +1,123 @@
+export interface CourseData {
+    // Step 0: Course Details
+    courseDetails: {
+        thumbnailImage?: File
+        previewVideo?: File
+        lessonName: string
+        courseSlug: string
+        courseCategory: string
+        courseLevel: string
+        courseTime: string
+        totalLessons: string
+        difficulty: "beginner" | "intermediate" | "advanced" | "expert"
+        estimatedHours: number
+    }
+
+    // Step 1: Upload Videos
+    videos: Array<{
+        id: string
+        file: File
+        title: string
+        description: string
+        duration?: number
+        order: number
+        isPreview?: boolean
+        thumbnail?: File
+    }>
+
+    // Step 2: About Course
+    aboutCourse: {
+        title: string
+        shortDescription: string
+        fullDescription: string
+        learningObjectives: string[]
+        prerequisites: string[]
+        targetAudience: string
+        language: string
+        subtitles: string[]
+        tags: string[]
+        pricing: {
+            basePrice: number
+            currency: string
+            discountPrice?: number
+            discountPercentage?: number
+            discountEndDate?: Date | string
+            pricingTier: "free" | "basic" | "premium" | "enterprise"
+            paymentOptions: ("one-time" | "subscription" | "installments")[]
+        }
+        metrics: {
+            expectedEnrollments?: number
+            targetRevenue?: number
+            marketingBudget?: number
+        }
+    }
+
+    // instructor: {
+    //     name: string
+    //     bio: string
+    //     avatar?: File
+    //     title: string
+    //     experience: string
+    //     expertise: string[]
+    //     socialLinks: {
+    //         website?: string
+    //         linkedin?: string
+    //         twitter?: string
+    //         github?: string
+    //     }
+    //     credentials: string[]
+    //     teachingExperience: number
+    //     totalStudents?: number
+    //     averageRating?: number
+    //     totalCourses?: number
+    // }
+
+    // Step 3: Create Quiz
+    quiz: {
+        questions: Array<{
+            id: string
+            question: string
+            type: "multiple-choice" | "true-false" | "short-answer" | "essay"
+            options: string[]
+            correctAnswer: number | string
+            explanation?: string
+            points: number
+            difficulty: "easy" | "medium" | "hard"
+            timeLimit?: number
+        }>
+        passingScore: number
+        timeLimit: number
+        allowRetakes: boolean
+        maxAttempts: number
+        showCorrectAnswers: boolean
+        randomizeQuestions: boolean
+        certificateRequired: boolean
+    }
+
+    // Step 4: Publish
+    publishSettings: {
+        isPublic: boolean
+        publishDate: Date
+        enrollmentLimit?: number
+        certificateEnabled: boolean
+        certificateTemplate?: string
+        accessDuration?: number
+        prerequisites?: string[]
+        courseLevel: "beginner" | "intermediate" | "advanced"
+        supportEmail?: string
+        discussionEnabled: boolean
+        downloadableResources: boolean
+    }
+}
+
+export interface QuizQuestion {
+    id: string
+    question: string
+    type: "multiple-choice" | "true-false" | "short-answer" | "essay"
+    options: string[]
+    correctAnswer: number | string
+    explanation?: string
+    points: number
+    difficulty: "easy" | "medium" | "hard"
+    timeLimit?: number
+}

@@ -42,13 +42,13 @@ export default function LoginForm() {
     };
     useEffect(() => {
         if (!authLoading && authUser) {
-            router.push('/corrections');
+            router.push('/');
         }
     }, [authUser, authLoading, router]);
 
     useEffect(() => {
         if (user) {
-            router.push('/corrections');
+            router.push('/');
         }
     }, [user, router]);
 
@@ -82,6 +82,8 @@ export default function LoginForm() {
                 })
 
             }
+
+            router.push("/")
 
         } catch (error: any) {
             let message = "An unexpected error occurred.";

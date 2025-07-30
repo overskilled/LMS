@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Menu, HelpCircle } from "lucide-react";
+import { Menu, HelpCircle, BookOpen, BookPlus, Book } from "lucide-react";
 
 // Icons
 import {
@@ -53,9 +53,10 @@ const sidebarData = () => [
     },
     {
         title: "Courses",
-        icon: Package,
+        icon: BookOpen,
         items: [
-            { label: "productList", href: "/admin/courses", icon: Package },
+            { label: "Create course", href: "/admin/create-course", icon: BookPlus },
+            { label: "Courses", href: "/admin/courses", icon: Book },
         ],
     }
 ];
@@ -162,7 +163,7 @@ export function AppSidebar() {
                             </SidebarMenuItem>
                         )} */}
                         <SidebarMenuItem>
-                            <TooltipProvider>
+                            {/* <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button
@@ -175,7 +176,7 @@ export function AppSidebar() {
                                     </TooltipTrigger>
                                     <TooltipContent side="right">help</TooltipContent>
                                 </Tooltip>
-                            </TooltipProvider>
+                            </TooltipProvider> */}
                         </SidebarMenuItem>
                         <SidebarMenuItem>
                             <TooltipProvider>

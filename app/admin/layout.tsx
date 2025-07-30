@@ -1,35 +1,54 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
+"use client"
+
+import { Suspense, useEffect, useState } from "react";
 import { AppSidebar } from "./components/app-sidebar";
 import Loading from "./loading";
 import { SidebarProvider } from "@/components/ui/sidebar";
-
-export const metadata: Metadata = {
-    title: "Admin | NMD LMS",
-    description: "Admin dashboard for managing the LMS",
-};
+import Header from "./components/header";
+import { useRouter } from "next/navigation";
 
 export default function AdminLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return (
-        <html lang="en">
-            <body className="antialiased">
-                <SidebarProvider>
-                    <AppSidebar />
-                    <Suspense fallback={<Loading />}>
-                        <div className="flex-1 flex flex-col overflow-hidden">
-                            {/* <Header /> */}
-                            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-transparent">
-                                <div className="container mx-auto px-6 py-8">{children}</div>
-                            </main>
+    const router = useRouter();
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
+    useEffect(() => {
+        // Check localStorage for user info
+        const userData = localStorage.getItem("user-info");
+
+        if (!userData) {
+            router.push('/admin/login');
+        } else {
+            setIsAuthorized(true);
+        }
+    }, [router]);
+
+    if (!isAuthorized) {
+        return <Loading />;
+    }
+
+
+
+
+    return (
+        <SidebarProvider>
+            <div className="flex h-screen w-full">
+                <AppSidebar />
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    <Header />
+                    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-transparent">
+                        <div className="container mx-auto px-6 py-8">
+                            <Suspense fallback={<Loading />}>
+                                {children}
+                            </Suspense>
                         </div>
-                    </Suspense>
-                </SidebarProvider>
-            </body>
-        </html>
+                    </main>
+                   
+                </div>
+            </div>
+        </SidebarProvider>
     );
 }

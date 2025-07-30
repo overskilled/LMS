@@ -63,7 +63,7 @@ export default function SignupForm() {
 
             toast.success("Account created successfully");
             localStorage.setItem("user-info", JSON.stringify({ uid: user.uid, name, email }));
-            router.push("/corrections");
+            router.push("/");
         } catch (err: any) {
             console.error("Signup error:", err.message);
             setError(err.message);

@@ -39,6 +39,7 @@ export default function AdminLoginForm() {
         });
     };
 
+    console.log("user info:", user)
     
 
     const handleSubmit = async (e: React.FormEvent) => {
