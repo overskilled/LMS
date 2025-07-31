@@ -1,8 +1,8 @@
 export interface CourseData {
     // Step 0: Course Details
     courseDetails: {
-        thumbnailImage?: File
-        previewVideo?: File
+        thumbnailImage?: any
+        previewVideo?: any
         lessonName: string
         courseSlug: string
         courseCategory: string
@@ -10,13 +10,13 @@ export interface CourseData {
         courseTime: string
         totalLessons: string
         difficulty: "beginner" | "intermediate" | "advanced" | "expert"
-        estimatedHours: number
+        estimatedHours: number,
     }
 
     // Step 1: Upload Videos
     videos: Array<{
         id: string
-        file: File
+        metadata: any
         title: string
         description: string
         duration?: number

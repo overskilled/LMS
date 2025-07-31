@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback } from "react"
 import { StepIndicator, type Step } from "./step-indicator"
 import { CourseDetailsStep } from "./course-details-step"
 import { VideoUploadStep } from "./video-upload-steps"
@@ -9,9 +9,6 @@ import { ChevronRight, Save, UploadIcon } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { StepRef } from "./accessible-step-wrapper"
 import type { CourseData } from "@/types/course"
-import { AboutCourseStep } from "./about-course-step"
-import { QuizCreationStep } from "./quiz-creation-step"
-import { PublishSummaryStep } from "./publish-summary-step"
 
 const steps: Step[] = [
     { id: "course-details", title: "Course Details" },
@@ -22,22 +19,15 @@ const steps: Step[] = [
 ]
 
 interface CompleteStepperProps {
-    onSaveAsDraft?: (data: Partial<CourseData>) => void
-    onPublishCourse?: (data: CourseData) => void
+    onSaveAsDraft?: (data: Partial<CourseData>) => Promise<void>
+    onPublishCourse?: (data: CourseData) => Promise<void>
     onCancel?: () => void
     initialData?: Partial<CourseData>
-    courseId?: string
 }
 
-export function CompleteStepper({
-    onSaveAsDraft,
-    onPublishCourse,
-    onCancel,
-    initialData,
-    courseId
-}: CompleteStepperProps) {
+export function CompleteStepper({ onSaveAsDraft, onPublishCourse, onCancel, initialData }: CompleteStepperProps) {
     const [currentStep, setCurrentStep] = useState(0)
-    const [courseData, setCourseData] = useState<Partial<CourseData>>(initialData || getDefaultCourseData())
+    const [courseData, setCourseData] = useState<Partial<CourseData>>(initialData || {})
     const [stepValidation, setStepValidation] = useState<Record<number, boolean>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -45,69 +35,9 @@ export function CompleteStepper({
     // Refs for each step component
     const stepRefs = useRef<(StepRef | null)[]>([])
 
-    // Initialize step refs array
-    useEffect(() => {
-        stepRefs.current = stepRefs.current.slice(0, steps.length)
-    }, [])
-
-    function getDefaultCourseData(): Partial<CourseData> {
-        return {
-            courseDetails: {
-                lessonName: "",
-                courseSlug: "",
-                courseCategory: "",
-                courseLevel: "",
-                courseTime: "",
-                totalLessons: "",
-                difficulty: "beginner",
-                estimatedHours: 1,
-            },
-            videos: [],
-            aboutCourse: {
-                title: "",
-                shortDescription: "",
-                fullDescription: "",
-                learningObjectives: [],
-                prerequisites: [],
-                targetAudience: "",
-                language: "English",
-                subtitles: [],
-                tags: [],
-                pricing: {
-                    basePrice: 0,
-                    currency: "USD",
-                    pricingTier: "basic",
-                    paymentOptions: ["one-time"],
-                },
-                metrics: {
-                    expectedEnrollments: 100,
-                    targetRevenue: 0,
-                    marketingBudget: 0,
-                },
-            },
-            quiz: {
-                questions: [],
-                passingScore: 70,
-                timeLimit: 30,
-                allowRetakes: true,
-                maxAttempts: 3,
-                showCorrectAnswers: false,
-                randomizeQuestions: false,
-                certificateRequired: false,
-            },
-            publishSettings: {
-                isPublic: false,
-                publishDate: new Date(),
-                certificateEnabled: false,
-                discussionEnabled: true,
-                downloadableResources: false,
-                courseLevel: "beginner",
-            },
-        }
-    }
-
     const handleStepClick = useCallback(
         (stepIndex: number) => {
+            // Only allow navigation to completed steps or the next step
             const maxAllowedStep =
                 Math.max(
                     ...Object.keys(stepValidation)
@@ -116,6 +46,7 @@ export function CompleteStepper({
                 ) + 1
             if (stepIndex <= maxAllowedStep && stepIndex <= currentStep + 1) {
                 setCurrentStep(stepIndex)
+                // Focus the step content
                 setTimeout(() => {
                     stepRefs.current[stepIndex]?.focus()
                 }, 100)
@@ -125,18 +56,12 @@ export function CompleteStepper({
     )
 
     const handleStepDataChange = useCallback((stepIndex: number, data: any, isValid: boolean) => {
-        setCourseData(prev => {
-            const key = getStepDataKey(stepIndex)
-            return {
-                ...prev,
-                [key]: {
-                    ...prev[key],
-                    ...data
-                }
-            }
-        })
+        setCourseData((prev) => ({
+            ...prev,
+            [getStepDataKey(stepIndex)]: data,
+        }))
 
-        setStepValidation(prev => ({
+        setStepValidation((prev) => ({
             ...prev,
             [stepIndex]: isValid,
         }))
@@ -144,12 +69,18 @@ export function CompleteStepper({
 
     const getStepDataKey = (stepIndex: number): keyof CourseData => {
         switch (stepIndex) {
-            case 0: return "courseDetails"
-            case 1: return "videos"
-            case 2: return "aboutCourse"
-            case 3: return "quiz"
-            case 4: return "publishSettings"
-            default: return "courseDetails"
+            case 0:
+                return "courseDetails"
+            case 1:
+                return "videos"
+            case 2:
+                return "aboutCourse"
+            case 3:
+                return "quiz"
+            case 4:
+                return "publishSettings"
+            default:
+                return "courseDetails"
         }
     }
 
@@ -166,18 +97,21 @@ export function CompleteStepper({
         }
 
         if (currentStep < steps.length - 1) {
-            setCurrentStep(prev => prev + 1)
+            setCurrentStep((prev) => prev + 1)
+            // Focus the next step
             setTimeout(() => {
                 stepRefs.current[currentStep + 1]?.focus()
             }, 100)
         } else {
+            // Final step - publish course
             await handlePublish()
         }
     }, [currentStep])
 
     const handlePrevious = useCallback(() => {
         if (currentStep > 0) {
-            setCurrentStep(prev => prev - 1)
+            setCurrentStep((prev) => prev - 1)
+            // Focus the previous step
             setTimeout(() => {
                 stepRefs.current[currentStep - 1]?.focus()
             }, 100)
@@ -189,23 +123,13 @@ export function CompleteStepper({
         setError(null)
 
         try {
-            // Validate current step before saving
-            const currentStepRef = stepRefs.current[currentStep]
-            if (currentStepRef) {
-                const isValid = await currentStepRef.validate()
-                if (!isValid) {
-                    setError("Please fix the errors before saving")
-                    return
-                }
-            }
-
             await onSaveAsDraft?.(courseData)
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to save draft")
         } finally {
             setIsSubmitting(false)
         }
-    }, [courseData, currentStep, onSaveAsDraft])
+    }, [courseData, onSaveAsDraft])
 
     const handlePublish = useCallback(async () => {
         setIsSubmitting(true)
@@ -226,13 +150,7 @@ export function CompleteStepper({
                 }
             }
 
-            // Combine all data into complete course data
-            const completeCourseData: CourseData = {
-                ...getDefaultCourseData(),
-                ...courseData
-            } as CourseData
-
-            await onPublishCourse?.(completeCourseData)
+            await onPublishCourse?.(courseData as CourseData)
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to publish course")
         } finally {
@@ -241,97 +159,88 @@ export function CompleteStepper({
     }, [courseData, onPublishCourse])
 
     const handleCancel = useCallback(() => {
-        if (Object.keys(courseData).length > 0) {
-            if (confirm('You have unsaved changes. Are you sure you want to cancel?')) {
-                onCancel?.()
-            }
-        } else {
-            onCancel?.()
-        }
-    }, [courseData, onCancel])
-
-    // Auto-save to localStorage
-    useEffect(() => {
-        if (Object.keys(courseData).length > 0) {
-            localStorage.setItem('courseDraft', JSON.stringify(courseData))
-        }
-    }, [courseData])
-
-    // Load from localStorage on mount
-    useEffect(() => {
-        const savedData = localStorage.getItem('courseDraft')
-        if (savedData) {
-            try {
-                const parsedData = JSON.parse(savedData)
-                setCourseData(prev => ({
-                    ...getDefaultCourseData(),
-                    ...parsedData
-                }))
-            } catch (e) {
-                console.error('Failed to parse saved course data', e)
-            }
-        }
-    }, [])
+        onCancel?.()
+    }, [onCancel])
 
     const renderCurrentStep = () => {
         switch (currentStep) {
             case 0:
                 return (
                     <CourseDetailsStep
-                        ref={(ref) => {stepRefs.current[0] = ref }}
+                        // ref={(ref) => (stepRefs.current[0] = ref)}
                         initialData={courseData.courseDetails}
                         onDataChange={(data, isValid) => handleStepDataChange(0, data, isValid)}
                         onNext={handleNext}
-                        onPrevious={undefined}
+                        onPrevious={handlePrevious}
                         onCancel={handleCancel}
-                        courseId={courseId}
                     />
                 )
             case 1:
                 return (
                     <VideoUploadStep
-                        ref={(ref) => {stepRefs.current[1] = ref }}
+                        // ref={(ref) => (stepRefs.current[1] = ref)}
                         initialData={courseData.videos}
                         onDataChange={(data, isValid) => handleStepDataChange(1, data, isValid)}
                         onNext={handleNext}
                         onPrevious={handlePrevious}
                         onCancel={handleCancel}
-                        courseId={courseId}
                     />
                 )
             case 2:
                 return (
-                    <AboutCourseStep
-                        ref={(ref) => {stepRefs.current[2] = ref }}
-                        initialData={courseData.aboutCourse}
-                        onDataChange={(data, isValid) => handleStepDataChange(2, data, isValid)}
-                        onNext={handleNext}
-                        onPrevious={handlePrevious}
-                        onCancel={handleCancel}
-                    />
+                    <div className="text-center py-12">
+                        <h2 className="text-xl font-semibold mb-4">About Course</h2>
+                        <p className="text-gray-500">Course description and details step coming soon...</p>
+                        <div className="flex justify-between pt-6 border-t mt-8">
+                            <Button variant="outline" onClick={handleCancel}>
+                                Cancel
+                            </Button>
+                            <div className="flex gap-3">
+                                <Button variant="outline" onClick={handlePrevious}>
+                                    Previous
+                                </Button>
+                                <Button onClick={handleNext}>Continue</Button>
+                            </div>
+                        </div>
+                    </div>
                 )
             case 3:
                 return (
-                    <QuizCreationStep
-                        ref={(ref) => {stepRefs.current[3] = ref }}
-                        initialData={courseData.quiz}
-                        onDataChange={(data, isValid) => handleStepDataChange(3, data, isValid)}
-                        onNext={handleNext}
-                        onPrevious={handlePrevious}
-                        onCancel={handleCancel}
-                    />
+                    <div className="text-center py-12">
+                        <h2 className="text-xl font-semibold mb-4">Create Quiz</h2>
+                        <p className="text-gray-500">Quiz creation interface coming soon...</p>
+                        <div className="flex justify-between pt-6 border-t mt-8">
+                            <Button variant="outline" onClick={handleCancel}>
+                                Cancel
+                            </Button>
+                            <div className="flex gap-3">
+                                <Button variant="outline" onClick={handlePrevious}>
+                                    Previous
+                                </Button>
+                                <Button onClick={handleNext}>Continue</Button>
+                            </div>
+                        </div>
+                    </div>
                 )
             case 4:
                 return (
-                    <PublishSummaryStep
-                        ref={(ref) => {stepRefs.current[4] = ref }}
-                        courseData={courseData}
-                        initialSettings={courseData.publishSettings}
-                        onDataChange={(data, isValid) => handleStepDataChange(4, data, isValid)}
-                        onNext={handleNext}
-                        onPrevious={handlePrevious}
-                        onCancel={handleCancel}
-                    />
+                    <div className="text-center py-12">
+                        <h2 className="text-xl font-semibold mb-4">Publish Course</h2>
+                        <p className="text-gray-500">Final review and publish options coming soon...</p>
+                        <div className="flex justify-between pt-6 border-t mt-8">
+                            <Button variant="outline" onClick={handleCancel}>
+                                Cancel
+                            </Button>
+                            <div className="flex gap-3">
+                                <Button variant="outline" onClick={handlePrevious}>
+                                    Previous
+                                </Button>
+                                <Button onClick={handlePublish} disabled={isSubmitting}>
+                                    {isSubmitting ? "Publishing..." : "Publish Course"}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
                 )
             default:
                 return null

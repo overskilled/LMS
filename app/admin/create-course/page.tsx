@@ -1,20 +1,19 @@
 "use client"
 
 import { useState } from "react"
+import { DraftManager } from "@/components/draft-manager"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import { CourseData } from "@/types/course"
-import { CourseDraft } from "@/utils/localStorage"
-import { DraftManager } from "../components/draft-manager"
-import { CompleteCourseStepper } from "../components/course-stepper-component"
+import type { CourseData } from "@/types/course"
+import type { CourseDraft } from "@/utils/localStorage"
+import { CompleteStepper } from "../components/course-stepper-component"
 
 export default function CompleteCourseCreator() {
     const [showDrafts, setShowDrafts] = useState(false)
     const [currentDraft, setCurrentDraft] = useState<CourseDraft | null>(null)
 
-    const handleSaveAsDraft = (data: CourseData) => {
+    const handleSaveAsDraft = (data: Partial<CourseData>) => {
         console.log("Course saved as draft:", data)
-        // Show success notification
         alert("Course saved as draft!")
     }
 
@@ -63,18 +62,12 @@ export default function CompleteCourseCreator() {
 
     return (
         <div className="relative">
-            <div className="absolute top-4 left-4 z-10">
-                <Button variant="ghost" onClick={handleBackToDrafts} className="flex items-center gap-2">
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Drafts
-                </Button>
-            </div>
 
-            <CompleteCourseStepper
+            <CompleteStepper
                 onSaveAsDraft={handleSaveAsDraft}
                 onPublishCourse={handlePublishCourse}
                 onCancel={handleCancel}
-                // initialDraft={currentDraft}
+                // initialData={}
             />
         </div>
     )
