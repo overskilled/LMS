@@ -10,6 +10,15 @@ import { Input } from "@/components/ui/input"
 import { AccessibleStepWrapper, type StepRef } from "./accessible-step-wrapper"
 import { cn } from "@/lib/utils"
 
+// Define all local storage keys used by different steps
+const LOCAL_STORAGE_KEYS = {
+    COURSE_DETAILS: 'courseDetailsFormData',
+    VIDEO_UPLOAD: 'videoUploadFormData',
+    ABOUT_COURSE: 'aboutCourseFormData',
+    QUIZ_DATA: 'quizFormData',
+    PUBLISH_SETTINGS: 'publishSettingsFormData'
+}
+
 interface PublishSettings {
     isPublic: boolean
     publishDate: Date
@@ -18,43 +27,151 @@ interface PublishSettings {
     certificateTemplate: string
     accessDuration?: number
     prerequisites: string[]
-    courseLevel: "beginner" | "intermediate" | "advanced" | "expert"
+    courseLevel: string
     supportEmail: string
     discussionEnabled: boolean
     downloadableResources: boolean
 }
 
 interface PublishSummaryStepProps {
-    courseData: any
-    initialSettings?: Partial<PublishSettings>
     onDataChange: (data: PublishSettings, isValid: boolean) => void
     onNext?: () => void
     onPrevious?: () => void
     onCancel?: () => void
 }
 
-export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
-    ({ courseData, initialSettings, onDataChange, onNext, onPrevious, onCancel }, ref) => {
-        const [publishSettings, setPublishSettings] = useState<PublishSettings>({
-            isPublic: true,
-            publishDate: new Date(),
-            certificateEnabled: true,
-            certificateTemplate: "default",
-            prerequisites: [],
-            courseLevel: "beginner",
-            supportEmail: "",
-            discussionEnabled: true,
-            downloadableResources: false,
-            ...initialSettings,
-        })
+export type CourseLevel = "beginner" | "intermediate" | "advanced" | "expert"
 
+function isCourseLevel(level: any): level is CourseLevel {
+    return ["beginner", "intermediate", "advanced", "expert"].includes(level)
+}
+
+// Helper to safely get and parse localStorage items
+const getLocalStorageItem = <T,>(key: string, defaultValue: T): T => {
+    if (typeof window === 'undefined') return defaultValue
+    const item = localStorage.getItem(key)
+    if (!item) return defaultValue
+
+    try {
+        const parsed = JSON.parse(item)
+
+        // Special handling for publishSettings to validate courseLevel
+        if (key === LOCAL_STORAGE_KEYS.PUBLISH_SETTINGS && parsed.courseLevel) {
+            if (!isCourseLevel(parsed.courseLevel)) {
+                parsed.courseLevel = "beginner" // fallback to default
+            }
+        }
+
+        return parsed
+    } catch {
+        return defaultValue
+    }
+}
+
+export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
+    ({ onDataChange, onNext, onPrevious, onCancel }, ref) => {
+        // Get all course data from localStorage
+        const getAllCourseData = () => {
+            return {
+                courseDetails: getLocalStorageItem(LOCAL_STORAGE_KEYS.COURSE_DETAILS, {
+                    lessonName: "",
+                    courseSlug: "",
+                    courseCategory: "",
+                    courseLevel: "",
+                    courseTime: "",
+                    totalLessons: "",
+                    difficulty: "beginner",
+                    estimatedHours: 1,
+                }),
+                videos: getLocalStorageItem(LOCAL_STORAGE_KEYS.VIDEO_UPLOAD, []),
+                aboutCourse: getLocalStorageItem(LOCAL_STORAGE_KEYS.ABOUT_COURSE, {
+                    title: "",
+                    shortDescription: "",
+                    fullDescription: "",
+                    learningObjectives: [],
+                    prerequisites: [],
+                    targetAudience: "",
+                    language: "English",
+                    subtitles: [],
+                    tags: [],
+                    pricing: {
+                        basePrice: 0,
+                        currency: "USD",
+                        pricingTier: "basic",
+                        paymentOptions: ["one-time"],
+                    },
+                    metrics: {
+                        expectedEnrollments: 100,
+                        targetRevenue: 0,
+                        marketingBudget: 0,
+                    },
+                }),
+                quiz: getLocalStorageItem(LOCAL_STORAGE_KEYS.QUIZ_DATA, { questions: [] }),
+                publishSettings: getLocalStorageItem(LOCAL_STORAGE_KEYS.PUBLISH_SETTINGS, {
+                    isPublic: true,
+                    publishDate: new Date(),
+                    certificateEnabled: true,
+                    certificateTemplate: "default",
+                    prerequisites: [],
+                    courseLevel: "beginner",
+                    supportEmail: "",
+                    discussionEnabled: true,
+                    downloadableResources: false,
+                })
+            }
+        }
+
+        const [courseData, setCourseData] = useState(getAllCourseData())
+        const [publishSettings, setPublishSettings] = useState<PublishSettings>(courseData?.publishSettings)
         const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
         const [isValid, setIsValid] = useState(false)
 
-        // Validation function
-        const validateForm = (): boolean => {
+        // Update course data when local storage changes
+        useEffect(() => {
+            const handleStorageChange = () => {
+                setCourseData(getAllCourseData())
+            }
+            window.addEventListener('storage', handleStorageChange)
+            return () => window.removeEventListener('storage', handleStorageChange)
+        }, [])
+
+        // Save to localStorage whenever publishSettings changes
+        useEffect(() => {
+            localStorage.setItem(LOCAL_STORAGE_KEYS.PUBLISH_SETTINGS, JSON.stringify(publishSettings))
+        }, [publishSettings])
+
+        // Comprehensive validation function checking all steps
+        const validateAllSteps = (): boolean => {
             const errors: Record<string, string> = {}
 
+            // Validate course details
+            if (!courseData.courseDetails?.lessonName) {
+                errors.courseName = "Course name is required"
+            }
+
+            if (!courseData.courseDetails?.courseCategory) {
+                errors.courseCategory = "Course category is required"
+            }
+
+            // Validate about course
+            if (!courseData.aboutCourse?.title) {
+                errors.courseTitle = "Course title is required"
+            }
+
+            if (!courseData.aboutCourse?.shortDescription) {
+                errors.shortDescription = "Short description is required"
+            }
+
+            if (courseData.aboutCourse?.learningObjectives?.length === 0) {
+                errors.learningObjectives = "At least one learning objective is required"
+            }
+
+            // Validate videos
+            if (courseData.videos?.length === 0) {
+                errors.videos = "At least one video is required"
+            }
+
+            // Validate publish settings
             if (publishSettings.supportEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(publishSettings.supportEmail)) {
                 errors.supportEmail = "Please enter a valid email address"
             }
@@ -75,23 +192,17 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
 
         // Update settings
         const updateSettings = (updates: Partial<PublishSettings>) => {
-            setPublishSettings((prev) => ({ ...prev, ...updates }))
+            setPublishSettings(prev => ({ ...prev, ...updates }))
         }
-
-        // Effect to validate and notify parent
-        // useEffect(() => {
-        //     const valid = validateForm()
-        //     onDataChange(publishSettings, valid)
-        // }, [publishSettings, onDataChange])
 
         // Calculate course statistics
         const courseStats = {
             totalVideos: courseData.videos?.length || 0,
-            totalDuration:
-                courseData.videos?.reduce((acc: number, video: any) => acc + (video.metadata?.duration || 0), 0) || 0,
+            totalDuration: courseData.videos?.reduce((acc: number, video: any) =>
+                acc + (video.metadata?.duration || 0), 0) || 0,
             totalQuestions: courseData.quiz?.questions?.length || 0,
-            estimatedRevenue:
-                (courseData.aboutCourse?.pricing?.basePrice || 0) * (courseData.aboutCourse?.metrics?.expectedEnrollments || 0),
+            estimatedRevenue: (courseData.aboutCourse?.pricing?.basePrice || 0) *
+                (courseData.aboutCourse?.metrics?.expectedEnrollments || 0),
         }
 
         const formatDuration = (seconds: number) => {
@@ -100,12 +211,17 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
             return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
         }
 
+        const handleNext = () => {
+            const isValid = validateAllSteps()
+            if (isValid && onNext) {
+                onNext()
+            }
+        }
+
         useImperativeHandle(ref, () => ({
-            validate: async () => validateForm(),
+            validate: async () => validateAllSteps(),
             getData: () => publishSettings,
-            focus: () => {
-                document.getElementById("course-summary-card")?.focus()
-            },
+            focus: () => document.getElementById("course-summary-card")?.focus(),
             reset: () => {
                 setPublishSettings({
                     isPublic: true,
@@ -119,6 +235,7 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                     downloadableResources: false,
                 })
                 setValidationErrors({})
+                localStorage.removeItem(LOCAL_STORAGE_KEYS.PUBLISH_SETTINGS)
             },
         }))
 

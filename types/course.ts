@@ -1,3 +1,5 @@
+import { CourseLevel } from "@/app/admin/components/publish-summary-step"
+
 export interface CourseData {
     // Step 0: Course Details
     courseDetails: {
@@ -103,11 +105,16 @@ export interface CourseData {
         certificateTemplate?: string
         accessDuration?: number
         prerequisites?: string[]
-        courseLevel: "beginner" | "intermediate" | "advanced"
+        courseLevel: string
+        // courseLevel: "beginner" | "intermediate" | "advanced" | "expert"
         supportEmail?: string
         discussionEnabled: boolean
         downloadableResources: boolean
     }
+
+    status?: any;
+    updatedAt: any;
+    createdAt: any;
 }
 
 export interface QuizQuestion {

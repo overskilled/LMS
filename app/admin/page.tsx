@@ -13,7 +13,7 @@ import Image from "next/image"
 import React, { useEffect, useState } from 'react'
 import HourSpent from "./components/hour-spent"
 
-const page = () => {
+const Page = () => {
 
     const [userData, setUserData] = useState<any | null>()
 
@@ -69,4 +69,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Page

@@ -325,8 +325,8 @@ export function CompleteStepper({
                 return (
                     <PublishSummaryStep
                         ref={(ref) => {stepRefs.current[4] = ref }}
-                        courseData={courseData}
-                        initialSettings={courseData.publishSettings}
+                        // courseData={courseData}
+                        // initialSettings={courseData.publishSettings}
                         onDataChange={(data, isValid) => handleStepDataChange(4, data, isValid)}
                         onNext={handleNext}
                         onPrevious={handlePrevious}
@@ -356,7 +356,7 @@ export function CompleteStepper({
                         </nav>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center space-x-3">
+                        {/* <div className="flex items-center space-x-3">
                             <Button
                                 variant="outline"
                                 onClick={handleSaveAsDraft}
@@ -381,7 +381,7 @@ export function CompleteStepper({
                             <div id="publish-help" className="sr-only">
                                 Publish your completed course for students to enroll
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

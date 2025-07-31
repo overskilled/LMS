@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { draftStorage, type CourseDraft } from "../utils/localStorage"
 
 interface DraftManagerProps {
-    onLoadDraft: (draft: CourseDraft) => void
+    onLoadDraft: (draft: any) => void
     onNewCourse: () => void
     currentDraftId?: string
 }

@@ -46,8 +46,25 @@ interface AboutCourseStepProps {
     onCancel?: () => void
 }
 
+const LOCAL_STORAGE_KEY = 'aboutCourseFormData';
+
 export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
     ({ initialData, onDataChange, onNext, onPrevious, onCancel }, ref) => {
+        // Load initial data from localStorage if available
+        const getInitialData = (): Partial<AboutCourseData> => {
+            try {
+                if (typeof window !== 'undefined') {
+                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (savedData) {
+                        return JSON.parse(savedData);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to parse saved course data:', error);
+            }
+            return initialData || {};
+        };
+
         const [formData, setFormData] = useState<AboutCourseData>({
             title: "",
             shortDescription: "",
@@ -60,7 +77,7 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
             tags: [],
             pricing: {
                 basePrice: 0,
-                currency: "USD",
+                currency: "XAF",
                 discountPrice: 0,
                 discountPercentage: 0,
                 pricingTier: "basic",
@@ -71,54 +88,63 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                 targetRevenue: 0,
                 marketingBudget: 0,
             },
-            ...initialData,
-        })
+            ...getInitialData(),
+        });
 
-        const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-        const [isValid, setIsValid] = useState(false)
-        const [newObjective, setNewObjective] = useState("")
-        const [newPrerequisite, setNewPrerequisite] = useState("")
-        const [newTag, setNewTag] = useState("")
+        const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+        const [isValid, setIsValid] = useState(false);
+        const [newObjective, setNewObjective] = useState("");
+        const [newPrerequisite, setNewPrerequisite] = useState("");
+        const [newTag, setNewTag] = useState("");
+
+        // Save to localStorage whenever formData changes
+        useEffect(() => {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+            } catch (error) {
+                console.error('Failed to save course data:', error);
+            }
+        }, [formData]);
 
         // Validation function
         const validateForm = (): boolean => {
-            const errors: Record<string, string> = {}
+            const errors: Record<string, string> = {};
 
             if (!formData.title.trim()) {
-                errors.title = "Course title is required"
+                errors.title = "Course title is required";
             } else if (formData.title.length < 10) {
-                errors.title = "Course title must be at least 10 characters"
+                errors.title = "Course title must be at least 10 characters";
             }
 
             if (!formData.shortDescription.trim()) {
-                errors.shortDescription = "Short description is required"
+                errors.shortDescription = "Short description is required";
             } else if (formData.shortDescription.length < 10) {
-                errors.shortDescription = "Short description must be at least 10 characters"
+                errors.shortDescription = "Short description must be at least 10 characters";
             }
 
             if (!formData.fullDescription.trim()) {
-                errors.fullDescription = "Full description is required"
+                errors.fullDescription = "Full description is required";
             } else if (formData.fullDescription.length < 25) {
-                errors.fullDescription = "Full description must be at least 25 characters"
+                errors.fullDescription = "Full description must be at least 25 characters";
             }
 
             if (formData.learningObjectives.length === 0) {
-                errors.learningObjectives = "At least one learning objective is required"
+                errors.learningObjectives = "At least one learning objective is required";
             }
 
             if (!formData.targetAudience.trim()) {
-                errors.targetAudience = "Target audience is required"
+                errors.targetAudience = "Target audience is required";
             }
 
             if (formData.pricing.basePrice <= 0) {
-                errors.basePrice = "Course price must be greater than 0"
+                errors.basePrice = "Course price must be greater than 0";
             }
 
-            setValidationErrors(errors)
-            const valid = Object.keys(errors).length === 0
-            setIsValid(valid)
-            return valid
-        }
+            setValidationErrors(errors);
+            const valid = Object.keys(errors).length === 0;
+            setIsValid(valid);
+            return valid;
+        };
 
         // Update form data
         const updateFormData = useCallback((updates: Partial<AboutCourseData>) => {
@@ -130,89 +156,68 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                     newData.metrics.targetRevenue = newData.pricing.basePrice * (newData.metrics.expectedEnrollments || 0);
                 }
 
-                // Validate after update
-                const errors: Record<string, string> = {};
-                if (!newData.title.trim()) errors.title = "Course title is required";
-                else if (newData.title.length < 10) errors.title = "Course title must be at least 10 characters";
-
-                if (!newData.shortDescription.trim()) errors.shortDescription = "Short description is required";
-                else if (newData.shortDescription.length < 10) errors.shortDescription = "Short description must be at least 10 characters";
-
-                if (!newData.fullDescription.trim()) errors.fullDescription = "Full description is required";
-                else if (newData.fullDescription.length < 25) errors.fullDescription = "Full description must be at least 25 characters";
-
-                if (newData.learningObjectives.length === 0) errors.learningObjectives = "At least one learning objective is required";
-
-                if (!newData.targetAudience.trim()) errors.targetAudience = "Target audience is required";
-
-                if (newData.pricing.basePrice <= 0) errors.basePrice = "Course price must be greater than 0";
-
-                setValidationErrors(errors);
-                const valid = Object.keys(errors).length === 0;
-                setIsValid(valid);
-                onDataChange(newData, valid);
-
                 return newData;
             });
-        }, [onDataChange]);
-
-        // Effect to validate and notify parent
-        // useEffect(() => {
-        //     const valid = validateForm()
-        //     onDataChange(formData, valid)
-        // }, [formData, onDataChange])
+        }, []);
 
         // Array management functions
         const addObjective = () => {
             if (newObjective.trim()) {
                 updateFormData({
                     learningObjectives: [...formData.learningObjectives, newObjective.trim()],
-                })
-                setNewObjective("")
+                });
+                setNewObjective("");
             }
-        }
+        };
 
         const removeObjective = (index: number) => {
             updateFormData({
                 learningObjectives: formData.learningObjectives.filter((_, i) => i !== index),
-            })
-        }
+            });
+        };
 
         const addPrerequisite = () => {
             if (newPrerequisite.trim()) {
                 updateFormData({
                     prerequisites: [...formData.prerequisites, newPrerequisite.trim()],
-                })
-                setNewPrerequisite("")
+                });
+                setNewPrerequisite("");
             }
-        }
+        };
 
         const removePrerequisite = (index: number) => {
             updateFormData({
                 prerequisites: formData.prerequisites.filter((_, i) => i !== index),
-            })
-        }
+            });
+        };
 
         const addTag = () => {
             if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
                 updateFormData({
                     tags: [...formData.tags, newTag.trim()],
-                })
-                setNewTag("")
+                });
+                setNewTag("");
             }
-        }
+        };
 
         const removeTag = (index: number) => {
             updateFormData({
                 tags: formData.tags.filter((_, i) => i !== index),
-            })
-        }
+            });
+        };
+
+        const handleNext = () => {
+            const isValid = validateForm();
+            if (isValid && onNext) {
+                onNext();
+            }
+        };
 
         useImperativeHandle(ref, () => ({
             validate: async () => validateForm(),
             getData: () => formData,
             focus: () => {
-                document.getElementById("course-title-input")?.focus()
+                document.getElementById("course-title-input")?.focus();
             },
             reset: () => {
                 setFormData({
@@ -238,10 +243,15 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                         targetRevenue: 0,
                         marketingBudget: 0,
                     },
-                })
-                setValidationErrors({})
+                });
+                setValidationErrors({});
+                try {
+                    localStorage.removeItem(LOCAL_STORAGE_KEY);
+                } catch (error) {
+                    console.error('Failed to clear saved course data:', error);
+                }
             },
-        }))
+        }));
 
         return (
             <AccessibleStepWrapper
@@ -492,6 +502,8 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                <SelectItem value="XAF">XAF</SelectItem>
+                                                <SelectItem value="XOF">XOF</SelectItem>
                                                 <SelectItem value="USD">$</SelectItem>
                                                 <SelectItem value="EUR">€</SelectItem>
                                                 <SelectItem value="GBP">£</SelectItem>
@@ -558,6 +570,8 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-blue-900">Projected Revenue:</span>
                                     <span className="text-lg font-bold text-blue-900">
+                                        {formData.pricing.currency === "XAF" && "XAF"}
+                                        {formData.pricing.currency === "XOF" && "XOF"}
                                         {formData.pricing.currency === "USD" && "$"}
                                         {formData.pricing.currency === "EUR" && "€"}
                                         {formData.pricing.currency === "GBP" && "£"}
@@ -566,6 +580,8 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                                 </div>
                                 <p className="text-xs text-blue-700 mt-1">
                                     Based on {formData.metrics.expectedEnrollments} enrollments at{" "}
+                                    {formData.pricing.currency === "XAF" && "XAF"}
+                                    {formData.pricing.currency === "XOF" && "XOF"}
                                     {formData.pricing.currency === "USD" && "$"}
                                     {formData.pricing.currency === "EUR" && "€"}
                                     {formData.pricing.currency === "GBP" && "£"}

@@ -58,7 +58,7 @@ export const courseApi = {
                 enrollmentCount: 0,
                 revenue: 0,
                 ...courseData,
-                createdAt: Date.now(),
+                createdAt: Date.now() ,
                 updatedAt: Date.now(),
             };
 

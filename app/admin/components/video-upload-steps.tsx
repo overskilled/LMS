@@ -37,79 +37,99 @@ interface VideoUploadStepProps {
     courseId?: string
 }
 
+const LOCAL_STORAGE_KEY = 'videoUploadFormData';
+
 export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
     ({ initialData = [], onDataChange, onNext, onPrevious, onCancel, courseId }, ref) => {
-        const [videos, setVideos] = useState<Video[]>(initialData)
-        const [dragActive, setDragActive] = useState(false)
-        const [uploadingFiles, setUploadingFiles] = useState<File[]>([])
-        const [uploadProgress, setUploadProgress] = useState<Record<number, number>>({})
-        const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-        const [isValid, setIsValid] = useState(false)
-        const [isLoading, setIsLoading] = useState(false)
+        // Load initial data from localStorage if available
+        const getInitialData = (): Video[] => {
+            try {
+                if (typeof window !== 'undefined') {
+                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (savedData) {
+                        return JSON.parse(savedData);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to parse saved video data:', error);
+            }
+            return initialData;
+        };
 
-        const fileInputRef = useRef<HTMLInputElement>(null)
-        const { error: uploadError, clearError } = useMediaUpload()
+        const [videos, setVideos] = useState<Video[]>(getInitialData());
+        const [dragActive, setDragActive] = useState(false);
+        const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
+        const [uploadProgress, setUploadProgress] = useState<Record<number, number>>({});
+        const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+        const [isValid, setIsValid] = useState(false);
+        const [isLoading, setIsLoading] = useState(false);
+
+        const fileInputRef = useRef<HTMLInputElement>(null);
+        const { error: uploadError, clearError } = useMediaUpload();
+
+        // Save to localStorage whenever videos change
+        useEffect(() => {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(videos));
+            } catch (error) {
+                console.error('Failed to save video data:', error);
+            }
+        }, [videos]);
 
         // Validation function
         const validateVideos = (): boolean => {
-            const errors: Record<string, string> = {}
+            const errors: Record<string, string> = {};
 
             if (videos.length === 0) {
-                errors.videos = "At least one video is required"
+                errors.videos = "At least one video is required";
             }
 
             videos.forEach((video, index) => {
                 if (!video.title.trim()) {
-                    errors[`video-${index}-title`] = "Video title is required"
+                    errors[`video-${index}-title`] = "Video title is required";
                 }
-            })
+            });
 
-            setValidationErrors(errors)
-            const valid = Object.keys(errors).length === 0
-            setIsValid(valid)
-            return valid
-        }
-
-        // Effect to validate and notify parent
-        // useEffect(() => {
-        //     const valid = validateVideos()
-        //     onDataChange(videos, valid)
-        // }, [videos, onDataChange])
+            setValidationErrors(errors);
+            const valid = Object.keys(errors).length === 0;
+            setIsValid(valid);
+            return valid;
+        };
 
         const handleDrag = (e: React.DragEvent) => {
-            e.preventDefault()
-            e.stopPropagation()
+            e.preventDefault();
+            e.stopPropagation();
             if (e.type === "dragenter" || e.type === "dragover") {
-                setDragActive(true)
+                setDragActive(true);
             } else if (e.type === "dragleave") {
-                setDragActive(false)
+                setDragActive(false);
             }
-        }
+        };
 
         const handleDrop = (e: React.DragEvent) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setDragActive(false)
+            e.preventDefault();
+            e.stopPropagation();
+            setDragActive(false);
 
-            const files = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith("video/"))
+            const files = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith("video/"));
             if (files.length > 0) {
-                handleMultipleFileUpload(files)
+                handleMultipleFileUpload(files);
             }
-        }
+        };
 
         const handleMultipleFileUpload = async (files: File[]) => {
-            setIsLoading(true)
-            clearError()
-            setUploadingFiles(files)
-            setUploadProgress({})
+            setIsLoading(true);
+            clearError();
+            setUploadingFiles(files);
+            setUploadProgress({});
 
             try {
                 const uploadedMetadata = await batchUploadMedia(files, "video", courseId, (fileIndex, progress) => {
                     setUploadProgress((prev) => ({
                         ...prev,
                         [fileIndex]: progress.progress,
-                    }))
-                })
+                    }));
+                });
 
                 // Convert metadata to Video objects
                 const newVideos: Video[] = uploadedMetadata.map((metadata, index) => ({
@@ -119,40 +139,40 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
                     description: "",
                     order: videos.length + index,
                     isPreview: false,
-                }))
+                }));
 
-                setVideos((prev) => [...prev, ...newVideos])
+                setVideos((prev) => [...prev, ...newVideos]);
             } catch (error) {
-                console.error("Batch upload failed:", error)
-                setValidationErrors({ upload: "Failed to upload videos. Please try again." })
+                console.error("Batch upload failed:", error);
+                setValidationErrors({ upload: "Failed to upload videos. Please try again." });
             } finally {
-                setIsLoading(false)
-                setUploadingFiles([])
-                setUploadProgress({})
+                setIsLoading(false);
+                setUploadingFiles([]);
+                setUploadProgress({});
             }
-        }
+        };
 
         const updateVideo = (id: string, updates: Partial<Video>) => {
-            setVideos((prev) => prev.map((video) => (video.id === id ? { ...video, ...updates } : video)))
-        }
+            setVideos((prev) => prev.map((video) => (video.id === id ? { ...video, ...updates } : video)));
+        };
 
         const removeVideo = (id: string) => {
-            setVideos((prev) => prev.filter((video) => video.id !== id))
-        }
+            setVideos((prev) => prev.filter((video) => video.id !== id));
+        };
 
         const reorderVideos = (fromIndex: number, toIndex: number) => {
-            const newVideos = [...videos]
-            const [removed] = newVideos.splice(fromIndex, 1)
-            newVideos.splice(toIndex, 0, removed)
+            const newVideos = [...videos];
+            const [removed] = newVideos.splice(fromIndex, 1);
+            newVideos.splice(toIndex, 0, removed);
 
             // Update order numbers
             const reorderedVideos = newVideos.map((video, index) => ({
                 ...video,
                 order: index,
-            }))
+            }));
 
-            setVideos(reorderedVideos)
-        }
+            setVideos(reorderedVideos);
+        };
 
         const togglePreview = (id: string) => {
             // Only one video can be preview
@@ -161,27 +181,39 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
                     ...video,
                     isPreview: video.id === id ? !video.isPreview : false,
                 })),
-            )
-        }
+            );
+        };
 
         const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const files = e.target.files
+            const files = e.target.files;
             if (files && files.length > 0) {
-                handleMultipleFileUpload(Array.from(files))
+                handleMultipleFileUpload(Array.from(files));
             }
-        }
+        };
+
+        const handleNext = () => {
+            const isValid = validateVideos();
+            if (isValid && onNext) {
+                onNext();
+            }
+        };
 
         useImperativeHandle(ref, () => ({
             validate: async () => validateVideos(),
             getData: () => videos,
             focus: () => {
-                fileInputRef.current?.focus()
+                fileInputRef.current?.focus();
             },
             reset: () => {
-                setVideos([])
-                setValidationErrors({})
+                setVideos([]);
+                setValidationErrors({});
+                try {
+                    localStorage.removeItem(LOCAL_STORAGE_KEY);
+                } catch (error) {
+                    console.error('Failed to clear saved video data:', error);
+                }
             },
-        }))
+        }));
 
         return (
             <AccessibleStepWrapper
