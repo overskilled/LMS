@@ -6,6 +6,7 @@ import {
     serverTimestamp,
     updateDoc,
     deleteDoc,
+    getDoc,
 } from "firebase/firestore";
 import type { CourseData } from "../types/course";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -58,7 +59,7 @@ export const courseApi = {
                 enrollmentCount: 0,
                 revenue: 0,
                 ...courseData,
-                createdAt: Date.now() ,
+                createdAt: Date.now(),
                 updatedAt: Date.now(),
             };
 
@@ -81,8 +82,49 @@ export const courseApi = {
         }
     },
 
+
+    // Add this to your courseApi object
+    getCourseById: async (courseId: string): Promise<ApiResponse<CourseData & PublishedCourse>> => {
+        try {
+            const courseRef = doc(db, "courses", courseId);
+            const courseSnap = await getDoc(courseRef); // Make sure to import getDoc from firebase/firestore
+
+            if (!courseSnap.exists()) {
+                return {
+                    success: false,
+                    message: "Course not found",
+                    errors: ["NOT_FOUND"]
+                };
+            }
+
+            const courseData = courseSnap.data() as CourseData & PublishedCourse;
+
+            // Convert Firestore timestamps to Date objects if needed
+            const processedData = {
+                ...courseData,
+                // publishedAt: courseData.publishedAt?.toDateString?.() || courseData.publishedAt,
+                createdAt: courseData.createdAt?.toDate?.() || courseData.createdAt,
+                updatedAt: courseData.updatedAt?.toDate?.() || courseData.updatedAt
+            };
+
+            return {
+                success: true,
+                message: "Course retrieved successfully",
+                data: processedData
+            };
+        } catch (error) {
+            console.error("Error fetching course:", error);
+            return {
+                success: false,
+                message: "Failed to fetch course",
+                errors: ["FIRESTORE_ERROR"]
+            };
+        }
+    },
+
+
     // Get all published courses from Firestore
-    getPublishedCourses: async (): Promise<PublishedCourse[]> => {
+    getPublishedCourses: async (): Promise<any[]> => {
         try {
             const querySnapshot = await getDocs(collection(db, "courses"));
             const courses: PublishedCourse[] = [];
@@ -92,9 +134,9 @@ export const courseApi = {
                 // Convert Firestore timestamps to Date objects
                 courses.push({
                     ...data,
-                    publishedAt: data.publishedAt.toDate(),
-                    createdAt: data.createdAt?.toDate(),
-                    updatedAt: data.updatedAt?.toDate(),
+                    // publishedAt: data.publishedAt.toDate(),
+                    // createdAt: data.createdAt?.toDate(),
+                    // updatedAt: data.updatedAt?.toDate(),
                 } as PublishedCourse);
             });
 

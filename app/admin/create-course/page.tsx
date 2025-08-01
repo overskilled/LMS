@@ -182,7 +182,7 @@ export default function CompleteCourseCreator() {
 
     return (
         <div className="relative">
-            <Button
+            {/* <Button
                 variant="ghost"
                 className="absolute top-4 left-4 z-10"
                 onClick={handleBackToDrafts}
@@ -190,7 +190,7 @@ export default function CompleteCourseCreator() {
             >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Drafts
-            </Button>
+            </Button> */}
 
             {error && (
                 <div className="fixed top-4 right-4 z-50 p-4 bg-red-100 text-red-700 rounded shadow-lg">

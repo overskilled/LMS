@@ -2,6 +2,7 @@ import { CourseLevel } from "@/app/admin/components/publish-summary-step"
 
 export interface CourseData {
     // Step 0: Course Details
+    id?: string
     courseDetails: {
         thumbnailImage?: any
         previewVideo?: any
@@ -111,6 +112,8 @@ export interface CourseData {
         discussionEnabled: boolean
         downloadableResources: boolean
     }
+
+    enrollmentCount?: number;
 
     status?: any;
     updatedAt: any;

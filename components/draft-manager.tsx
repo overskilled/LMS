@@ -34,14 +34,7 @@ export function DraftManager({ onLoadDraft, onNewCourse, currentDraftId }: Draft
         }
     }
 
-    const formatDate = (date: Date) => {
-        return new Intl.DateTimeFormat("en-US", {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        }).format(date)
-    }
+   
 
     return (
         <div className="space-y-4">
@@ -68,7 +61,7 @@ export function DraftManager({ onLoadDraft, onNewCourse, currentDraftId }: Draft
                                         <CardTitle className="text-base">{draft.title}</CardTitle>
                                         <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
                                             <Clock className="w-4 h-4" />
-                                            <span>Last modified {formatDate(draft.lastModified)}</span>
+                                            {/* <span>Last modified {formatDate(draft.lastModified)}</span> */}
                                             {currentDraftId === draft.id && (
                                                 <Badge variant="secondary" className="ml-2">
                                                     Current

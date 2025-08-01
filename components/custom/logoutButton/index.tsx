@@ -30,7 +30,7 @@ export function LogoutButton() {
     return (
         <Button variant="ghost" onClick={logout} className="w-full justify-start text-red-500 hover:bg-red-150 hover:text-red-500">
             <LogOut className="mr-2 h-4 w-4" />
-            <span>Logout b</span>
+            <span>Logout</span>
         </Button>
     );
 }

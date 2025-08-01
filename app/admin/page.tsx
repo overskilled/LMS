@@ -64,7 +64,7 @@ const Page = () => {
 
                 <HourSpent />
             </div>
-            <div className="flex w-[20%] bg-red-500">sidebar</div>
+            {/* <div className="flex w-[20%] bg-red-500">sidebar</div> */}
         </div>
     )
 }

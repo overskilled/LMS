@@ -40,7 +40,7 @@ const categories: Category[] = [
 
 export default function TopCategories() {
     return (
-        <section className="flex  w-[92%]  ml-10 mr-10 py-20 my-20 h-[80vh] items-center justify-center md:py-8 lg:py-0 bg-white font-poppins">
+        <section className="flex  w-[92%]  ml-10 mr-10 py-0 my-0 h-[70vh] items-center justify-center md:py-2 lg:py-0 bg-white font-poppins">
             <div className="w-full px-4 md:px-6 ">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-10 relative inline-block">
                     Top Categories

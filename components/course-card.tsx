@@ -6,26 +6,30 @@ import { Badge } from "@/components/ui/badge"
 import { Star, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { CourseData } from "@/types/course"
 
-interface Course {
-    id: string
-    image: string
-    level: string
-    title: string
-    instructor: string
-    price: string
-    rating: number
-    reviews: number
-    isFree?: boolean
+interface CourseCardProps {
+    course: CourseData
     idx: number
 }
 
-export function CourseCard({ id, image, level, title, instructor, price, rating, reviews, isFree, idx }: Course) {
+export function CourseCard({ course, idx }: CourseCardProps) {
     const ref = useRef(null)
     const isInView = useInView(ref, {
         once: true,
         margin: "0px 0px -100px 0px",
     })
+
+    // Helper function to format price
+    const formatPrice = (price: number, currency: string) => {
+        if (price === 0) return "Free"
+
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency,
+            minimumFractionDigits: 0
+        }).format(price)
+    }
 
     return (
         <motion.div
@@ -33,40 +37,47 @@ export function CourseCard({ id, image, level, title, instructor, price, rating,
             initial={{ opacity: 0, y: 40 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, ease: "easeOut", delay: idx * 0.1 }}
-            className="bg-white rounded-lg shadow-md overflow-hidden group relative transition-all"
+            className="bg-white rounded-lg shadow-md overflow-hidden group relative transition-all h-full flex flex-col"
         >
-            <div className="relative">
+            <div className="relative flex-shrink-0">
                 <Image
-                    src={image || "/placeholder.svg"}
+                    src={course.courseDetails?.thumbnailImage?.downloadURL || "/placeholder.svg"}
                     width={400}
                     height={250}
-                    alt={title}
+                    alt={course.aboutCourse.title}
                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                {isFree && (
+                {course.aboutCourse?.pricing?.basePrice === 0 && (
                     <Badge className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
                         FREE
                     </Badge>
                 )}
             </div>
 
-            <div className="p-4">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-600 mb-2">
-                    {level}
+            <div className="p-4 flex-grow flex flex-col">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-600 mb-2 w-fit capitalize">
+                    {course.courseDetails.difficulty || course.courseDetails.courseLevel}
                 </Badge>
-                <Link href={`/course/${id}`}>
-                    <h3 className="text-lg font-semibold hover:underline hover:text-blue-400 text-gray-900 mb-2 line-clamp-2">{title}</h3>
+                <Link href={`/course/${course.id}`}>
+                    <h3 className="text-lg font-semibold hover:underline hover:text-blue-400 text-gray-900 mb-2 line-clamp-2">
+                        {course.aboutCourse.title}
+                    </h3>
                 </Link>
-                <p className="text-sm text-gray-600 mb-3">{instructor}</p>
+                {/* <p className="text-sm text-gray-600 mb-3">By {course.instructor?.name || "Unknown Instructor"}</p> */}
 
-                <div className="flex items-center justify-between">
-                    <span className="text-xl font-semibold text-gray-900">{price}</span>
-                    <div className="flex items-center gap-1 text-yellow-500">
-                        {[...Array(rating)].map((_, i) => (
-                            <Star key={i} className="h-4 w-4 fill-current" />
+                <div className="mt-auto flex items-center justify-between">
+                    <span className="text-xl font-semibold text-gray-900">
+                        {formatPrice(course.aboutCourse?.pricing?.basePrice || 0, course.aboutCourse?.pricing?.currency || "XAF")}
+                    </span>
+                    {/* <div className="flex items-center gap-1 text-yellow-500">
+                        {[...Array(5)].map((_, i) => (
+                            <Star
+                                key={i}
+                                className={`h-4 w-4 ${i < (course.rating || 0) ? 'fill-current' : ''}`}
+                            />
                         ))}
-                        <span className="text-sm text-gray-600">({reviews})</span>
-                    </div>
+                        <span className="text-sm text-gray-600">({course.reviews || 0})</span>
+                    </div> */}
                 </div>
             </div>
 

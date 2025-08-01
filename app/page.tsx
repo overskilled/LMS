@@ -9,7 +9,7 @@ export default function Page() {
   return (
     <MainLayout>
       <HeroSection />
-      <TopCategories />
+      {/* <TopCategories /> */}
       <CourseListing />
       <TestimonialsSection />
       <Cta />
