@@ -6,7 +6,7 @@ import { Globe, Laptop, Search, User } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative bg-[#f8f9fd] px-6 md:px-20 py-16 flex flex-col items-center text-center overflow-hidden">
+    <section className="relative bg-[#f8f9fd] px-6 md:px-20 w-full py-16 flex flex-col items-center text-center overflow-hidden">
       {/* Left floating images */}
       {/* <div className="absolute left-8 top-12 flex flex-col gap-4">
         <div className="bg-white shadow-lg rounded-xl overflow-hidden w-20 h-20">

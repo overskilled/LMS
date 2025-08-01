@@ -1,5 +1,5 @@
-import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
 
 export default function MainLayout({
     children,
@@ -7,10 +7,12 @@ export default function MainLayout({
     children: React.ReactNode;
 }) {
     return (
-        <>
+        <div className="flex flex-col min-h-screen">
             <Navbar />
-            {children}
+            <main className="flex-1 container mx-auto w-full px-0">
+                {children}
+            </main>
             <Footer />
-        </>
+        </div>
     );
 }

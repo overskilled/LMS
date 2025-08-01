@@ -1,13 +1,13 @@
-import Image from "next/image"
+import Image from "next/image";
 
 interface Testimonial {
-    id: string
-    title: string
-    text: string
-    avatar: string
-    name: string
-    role: string
-    location: string
+    id: string;
+    title: string;
+    text: string;
+    avatar: string;
+    name: string;
+    role: string;
+    location: string;
 }
 
 const testimonials: Testimonial[] = [
@@ -47,35 +47,74 @@ const testimonials: Testimonial[] = [
         role: "Student",
         location: "New York",
     },
-]
+];
 
 export default function TestimonialsSection() {
     return (
-        <section className="flex w-[92%] mx-10 py-20 my-20 h-[80vh] items-center justify-center md:py-8 lg:py-0 bg-white font-slab">
-            <div className="px-4 grid lg:grid-cols-4 gap-12 px-4 md:px-6">
+        <section className="w-full bg-white font-slab py-16 md:py-20">
+            <div className="container mx-auto px-4 grid lg:grid-cols-4 gap-12">
                 {/* Left Content */}
                 <div className="flex flex-col justify-center space-y-6">
-                    <h4 className="text-sm font-meduim text-gray-700">WHAT</h4>
-                    <h2 className="text-2xl md:text-2xl lg:text-3xl leading-12 font-extrabold relative inline-block">
-                        People Say <br /> About EduMall
-                        <span className="absolute left-0 right-0 bottom-0 w-[40%] h-1 bg-yellow-400 rounded-full -mb-1"></span>
+                    <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
+                        What
+                    </h4>
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl leading-snug font-extrabold relative inline-block">
+                        People Say <br /> About NMD Course
+                        <span className="absolute left-0 bottom-0 w-[40%] h-1 bg-yellow-400 rounded-full -mb-1"></span>
                     </h2>
-                    <p className="max-w-[600px] text-sm text-gray-600 md:text-xl">
-                        One-stop solution for any eLearning center, online courses. People love EduMall because they can create
-                        their sites with ease here.
+                    <p className="max-w-[600px] text-sm sm:text-base text-gray-600">
+                        One-stop solution for any eLearning center, online courses.
                     </p>
                 </div>
 
-                {/* Right Testimonial Cards */}
-                <div className="relative col-span-3 flex flex-col items-center">
-                    <div className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 gap-6 lg:gap-8 w-full">
+                {/* Right Testimonials */}
+                <div className="relative col-span-3 flex flex-col">
+                    {/* ✅ Mobile: horizontal scroll, Desktop: grid */}
+                    <div className="flex lg:hidden overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 gap-6 w-full">
                         {testimonials.map((testimonial) => (
                             <div
                                 key={testimonial.id}
-                                className="flex-none w-[calc(100%-48px)] sm:w-[calc(50%-24px)] lg:w-[calc(33.33%-24px)] xl:w-[calc(33.33%-24px)] snap-center bg-gray-50 rounded-xl shadow-md p-6 md:p-8 border border-gray-100 relative"
+                                className="flex-none w-[85%] sm:w-[60%] snap-center bg-gray-50 rounded-xl shadow-md p-6 border border-gray-100 relative"
                             >
-                                <span className="absolute top-4 right-4 text-6xl font-bold text-gray-200 opacity-70">”</span>
-                                <h3 className="text-xl font-bold text-blue-600 mb-4">{testimonial.title}</h3>
+                                <span className="absolute top-4 right-4 text-5xl sm:text-6xl font-bold text-gray-200 opacity-70">
+                                    ”
+                                </span>
+                                <h3 className="text-lg sm:text-xl font-bold text-blue-600 mb-4">
+                                    {testimonial.title}
+                                </h3>
+                                <p className="text-gray-700 mb-6 text-sm sm:text-base">{testimonial.text}</p>
+                                <div className="flex items-center gap-4">
+                                    <Image
+                                        src={testimonial.avatar || "/placeholder.svg"}
+                                        width={56}
+                                        height={56}
+                                        alt={testimonial.name}
+                                        className="rounded-full object-cover h-14 w-14"
+                                    />
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                                        <p className="text-xs sm:text-sm text-gray-600">
+                                            /{testimonial.role}, {testimonial.location}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* ✅ Desktop: grid layout */}
+                    <div className="hidden lg:grid grid-cols-3 gap-6">
+                        {testimonials.map((testimonial) => (
+                            <div
+                                key={testimonial.id}
+                                className="bg-gray-50 rounded-xl shadow-md p-8 border border-gray-100 relative"
+                            >
+                                <span className="absolute top-4 right-4 text-6xl font-bold text-gray-200 opacity-70">
+                                    ”
+                                </span>
+                                <h3 className="text-xl font-bold text-blue-600 mb-4">
+                                    {testimonial.title}
+                                </h3>
                                 <p className="text-gray-700 mb-6">{testimonial.text}</p>
                                 <div className="flex items-center gap-4">
                                     <Image
@@ -95,15 +134,16 @@ export default function TestimonialsSection() {
                             </div>
                         ))}
                     </div>
-                    {/* Pagination Dots */}
-                    <div className="flex gap-2 mt-8">
-                        <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+
+                    {/* Pagination Dots (Mobile Only) */}
+                    <div className="flex lg:hidden gap-2 mt-6 self-center">
                         <div className="h-2 w-2 rounded-full bg-gray-700"></div>
+                        <div className="h-2 w-2 rounded-full bg-gray-300"></div>
                         <div className="h-2 w-2 rounded-full bg-gray-300"></div>
                         <div className="h-2 w-2 rounded-full bg-gray-300"></div>
                     </div>
                 </div>
             </div>
         </section>
-    )
+    );
 }

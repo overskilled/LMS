@@ -24,7 +24,7 @@ import {
 import MainLayout from "@/app/main-layout"
 import { courseApi } from "@/utils/courseApi"
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { CourseData } from "@/types/course"
 import { format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,6 +38,7 @@ export default function CourseDetailPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [user, setUser] = useState<any>(null)
+    const router = useRouter()
 
     useEffect(() => {
         // Get user info from localStorage
@@ -309,8 +310,8 @@ export default function CourseDetailPage() {
                                         </>
                                     ) : (
                                         <>
-                                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
-                                                Add to cart
+                                            <Button onClick={() => router.push(`/course/${courseId}/subscribe`)} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
+                                                Purchase Course
                                             </Button>
                                             <Button
                                                 variant="outline"

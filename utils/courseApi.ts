@@ -7,6 +7,7 @@ import {
     updateDoc,
     deleteDoc,
     getDoc,
+    arrayUnion,
 } from "firebase/firestore";
 import type { CourseData } from "../types/course";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -82,6 +83,32 @@ export const courseApi = {
         }
     },
 
+
+    // Save purchased course 
+
+    purchaseCourse: async (courseId: string, userId: string): Promise<ApiResponse<any>> => {
+        try {
+            const userRef = doc(db, "user", userId);
+
+            // This will create the courses array if it doesn't exist yet
+            await setDoc(userRef, {
+                courses: arrayUnion(courseId),
+            }, { merge: true });
+
+            return {
+                success: true,
+                message: "Course purchased successfully!",
+                data: courseId,
+            };
+        } catch (error) {
+            console.error("Error purchasing course:", error);
+            return {
+                success: false,
+                message: "Failed to purchase course",
+                errors: ["FIRESTORE_ERROR"],
+            };
+        }
+    },
 
     // Add this to your courseApi object
     getCourseById: async (courseId: string): Promise<ApiResponse<CourseData & PublishedCourse>> => {

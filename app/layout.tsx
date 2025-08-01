@@ -5,6 +5,9 @@ import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "NMD LMS",
   description: "Learning management",
+  icons: {
+    icon: "/nmd-logo",
+  }
 };
 
 export default function RootLayout({
@@ -14,9 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
-          {children}
-          <Toaster />
+      <body className=" flex flex-col w-[100%]">
+        {children}
+        <Toaster />
       </body>
     </html>
   );

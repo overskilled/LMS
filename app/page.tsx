@@ -11,7 +11,7 @@ export default function Page() {
       <HeroSection />
       {/* <TopCategories /> */}
       <CourseListing />
-      <TestimonialsSection />
+      {/* <TestimonialsSection /> */}
       <Cta />
     </MainLayout>
   )

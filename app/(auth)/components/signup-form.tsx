@@ -179,14 +179,14 @@ export default function SignupForm() {
                 </p>
 
                 {/* Divider */}
-                <div className="flex items-center gap-4">
+                {/* <div className="flex items-center gap-4">
                     <div className="h-px flex-1 bg-gray-300" />
                     <span className="text-sm text-gray-500">or</span>
                     <div className="h-px flex-1 bg-gray-300" />
-                </div>
+                </div> */}
 
                 {/* Google Sign-Up */}
-                <Button
+                {/* <Button
                     type="button"
                     variant="outline"
                     onClick={handleGoogleSignIn}
@@ -194,7 +194,7 @@ export default function SignupForm() {
                 >
                     <FcGoogle className="h-5 w-5" />
                     Sign {isLogin ? "in" : "up"} with Google
-                </Button>
+                </Button> */}
             </div>
         </div>
     )

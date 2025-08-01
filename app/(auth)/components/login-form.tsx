@@ -40,107 +40,103 @@ export default function LoginForm() {
             [e.target.id]: e.target.value,
         });
     };
-    useEffect(() => {
-        if (!authLoading && authUser) {
-            router.push('/');
-        }
-    }, [authUser, authLoading, router]);
+    // useEffect(() => {
+    //     if (!authLoading && authUser) {
+    //         router.push('/');
+    //     }
+    // }, [authUser, authLoading, router]);
 
-    useEffect(() => {
-        if (user) {
-            router.push('/');
-        }
-    }, [user, router]);
+    // useEffect(() => {
+    //     if (user) {
+    //         router.push('/');
+    //     }
+    // }, [user, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors("");
 
         if (!formData.email || !formData.password) {
-            setErrors('login.errorMessage');
+            setErrors("Please fill in all required fields");
             return;
         }
 
         try {
             const userInfo = await signInWithEmailAndPassword(formData.email, formData.password);
-            toast("Success")
+
+            console.log("euerer: ", userInfo)
 
             if (!userInfo) {
-                setErrors("login.notFoundMessage");
-                return;
+                setErrors("We couldn't log you in, check you information or try later!")
             }
 
-            const docRef = doc(db, "users", userInfo.user.uid);
-            const docSnap = await getDoc(docRef);
+            if (userInfo) {
+                const docRef = doc(db, "users", userInfo?.user.uid);
+                const docSnap = await getDoc(docRef);
 
-            if (docSnap.exists()) {
-                localStorage.setItem("user-info", JSON.stringify(docSnap.data()));
-            } else {
-                setErrors("login.notFoundMessage");
-                toast("Error", {
-                    description: "login.notFoundMessage",
-                })
+                if (docSnap.exists()) {
+                    localStorage.setItem("user-info", JSON.stringify(docSnap.data()));
+                }
 
+                router.push("/");
+                toast.success("Welcome back to NMD Courses");
             }
 
-            router.push("/")
+            console.log("euerer: end",)
 
         } catch (error: any) {
-            let message = "An unexpected error occurred.";
+            // let message = "An unexpected error occurred.";
 
-            if (error.code) {
-                switch (error.code) {
-                    case "auth/invalid-email":
-                        message = "The email address is not valid.";
-                        break;
-                    case "auth/user-disabled":
-                        message = "This user account has been disabled.";
-                        break;
-                    case "auth/user-not-found":
-                        message = "No user found with this email.";
-                        break;
-                    case "auth/wrong-password":
-                        message = "Incorrect password.";
-                        break;
-                    case "auth/email-already-in-use":
-                        message = "This email is already in use.";
-                        break;
-                    case "auth/weak-password":
-                        message = "The password is too weak.";
-                        break;
-                    case "auth/too-many-requests":
-                        message = "Too many requests. Please try again later.";
-                        break;
-                    case "auth/network-request-failed":
-                        message = "Network error. Please check your connection.";
-                        break;
-                    case "auth/operation-not-allowed":
-                        message = "This operation is not allowed.";
-                        break;
-                    case "auth/invalid-credential":
-                        message = "Invalid login credentials.";
-                        break;
-                    case "auth/invalid-verification-code":
-                        message = "Invalid verification code.";
-                        break;
-                    case "auth/missing-verification-code":
-                        message = "Verification code is missing.";
-                        break;
-                    case "auth/internal-error":
-                        message = "Internal server error. Try again.";
-                        break;
-                    default:
-                        message = error.message || message;
-                        break;
-                }
+            console.log("errorrrr: ", error.message)
+
+            // ✅ Handle Firebase REST API error format
+            const firebaseErrorCode = error?.error?.message || error?.message || "";
+
+            switch (firebaseErrorCode) {
+                case "INVALID_EMAIL":
+                    error.message = "The email address is not valid.";
+                    break;
+                case "EMAIL_NOT_FOUND":
+                    error.message = "No user found with this email.";
+                    break;
+                case "INVALID_PASSWORD":
+                    error.message = "Incorrect password.";
+                    break;
+                case "USER_DISABLED":
+                    error.message = "This user account has been disabled.";
+                    break;
+                case "EMAIL_EXISTS":
+                    error.message = "This email is already in use.";
+                    break;
+                case "WEAK_PASSWORD":
+                    error.message = "The password is too weak.";
+                    break;
+                case "TOO_MANY_ATTEMPTS_TRY_LATER":
+                    error.message = "Too many login attempts. Please try again later.";
+                    break;
+                case "OPERATION_NOT_ALLOWED":
+                    error.message = "This operation is not allowed.";
+                    break;
+                case "INVALID_LOGIN_CREDENTIALS":
+                    error.message = "Invalid login credentials.";
+                    break;
+                case "NETWORK_REQUEST_FAILED":
+                    error.message = "Network error. Please check your connection.";
+                    break;
+                case "INTERNAL_ERROR":
+                    error.message = "Internal server error. Try again.";
+                    break;
+                default:
+                    error.message = firebaseErrorCode || error.message;
+                    break;
             }
 
-            toast.error(message);
-            setErrors(message);
-            console.error("Firebase Auth Error:", error);
+            toast.error(error.message);
+            setErrors(error.message);
+            console.log("Firebase Auth Error:", error.message);
         }
-
     };
+
 
 
     return (
@@ -172,12 +168,12 @@ export default function LoginForm() {
                         </Label>
                         <User className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                         <Input
-                            id="email-username"
-                            name="email-username"
+                            id="email"
+                            name="email"
                             type="text"
-                            autoComplete="username"
+                            autoComplete="email"
                             required
-                            placeholder="Enter username or email"
+                            placeholder="Enter your email"
                             className="pl-10"
                             onChange={handleInputChange}
                         />
@@ -257,14 +253,14 @@ export default function LoginForm() {
                     </div>
 
                     {/* Google Sign-In */}
-                    <Button
+                    {/* <Button
                         type="button"
                         variant="outline"
                         className="w-full flex items-center justify-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-100"
                     >
                         <FcGoogle className="h-5 w-5" />
                         Sign in with Google
-                    </Button>
+                    </Button> */}
 
 
                 </div>
