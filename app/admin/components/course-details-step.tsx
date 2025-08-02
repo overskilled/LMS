@@ -512,14 +512,11 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="programming">Programming</SelectItem>
-                                        <SelectItem value="design">Design</SelectItem>
-                                        <SelectItem value="business">Business</SelectItem>
-                                        <SelectItem value="marketing">Marketing</SelectItem>
-                                        <SelectItem value="data-science">Data Science</SelectItem>
-                                        <SelectItem value="photography">Photography</SelectItem>
-                                        <SelectItem value="music">Music</SelectItem>
-                                        <SelectItem value="health">Health & Fitness</SelectItem>
+                                        <SelectItem value="programming">Satellite Engineering</SelectItem>
+                                        <SelectItem value="design">Geomatics</SelectItem>
+                                        <SelectItem value="business">Artificial Intelligence</SelectItem>
+                                        <SelectItem value="marketing">Mission Operations</SelectItem>
+                                        <SelectItem value="data-science">Space Science</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <div id="course-category-help" className="sr-only">
