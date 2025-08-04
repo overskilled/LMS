@@ -50,7 +50,7 @@ const Page = () => {
             }
         }
 
-        checkAdmin(userData)
+        // checkAdmin(userData)
     }, [])
 
     return (

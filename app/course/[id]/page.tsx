@@ -325,7 +325,7 @@ export default function CourseDetailPage() {
                                     </div>
                                     {user?.admin ? (
                                         <>
-                                            <Link href={`/admin/courses/edit/${courseId}`}>
+                                            <Link href={`/admin/edit-course/${courseId}`}>
                                                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
                                                     Update Course
                                                 </Button>

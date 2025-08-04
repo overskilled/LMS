@@ -17,13 +17,15 @@ export default function AdminLayout({
 
     useEffect(() => {
         // Check localStorage for user info
-        const userData = localStorage.getItem("user-info");
+        const userData = JSON.parse(localStorage.getItem("user-info") || "");
 
-        if (!userData) {
-            router.push('/admin/login');
-        } else {
-            setIsAuthorized(true);
-        }
+        console.log("userData: ", userData)
+
+            // if (!userData.admin) {
+            //     router.push('/admin/login');
+            // } else {
+            //     setIsAuthorized(true);
+            // }
     }, [router]);
 
     if (!isAuthorized) {

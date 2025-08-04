@@ -30,12 +30,10 @@ export const useMediaUpload = (): UseMediaUploadReturn => {
             setUploading(true)
             setError(null)
             setProgress(null)
-
             try {
                 const metadata = await uploadMediaFile(file, type, courseId, (progressData: any) => {
                     setProgress(progressData)
                 })
-
                 return metadata
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : "Upload failed"
@@ -51,7 +49,6 @@ export const useMediaUpload = (): UseMediaUploadReturn => {
 
     const deleteFile = useCallback(async (mediaId: string): Promise<void> => {
         setError(null)
-
         try {
             await deleteMediaFile(mediaId)
         } catch (err) {
