@@ -28,9 +28,9 @@ export default function AdminLayout({
             // }
     }, [router]);
 
-    if (!isAuthorized) {
-        return <Loading />;
-    }
+    // if (!isAuthorized) {
+    //     return <Loading />;
+    // }
 
 
 

@@ -72,10 +72,10 @@ export default function AdminLoginForm() {
                     return
                 }
 
-                localStorage.setItem("user-info", JSON.stringify(docSnap.data()));
             } 
             
-            
+            localStorage.setItem("user-info", JSON.stringify(docSnap.data()));
+            console.log("finished with data: ", JSON.stringify(docSnap.data()))
             toast.success("Logging successful, welcome back!")
             router.push("/admin")
 
