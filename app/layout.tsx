@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "NMD LMS",
   description: "Learning management",
   icons: {
-    icon: "/nmd-logo",
+    icon: "/nmd-logo.webp",
   }
 };
 
@@ -17,6 +17,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="icon"
+          href="/nmd-logo.webp"
+          type="image/webp"
+        />
+      </head>
       <body className=" flex flex-col w-[100%]">
         {children}
         <Toaster />

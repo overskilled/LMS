@@ -39,37 +39,36 @@ export function CourseCard({ course, idx }: CourseCardProps) {
             transition={{ duration: 0.6, ease: "easeOut", delay: idx * 0.1 }}
             className="bg-white rounded-lg shadow-md overflow-hidden group relative transition-all h-full flex flex-col"
         >
-            <div className="relative flex-shrink-0">
-                <Image
-                    src={course.courseDetails?.thumbnailImage?.downloadURL || "/placeholder.svg"}
-                    width={400}
-                    height={250}
-                    alt={course.aboutCourse.title}
-                    className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                {course.aboutCourse?.pricing?.basePrice === 0 && (
-                    <Badge className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
-                        FREE
-                    </Badge>
-                )}
-            </div>
+            <Link href={`/course/${course.id}`}>
+                <div className="relative flex-shrink-0">
+                    <Image
+                        src={course.courseDetails?.thumbnailImage?.downloadURL || "/placeholder.svg"}
+                        width={400}
+                        height={250}
+                        alt={course.aboutCourse.title}
+                        className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    {course.aboutCourse?.pricing?.basePrice === 0 && (
+                        <Badge className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+                            FREE
+                        </Badge>
+                    )}
+                </div>
 
-            <div className="p-4 flex-grow flex flex-col">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-600 mb-2 w-fit capitalize">
-                    {course.courseDetails.difficulty || course.courseDetails.courseLevel}
-                </Badge>
-                <Link href={`/course/${course.id}`}>
+                <div className="p-4 flex-grow flex flex-col">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-600 mb-2 w-fit capitalize">
+                        {course.courseDetails.difficulty || course.courseDetails.courseLevel}
+                    </Badge>
                     <h3 className="text-lg font-semibold hover:underline hover:text-blue-400 text-gray-900 mb-2 line-clamp-2">
                         {course.aboutCourse.title}
                     </h3>
-                </Link>
-                {/* <p className="text-sm text-gray-600 mb-3">By {course.instructor?.name || "Unknown Instructor"}</p> */}
+                    {/* <p className="text-sm text-gray-600 mb-3">By {course.instructor?.name || "Unknown Instructor"}</p> */}
 
-                <div className="mt-auto flex items-center justify-between">
-                    <span className="text-xl font-semibold text-gray-900">
-                        {formatPrice(course.aboutCourse?.pricing?.basePrice || 0, course.aboutCourse?.pricing?.currency || "XAF")}
-                    </span>
-                    {/* <div className="flex items-center gap-1 text-yellow-500">
+                    <div className="mt-auto flex items-center justify-between">
+                        <span className="text-xl font-semibold text-gray-900">
+                            {formatPrice(course.aboutCourse?.pricing?.basePrice || 0, course.aboutCourse?.pricing?.currency || "XAF")}
+                        </span>
+                        {/* <div className="flex items-center gap-1 text-yellow-500">
                         {[...Array(5)].map((_, i) => (
                             <Star
                                 key={i}
@@ -78,9 +77,10 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                         ))}
                         <span className="text-sm text-gray-600">({course.reviews || 0})</span>
                     </div> */}
+                    </div>
                 </div>
-            </div>
 
+            </Link>
             <motion.div
                 initial={{ opacity: 0, x: 10 }}
                 whileHover={{ opacity: 1, x: 0 }}

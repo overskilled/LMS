@@ -298,13 +298,13 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-sm font-medium text-green-900">Course Price:</span>
                                             <span className="text-lg font-bold text-green-900">
-                                                ${courseData.aboutCourse?.pricing?.basePrice || 0}
+                                                {courseData.aboutCourse?.pricing?.basePrice || 0} {courseData.aboutCourse?.pricing?.currency}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-xs text-green-700">Projected Revenue:</span>
                                             <span className="text-sm font-semibold text-green-700">
-                                                ${courseStats.estimatedRevenue.toLocaleString()}
+                                                {courseStats.estimatedRevenue.toLocaleString()} {courseData.aboutCourse?.pricing?.currency}
                                             </span>
                                         </div>
                                     </div>

@@ -12,10 +12,32 @@ import {
 import Image from "next/image"
 import React, { useEffect, useState } from 'react'
 import HourSpent from "./components/hour-spent"
+import { useRouter } from "next/navigation"
+
+interface User {
+    uid: string
+    email: string
+    name: string
+    admin?: boolean
+    createdAt: string
+}
 
 const Page = () => {
 
-    const [userData, setUserData] = useState<any | null>()
+    const [userData, setUserData] = useState<User>({
+        uid: "",
+        email: "",
+        name: "",
+        createdAt: "",
+    })
+    const router = useRouter()
+
+
+    const checkAdmin = (userData: User) => {
+        if (!userData.admin) {
+            router.push('/admin/login')
+        }
+    }
 
     useEffect(() => {
         const userString = localStorage.getItem('user-info');
@@ -27,6 +49,8 @@ const Page = () => {
                 console.error('Failed to parse user data', error);
             }
         }
+
+        checkAdmin(userData)
     }, [])
 
     return (

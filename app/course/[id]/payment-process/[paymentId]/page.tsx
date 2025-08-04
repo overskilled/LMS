@@ -66,10 +66,30 @@ export default function PaymentProcessingPage() {
 
             console.log(user)
 
-            await courseApi.purchaseCourse(user.id, courseId)
+            await courseApi.purchaseCourse(user.uid, courseId)
+
+            console.log("courseid in process: ", courseId)
+
+            // Then, update the local storage to keep it in sync.
+            // First, get the current user data from local storage.
+            const storedUserInfo = localStorage.getItem("user-info")
+            if (storedUserInfo) {
+                const userInfo = JSON.parse(storedUserInfo)
+                // Add the new courseId to the courses array.
+                // Check if the courses array exists and is an array; if not, initialize it.
+                if (!userInfo.courses || !Array.isArray(userInfo.courses)) {
+                    userInfo.courses = []
+                }
+                // Add the courseId if it's not already in the array.
+                if (!userInfo.courses.includes(courseId)) {
+                    userInfo.courses.push(courseId)
+                }
+                // Update local storage with the new user data.
+                localStorage.setItem("user-info", JSON.stringify(userInfo))
+            }
 
             toast.success("Subscription activated successfully!")
-            router.push("/en/workspace/complete")
+            router.push(`/course/${courseId}`)
         } catch (error) {
             console.error("Error subscribing:", error)
             toast.error("Failed to activate subscription. Please try again.")
@@ -168,7 +188,7 @@ export default function PaymentProcessingPage() {
                 <CardHeader className="pb-4 relative">
                     <div className="absolute top-4 left-4">
                         <Button onClick={() => router.back()} variant="ghost" size="icon" asChild>
-                                <ArrowLeft className="h-4 w-4" />
+                            <ArrowLeft className="h-4 w-4" />
                         </Button>
                     </div>
                     <CardTitle className="text-xl text-center pt-2">Payment Processing</CardTitle>

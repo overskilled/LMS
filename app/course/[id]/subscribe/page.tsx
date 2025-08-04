@@ -89,13 +89,13 @@ export default function CoursePayment() {
                     },
                     body: JSON.stringify({
                         depositId,
-                        amount: "10",
-                        // amount: course.aboutCourse.pricing.basePrice.toString(),
+                        // amount: "10",
+                        amount: course.aboutCourse.pricing.basePrice.toString(),
                         currency: "XAF",
                         correspondent: selectedMobileMethod === "mtn" ? "MTN_MOMO_CMR" : "ORANGE_CMR",
                         payer: { address: { value: `237${phoneNumber}` }, type: "MSISDN" },
                         customerTimestamp: new Date().toISOString(),
-                        statementDescription: `Payment for ${course.courseDetails.lessonName}`,
+                        statementDescription: `NMD Course`,
                         country: "CMR",
                         preAuthorisationCode: "PMxQYqfDx",
                         metadata: [

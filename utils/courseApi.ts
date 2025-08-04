@@ -86,9 +86,11 @@ export const courseApi = {
 
     // Save purchased course 
 
-    purchaseCourse: async (courseId: string, userId: string): Promise<ApiResponse<any>> => {
+    purchaseCourse: async (userId: string, courseId: string): Promise<ApiResponse<any>> => {
         try {
-            const userRef = doc(db, "user", userId);
+            const userRef = doc(db, "users", userId);
+
+            console.log("courseid in process: ", courseId)
 
             // This will create the courses array if it doesn't exist yet
             await setDoc(userRef, {
@@ -101,7 +103,7 @@ export const courseApi = {
                 data: courseId,
             };
         } catch (error) {
-            console.error("Error purchasing course:", error);
+            console.log("Error purchasing course:", error);
             return {
                 success: false,
                 message: "Failed to purchase course",

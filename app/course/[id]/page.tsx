@@ -20,6 +20,7 @@ import {
     ArrowUp,
     X,
     ShoppingCart,
+    Play,
 } from "lucide-react"
 import MainLayout from "@/app/main-layout"
 import { courseApi } from "@/utils/courseApi"
@@ -38,6 +39,7 @@ export default function CourseDetailPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [user, setUser] = useState<any>(null)
+    const [hasPurchased, setHasPurchased] = useState(false)
     const router = useRouter()
 
     useEffect(() => {
@@ -47,6 +49,11 @@ export default function CourseDetailPage() {
             try {
                 const parsedUser = JSON.parse(userInfo)
                 setUser(parsedUser)
+
+                // Check if user has purchased this course
+                if (parsedUser.courses && Array.isArray(parsedUser.courses)) {
+                    setHasPurchased(parsedUser.courses.includes(courseId))
+                }
             } catch (e) {
                 console.error("Error parsing user info", e)
             }
@@ -73,7 +80,7 @@ export default function CourseDetailPage() {
             fetchCourse()
         }
     }, [courseId])
-    
+
     if (loading) {
         return (
             <MainLayout>
@@ -204,56 +211,78 @@ export default function CourseDetailPage() {
                                 </div>
                                 <span>Last Update {formatDate(course.updatedAt)}</span>
                             </div>
-                            <div className="flex items-center gap-4 text-gray-600 text-lg">
-                                <span className="font-bold">4.38 / 5</span>
-                                <div className="flex items-center gap-1 text-yellow-400">
-                                    <Star className="h-5 w-5 fill-current" />
-                                    <Star className="h-5 w-5 fill-current" />
-                                    <Star className="h-5 w-5 fill-current" />
-                                    <Star className="h-5 w-5 fill-current" />
-                                    <Star className="h-5 w-5" />
-                                </div>
-                                <span>(8)</span>
-                                <span className="ml-4">{course.enrollmentCount || 0} already enrolled</span>
-                            </div>
+                            {user?.admin ? (
+                                <>
+                                    <span className="ml-4">{course.enrollmentCount || 0} already enrolled</span>
+                                </>
+                            )
+                                : (
+                                    <div className="flex items-center gap-4 text-gray-600 text-lg">
+                                        <span className="font-bold">4.38 / 5</span>
+                                        <div className="flex items-center gap-1 text-yellow-400">
+                                            <Star className="h-5 w-5 fill-current" />
+                                            <Star className="h-5 w-5 fill-current" />
+                                            <Star className="h-5 w-5 fill-current" />
+                                            <Star className="h-5 w-5 fill-current" />
+                                            <Star className="h-5 w-5" />
+                                        </div>
+                                        <span>(8)</span>
+                                    </div>
+                                )
+                            }
                         </div>
 
                         {/* Right Content - Video and Price Box */}
                         <div className="flex flex-col items-center lg:items-end">
                             <div className="w-full max-w-md bg-gray-600 rounded-lg overflow-hidden shadow-lg">
-                                <div className="relative w-full aspect-video bg-black flex items-center justify-center text-gray-400">
-                                    {course.courseDetails.previewVideo ? (
+                                <div className="relative w-full aspect-video bg-black flex items-center justify-center text-gray-400 overflow-hidden">
+                                    {course.courseDetails.previewVideo?.downloadURL ? (
                                         <iframe
-                                            src={course.courseDetails.previewVideo}
+                                            src={course.courseDetails.previewVideo.downloadURL}
                                             title={`Preview of ${course.aboutCourse.title}`}
                                             frameBorder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowFullScreen
-                                            className="absolute inset-0 w-full h-full"
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                            }}
+                                        />
+                                    ) : course.courseDetails.thumbnailImage?.downloadURL ? (
+                                        <img
+                                            src={course.courseDetails.thumbnailImage.downloadURL}
+                                            alt={`Thumbnail of ${course.aboutCourse.title}`}
+                                            className="absolute inset-0 w-full h-full object-cover"
                                         />
                                     ) : (
                                         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center">
                                             <p>Video not available</p>
-                                            <p className="text-sm">Preview video not set</p>
+                                            <p className="text-sm">Preview video or thumbnail not set</p>
                                         </div>
                                     )}
                                 </div>
+
                                 <div className="p-6 space-y-4">
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-3xl font-bold text-white">
-                                            {formatPrice(
-                                                course.aboutCourse.pricing.discountPrice || course.aboutCourse.pricing.basePrice,
-                                                course.aboutCourse.pricing.currency
+                                    {!hasPurchased && (
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-3xl font-bold text-white">
+                                                {formatPrice(
+                                                    course.aboutCourse.pricing.discountPrice || course.aboutCourse.pricing.basePrice,
+                                                    course.aboutCourse.pricing.currency
+                                                )}
+                                            </span>
+                                            {course.aboutCourse.pricing.discountPrice && (
+                                                <>
+                                                    <span className="text-md text-gray-400 line-through">
+                                                        {formatPrice(course.aboutCourse.pricing.basePrice, course.aboutCourse.pricing.currency)}
+                                                    </span>
+                                                </>
                                             )}
-                                        </span>
-                                        {course.aboutCourse.pricing.discountPrice && (
-                                            <>
-                                                <span className="text-md text-gray-400 line-through">
-                                                    {formatPrice(course.aboutCourse.pricing.basePrice, course.aboutCourse.pricing.currency)}
-                                                </span>
-                                            </>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-2 gap-4 text-gray-300">
                                         <div className="flex items-center gap-2">
                                             <GraduationCap className="h-5 w-5" />
@@ -308,6 +337,23 @@ export default function CourseDetailPage() {
                                                 View Analytics
                                             </Button>
                                         </>
+                                    ) : hasPurchased ? (
+                                        <>
+                                            <Button
+                                                onClick={() => router.push(`/course/${courseId}/learn`)}
+                                                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md mt-4 flex items-center gap-2"
+                                            >
+                                                <Play className="h-5 w-5" />
+                                                Continue Learning
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-3 text-lg font-semibold rounded-md bg-transparent"
+                                                onClick={() => router.push(`/course/${courseId}/progress`)}
+                                            >
+                                                View Progress
+                                            </Button>
+                                        </>
                                     ) : (
                                         <>
                                             <Button onClick={() => router.push(`/course/${courseId}/subscribe`)} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
@@ -321,20 +367,6 @@ export default function CourseDetailPage() {
                                             </Button>
                                         </>
                                     )}
-                                    <div className="flex justify-center gap-4 pt-4">
-                                        <Link href="#" className="text-gray-400 hover:text-blue-600" prefetch={false}>
-                                            <Facebook className="h-6 w-6" />
-                                        </Link>
-                                        <Link href="#" className="text-gray-400 hover:text-blue-600" prefetch={false}>
-                                            <Twitter className="h-6 w-6" />
-                                        </Link>
-                                        <Link href="#" className="text-gray-400 hover:text-blue-600" prefetch={false}>
-                                            <Linkedin className="h-6 w-6" />
-                                        </Link>
-                                        <Link href="#" className="text-gray-400 hover:text-blue-600" prefetch={false}>
-                                            <Instagram className="h-6 w-6" />
-                                        </Link>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -386,6 +418,9 @@ export default function CourseDetailPage() {
                             {/* About This Course */}
                             <div>
                                 <h2 className="text-3xl font-bold text-gray-900 mb-6">About This Course</h2>
+                                <div className="space-y-4 text-gray-700 text-md mb-2 font-bold leading-relaxed whitespace-pre-line">
+                                    {course.aboutCourse.shortDescription}
+                                </div>
                                 <div className="space-y-4 text-gray-700 text-lg leading-relaxed whitespace-pre-line">
                                     {course.aboutCourse.fullDescription}
                                 </div>
@@ -394,25 +429,9 @@ export default function CourseDetailPage() {
                     </div>
                 </section>
 
-                {/* Floating side buttons */}
-                {/* <div className="fixed right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-50">
-                    <Button variant="outline" size="icon" className="rounded-full shadow-md bg-white">
-                        <X className="h-5 w-5" />
-                        <span className="sr-only">Close</span>
-                    </Button>
-                    <Button variant="outline" size="icon" className="rounded-full shadow-md bg-white">
-                        <Globe className="h-5 w-5" />
-                        <span className="sr-only">Globe</span>
-                    </Button>
-                    <Button variant="outline" size="icon" className="rounded-full shadow-md bg-white">
-                        <ShoppingCart className="h-5 w-5" />
-                        <span className="sr-only">Shopping Cart</span>
-                    </Button>
-                </div> */}
-
                 <CourseDetails course={course} />
 
-                <CurriculumSection course={course} />
+                <CurriculumSection course={course} hasPurchased={hasPurchased} />
 
                 {/* Floating scroll to top button */}
                 <Button
