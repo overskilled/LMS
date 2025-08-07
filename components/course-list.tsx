@@ -5,11 +5,16 @@ import { Button } from "@/components/ui/button";
 import { CourseCard } from "./course-card";
 import { courseApi } from "@/utils/courseApi";
 import { CourseData } from "@/types/course";
+import { useAuth } from "@/context/authContext";
 
 export default function CourseListing() {
     const [courses, setCourses] = useState<CourseData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const { user } = useAuth()
+
+    console.log("Logged In user: ", user)
 
     useEffect(() => {
         const fetchCourses = async () => {

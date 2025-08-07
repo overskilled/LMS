@@ -6,34 +6,29 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
-    User,
-    Star,
-    Clock,
-    Book,
-    GraduationCap,
-    Globe,
-    Check,
-    Facebook,
-    Twitter,
-    Linkedin,
-    Instagram,
-    ArrowUp,
-    X,
-    ShoppingCart,
-    Play,
+    User, Star, Clock, Book, GraduationCap, Globe, Check, Calendar,
+    Facebook, Twitter, Linkedin, Instagram, ArrowUp, X, ShoppingCart,
+    Play, Loader2, Loader2Icon, Clock as ClockIcon, Bell, LockKeyhole
 } from "lucide-react"
 import MainLayout from "@/app/main-layout"
 import { courseApi } from "@/utils/courseApi"
 import { useEffect, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { CourseData } from "@/types/course"
-import { format } from "date-fns"
+import { format, isFuture } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CourseDetails } from "../components/course-details"
 import { CurriculumSection } from "../components/curriculum-section"
 import { getAuth } from "firebase/auth"
 import { LinksMap } from "@/types/link"
 import { ReferralCodeDisplay } from "../components/referral-code-display"
+import { Progress } from "@/components/ui/progress"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
+import { CountdownTimer } from "../components/countdown-timer"
+import { ShareCourseButton } from "../components/share-course-button"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -43,8 +38,17 @@ export default function CourseDetailPage() {
     const [error, setError] = useState<string | null>(null)
     const [user, setUser] = useState<any>(null)
     const [hasPurchased, setHasPurchased] = useState(false)
-    const [links, setLinks] = useState<LinksMap>({});
+    const [links, setLinks] = useState<LinksMap>({})
+    const [generatingLinks, setGeneratingLinks] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [showWaitlistForm, setShowWaitlistForm] = useState(false)
+    const [email, setEmail] = useState("")
     const router = useRouter()
+    const searchParams = useSearchParams()
+
+    // Check if course is upcoming
+    const isUpcoming = course?.aboutCourse?.isUpcoming && course?.aboutCourse?.availabilityDate && isFuture(new Date(course?.aboutCourse?.availabilityDate))
+    const isEarlyAccess = isUpcoming && course?.aboutCourse?.earlyAccessEnabled
 
     useEffect(() => {
         // Get user info from localStorage
@@ -85,17 +89,91 @@ export default function CourseDetailPage() {
         }
     }, [courseId])
 
-    const searchParams = useSearchParams();
-
     useEffect(() => {
-        const refCode = searchParams.get("ref");
+        const refCode = searchParams.get("ref")
         if (refCode) {
             fetch("/api/affiliate/track-click", {
                 method: "POST",
                 body: JSON.stringify({ code: refCode, courseId: params.id }),
-            });
+            })
         }
-    }, [searchParams, params.id]);
+    }, [searchParams, params.id])
+
+    const formatPrice = (price: number, currency: string) => {
+        if (price === 0) return "Free"
+
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency,
+            minimumFractionDigits: 0
+        }).format(price)
+    }
+
+    const formatDate = (date: Date | string | number) => {
+        if (typeof date === 'number') {
+            return format(new Date(date), 'MMMM d, yyyy')
+        }
+        if (typeof date === 'string') {
+            return format(new Date(date), 'MMMM d, yyyy')
+        }
+        return format(date, 'MMMM d, yyyy')
+    }
+
+    const generateCode = async (courseId: string) => {
+        const auth = getAuth()
+        const token = await auth.currentUser?.getIdToken()
+
+        try {
+            setGeneratingLinks(true)
+            const res = await fetch("/api/affiliate/generate", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ courseId })
+            })
+
+            const data = await res.json()
+            setLinks(prev => ({ ...prev, [courseId]: data.link }))
+            toast.success( "Your referral link has been created successfully")
+        } catch (error: any) {
+            console.error("An error occurred: ", error.message)
+            toast.success( "Failed to generate affiliate link")
+        } finally {
+            setGeneratingLinks(false)
+        }
+    }
+
+    const joinWaitlist = async () => {
+        if (!email) {
+            toast.success("Please enter a valid email address")
+            return
+        }
+
+        setIsSubmitting(true)
+        try {
+            // Replace with your actual waitlist API call
+            await fetch("/api/waitlist", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email,
+                    courseId,
+                    courseName: course?.aboutCourse.title
+                })
+            })
+
+            toast.success("You've been added to the waitlist for this course")
+            setShowWaitlistForm(false)
+        } catch (error) {
+            toast.success("Failed to join waitlist. Please try again.")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     if (loading) {
         return (
@@ -155,44 +233,6 @@ export default function CourseDetailPage() {
         )
     }
 
-    const formatPrice = (price: number, currency: string) => {
-        if (price === 0) return "Free"
-
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
-            minimumFractionDigits: 0
-        }).format(price)
-    }
-
-    const formatDate = (date: Date | string | number) => {
-        if (typeof date === 'number') {
-            return format(new Date(date), 'MMMM d, yyyy')
-        }
-        if (typeof date === 'string') {
-            return format(new Date(date), 'MMMM d, yyyy')
-        }
-        return format(date, 'MMMM d, yyyy')
-    }
-
-
-    const generateCode = async (courseId: string) => {
-        const auth = getAuth();
-        const token = await auth.currentUser?.getIdToken();
-
-        const res = await fetch("/api/affiliate/generate", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ courseId })
-        });
-
-        const data = await res.json();
-        setLinks((prev) => ({ ...prev, [courseId]: data.link }));
-    };
-
     return (
         <MainLayout>
             <div className="bg-white min-h-screen">
@@ -222,13 +262,19 @@ export default function CourseDetailPage() {
                     <div className="container mx-auto px-4 md:px-6 grid lg:grid-cols-2 gap-12 items-start">
                         {/* Left Content */}
                         <div className="space-y-6">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {isUpcoming && (
+                                    <Badge className="bg-purple-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
+                                        Coming Soon
+                                    </Badge>
+                                )}
                                 {course.aboutCourse.pricing.discountPrice && (
                                     <Badge className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
-                                        {/* {Math.round(
+                                        {Math.round(
                                             ((course.aboutCourse.pricing.basePrice - course.aboutCourse.pricing.discountPrice) /
                                                 course.aboutCourse.pricing.basePrice * 100
-                                            )} */}
+                                            ))
+                                        }% OFF
                                     </Badge>
                                 )}
                                 <Badge className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md text-sm font-semibold capitalize">
@@ -238,39 +284,69 @@ export default function CourseDetailPage() {
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
                                 {course.aboutCourse.title}
                             </h1>
-                            <div className="flex items-center gap-4 text-gray-600 text-lg">
-                                <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-4 text-gray-600 text-lg flex-wrap">
+                                {/* <div className="flex items-center gap-2">
                                     <User className="h-5 w-5" />
-                                    {/* <span>{course.instructor?.name || "Unknown Instructor"}</span> */}
-                                </div>
+                                    <span>{course.instructor?.name || "Unknown Instructor"}</span>
+                                </div> */}
                                 <span>Last Update {formatDate(course.updatedAt)}</span>
+                                {isUpcoming && course?.aboutCourse?.availabilityDate && (
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="h-5 w-5" />
+                                        <span>Starts {formatDate(course?.aboutCourse?.availabilityDate)}</span>
+                                    </div>
+                                )}
                             </div>
                             {user?.admin ? (
-                                <>
-                                    <span className="ml-4">{course.enrollmentCount || 0} already enrolled</span>
-                                </>
-                            )
-                                : (
-                                    <div className="flex items-center gap-4 text-gray-600 text-lg">
-                                        <span className="font-bold">4.38 / 5</span>
-                                        <div className="flex items-center gap-1 text-yellow-400">
-                                            <Star className="h-5 w-5 fill-current" />
-                                            <Star className="h-5 w-5 fill-current" />
-                                            <Star className="h-5 w-5 fill-current" />
-                                            <Star className="h-5 w-5 fill-current" />
-                                            <Star className="h-5 w-5" />
-                                        </div>
-                                        <span>(8)</span>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-gray-600">{course.enrollmentCount || 0} already enrolled</span>
+                                    <span className="text-gray-600">{(course?.aboutCourse?.metrics?.targetRevenue || 0).toLocaleString()} {course.aboutCourse.pricing.currency} revenue</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-4 text-gray-600 text-lg">
+                                    <span className="font-bold">4.8 / 5</span>
+                                    <div className="flex items-center gap-1 text-yellow-400">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`h-5 w-5 ${i < 4 ? 'fill-current' : ''}`}
+                                            />
+                                        ))}
                                     </div>
-                                )
-                            }
+                                    <span>({course.enrollmentCount || 0} students)</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Right Content - Video and Price Box */}
                         <div className="flex flex-col items-center lg:items-end">
                             <div className="w-full max-w-md bg-gray-600 rounded-lg overflow-hidden shadow-lg">
                                 <div className="relative w-full aspect-video bg-black flex items-center justify-center text-gray-400 overflow-hidden">
-                                    {course.courseDetails.previewVideo?.downloadURL ? (
+                                    {isUpcoming ? (
+                                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-6">
+                                            <ClockIcon className="h-12 w-12 text-white mb-4" />
+                                            <h3 className="text-xl font-bold text-white mb-2">
+                                                Course Coming Soon
+                                            </h3>
+                                            {course?.aboutCourse?.availabilityDate && (
+                                                <CountdownTimer
+                                                    targetDate={new Date(course.aboutCourse?.availabilityDate)}
+                                                    className="text-white mb-4"
+                                                />
+                                            )}
+                                            <p className="text-gray-300 mb-4">
+                                                This course will be available on {formatDate(course?.aboutCourse?.availabilityDate!)}
+                                            </p>
+                                            <Button
+                                                variant="default"
+                                                onClick={() => setShowWaitlistForm(true)}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <Bell className="h-4 w-4" />
+                                                Join Waitlist
+                                            </Button>
+                                        </div>
+                                    ) : course.courseDetails.previewVideo?.downloadURL ? (
                                         <iframe
                                             src={course.courseDetails.previewVideo.downloadURL}
                                             title={`Preview of ${course.aboutCourse.title}`}
@@ -278,11 +354,6 @@ export default function CourseDetailPage() {
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowFullScreen
                                             className="absolute inset-0 w-full h-full object-cover"
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover',
-                                            }}
                                         />
                                     ) : course.courseDetails.thumbnailImage?.downloadURL ? (
                                         <img
@@ -299,24 +370,38 @@ export default function CourseDetailPage() {
                                 </div>
 
                                 <div className="p-6 space-y-4">
+                                    {/* Pricing Display */}
                                     {!hasPurchased && (
                                         <div className="flex items-baseline gap-2">
-                                            <span className="text-3xl font-bold text-white">
-                                                {formatPrice(
-                                                    course.aboutCourse.pricing.discountPrice || course.aboutCourse.pricing.basePrice,
-                                                    course.aboutCourse.pricing.currency
-                                                )}
-                                            </span>
-                                            {course.aboutCourse.pricing.discountPrice && (
+                                            {isEarlyAccess && course?.aboutCourse?.earlyAccessPrice ? (
                                                 <>
-                                                    <span className="text-md text-gray-400 line-through">
-                                                        {formatPrice(course.aboutCourse.pricing.basePrice, course.aboutCourse.pricing.currency)}
+                                                    <span className="text-3xl font-bold text-white">
+                                                        {formatPrice(
+                                                            course?.aboutCourse?.earlyAccessPrice!,
+                                                            course.aboutCourse.pricing.currency
+                                                        )}
                                                     </span>
+                                                    <span className="text-sm text-gray-300">Early Access Price</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="text-3xl font-bold text-white">
+                                                        {formatPrice(
+                                                            course.aboutCourse.pricing.discountPrice || course.aboutCourse.pricing.basePrice,
+                                                            course.aboutCourse.pricing.currency
+                                                        )}
+                                                    </span>
+                                                    {course.aboutCourse.pricing.discountPrice && (
+                                                        <span className="text-md text-gray-400 line-through">
+                                                            {formatPrice(course.aboutCourse.pricing.basePrice, course.aboutCourse.pricing.currency)}
+                                                        </span>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
                                     )}
 
+                                    {/* Course Metadata */}
                                     <div className="grid grid-cols-2 gap-4 text-gray-300">
                                         <div className="flex items-center gap-2">
                                             <GraduationCap className="h-5 w-5" />
@@ -344,6 +429,8 @@ export default function CourseDetailPage() {
                                         </div>
                                         <span>{course.aboutCourse.language}</span>
                                     </div>
+
+                                    {/* Material Includes */}
                                     <div className="space-y-2 pt-4">
                                         <h4 className="text-lg font-semibold text-white">Material Includes</h4>
                                         <div className="flex items-center gap-2 text-gray-300">
@@ -356,11 +443,19 @@ export default function CourseDetailPage() {
                                                 <span>Resources</span>
                                             </div>
                                         )}
+                                        {course.publishSettings.certificateEnabled && (
+                                            <div className="flex items-center gap-2 text-gray-300">
+                                                <Check className="h-5 w-5 text-green-400" />
+                                                <span>Certificate of Completion</span>
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {/* Action Buttons */}
                                     {user?.admin ? (
-                                        <>
+                                        <div className="space-y-3">
                                             <Link href={`/admin/edit-course/${courseId}`}>
-                                                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
+                                                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md">
                                                     Update Course
                                                 </Button>
                                             </Link>
@@ -370,45 +465,30 @@ export default function CourseDetailPage() {
                                             >
                                                 View Analytics
                                             </Button>
-                                        </>
+                                        </div>
                                     ) : hasPurchased ? (
-                                        <>
+                                        <div className="space-y-3">
                                             <Button
                                                 onClick={() => router.push(`/course/${courseId}/learn`)}
-                                                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md mt-4 flex items-center gap-2"
+                                                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md flex items-center gap-2"
                                             >
                                                 <Play className="h-5 w-5" />
                                                 Continue Learning
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-3 text-lg font-semibold rounded-md bg-transparent"
-                                                onClick={() => generateCode(courseId)}
-                                            >
-                                                Generate affiliation code
-                                            </Button>
-                                            {links[courseId] && (
-                                                <div className="mt-2">
-                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
-                                                    <p className="mt-4 text-sm text-muted-foreground">
-                                                        Click the "Copy" button to get your referral code.
-                                                    </p>
-                                                </div>
-                                            )}
-
-
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Button onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
-                                                Purchase Course
-                                            </Button>
-                                            <Button
-                                                variant="outline"
+                                                disabled={generatingLinks}
                                                 className="w-full text-md"
                                                 onClick={() => generateCode(courseId)}
                                             >
-                                                Generate affiliation code
+                                                {generatingLinks ? (
+                                                    <>
+                                                        <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
+                                                        Generating...
+                                                    </>
+                                                ) : (
+                                                    "Generate Affiliate Code"
+                                                )}
                                             </Button>
                                             {links[courseId] && (
                                                 <div className="mt-2 flex flex-col w-full">
@@ -418,7 +498,64 @@ export default function CourseDetailPage() {
                                                     </p>
                                                 </div>
                                             )}
-                                        </>
+                                        </div>
+                                    ) : isUpcoming ? (
+                                        <div className="space-y-3">
+                                            {isEarlyAccess ? (
+                                                <Button
+                                                    onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
+                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold rounded-md"
+                                                >
+                                                    Get Early Access
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setShowWaitlistForm(true)}
+                                                    className="w-full text-white border-white hover:bg-white/10 py-3 text-lg font-semibold rounded-md flex items-center gap-2"
+                                                >
+                                                    <Bell className="h-5 w-5" />
+                                                    Join Waitlist
+                                                </Button>
+                                            )}
+                                            <ShareCourseButton
+                                                courseId={courseId}
+                                                title={course.aboutCourse.title}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <Button
+                                                onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
+                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md"
+                                            >
+                                                Enroll Now
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                disabled={generatingLinks}
+                                                className="w-full text-md"
+                                                onClick={() => generateCode(courseId)}
+                                            >
+                                                {generatingLinks ? (
+                                                    <>
+                                                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                                                        Generating...
+                                                    </>
+                                                ) : (
+                                                    "Generate Affiliate Code"
+                                                )}
+                                            </Button>
+                                            {links[courseId] && (
+                                                <div className="mt-2 flex flex-col w-full">
+                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
+                                                    <p className="mt-4 w-full text-xs text-center text-gray-300">
+                                                        Click the "Copy" button to get your referral code.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -426,11 +563,88 @@ export default function CourseDetailPage() {
                     </div>
                 </section>
 
-                {/* Main Content Section (White Background) */}
+                {/* Waitlist Modal */}
+                {showWaitlistForm && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-bold">Join the Waitlist</h3>
+                                <button
+                                    onClick={() => setShowWaitlistForm(false)}
+                                    className="text-gray-500 hover:text-gray-700"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <p className="text-gray-600 mb-4">
+                                Be the first to know when this course launches. We'll notify you when it's available.
+                            </p>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="waitlist-email" className="block mb-1">
+                                        Email Address
+                                    </Label>
+                                    <Input
+                                        id="waitlist-email"
+                                        type="email"
+                                        placeholder="your@email.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={joinWaitlist}
+                                        disabled={isSubmitting}
+                                        className="flex-1"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                                                Joining...
+                                            </>
+                                        ) : (
+                                            "Join Waitlist"
+                                        )}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setShowWaitlistForm(false)}
+                                        className="flex-1"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Main Content Section */}
                 <section className="py-12 md:py-20">
                     <div className="container mx-auto px-4 md:px-6 grid lg:grid-cols-3 gap-12">
                         {/* Left Column - Course Details */}
                         <div className="lg:col-span-2 space-y-10">
+                            {/* Course Progress (for enrolled students) */}
+                            {hasPurchased && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            Your Progress
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span>25% Complete</span>
+                                                <span>3 of 12 lessons</span>
+                                            </div>
+                                            <Progress value={25} className="h-2" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
                             {/* Course Prerequisites */}
                             {course.aboutCourse.prerequisites?.length > 0 && (
                                 <div>
@@ -478,13 +692,87 @@ export default function CourseDetailPage() {
                                     {course.aboutCourse.fullDescription}
                                 </div>
                             </div>
+
+                            {/* Upcoming Course Info */}
+                            {isUpcoming && (
+                                <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                                    <div className="flex items-start gap-4">
+                                        <div className="bg-blue-100 p-3 rounded-full">
+                                            <ClockIcon className="h-6 w-6 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">This Course Is Coming Soon</h3>
+                                            <p className="text-gray-700 mb-4">
+                                                The instructor is still working on this course. You can join the waitlist to be notified when it's ready.
+                                            </p>
+                                            {course?.aboutCourse?.availabilityDate && (
+                                                <div className="flex items-center gap-2 text-blue-600 font-medium">
+                                                    <Calendar className="h-5 w-5" />
+                                                    <span>Expected launch: {formatDate(course?.aboutCourse?.availabilityDate)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Column - Sidebar */}
+                        <div className="space-y-6">
+                            {/* Course Stats */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Course Stats</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Students Enrolled</span>
+                                        <span className="font-medium">{course.enrollmentCount || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Average Rating</span>
+                                        <div className="flex items-center gap-1">
+                                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                                            <span className="font-medium">4.8</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Last Updated</span>
+                                        <span className="font-medium">{formatDate(course.updatedAt)}</span>
+                                    </div>
+                                    {isUpcoming && course?.aboutCourse?.availabilityDate && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Expected Launch</span>
+                                            <span className="font-medium">{formatDate(course?.aboutCourse?.availabilityDate)}</span>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Share Course */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Share This Course</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ShareCourseButton
+                                        courseId={courseId}
+                                        title={course.aboutCourse.title}
+                                        className="w-full"
+                                    />
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
                 </section>
 
                 <CourseDetails course={course} />
 
-                <CurriculumSection course={course} hasPurchased={hasPurchased} />
+                <CurriculumSection
+                    course={course}
+                    // hasPurchased={hasPurchased}
+                    // isUpcoming={isUpcoming}
+                />
 
                 {/* Floating scroll to top button */}
                 <Button

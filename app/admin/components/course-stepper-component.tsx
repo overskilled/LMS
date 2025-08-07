@@ -61,6 +61,7 @@ export function CompleteStepper({
                 totalLessons: "",
                 difficulty: "beginner",
                 estimatedHours: 1,
+                affiliateRate: 20
             },
             videos: [],
             aboutCourse: {
@@ -84,6 +85,10 @@ export function CompleteStepper({
                     targetRevenue: 0,
                     marketingBudget: 0,
                 },
+                isUpcoming: false,
+                availabilityDate: undefined,
+                earlyAccessEnabled: false,
+                earlyAccessPrice: undefined,
             },
             quiz: {
                 questions: [],
@@ -278,7 +283,7 @@ export function CompleteStepper({
             case 0:
                 return (
                     <CourseDetailsStep
-                        ref={(ref) => {stepRefs.current[0] = ref }}
+                        ref={(ref) => { stepRefs.current[0] = ref }}
                         initialData={courseData.courseDetails}
                         onDataChange={(data, isValid) => handleStepDataChange(0, data, isValid)}
                         onNext={handleNext}
@@ -290,7 +295,7 @@ export function CompleteStepper({
             case 1:
                 return (
                     <VideoUploadStep
-                        ref={(ref) => {stepRefs.current[1] = ref }}
+                        ref={(ref) => { stepRefs.current[1] = ref }}
                         initialData={courseData.videos}
                         onDataChange={(data, isValid) => handleStepDataChange(1, data, isValid)}
                         onNext={handleNext}
@@ -302,7 +307,7 @@ export function CompleteStepper({
             case 2:
                 return (
                     <AboutCourseStep
-                        ref={(ref) => {stepRefs.current[2] = ref }}
+                        ref={(ref) => { stepRefs.current[2] = ref }}
                         initialData={courseData.aboutCourse}
                         onDataChange={(data, isValid) => handleStepDataChange(2, data, isValid)}
                         onNext={handleNext}
@@ -313,7 +318,7 @@ export function CompleteStepper({
             case 3:
                 return (
                     <QuizCreationStep
-                        ref={(ref) => {stepRefs.current[3] = ref }}
+                        ref={(ref) => { stepRefs.current[3] = ref }}
                         initialData={courseData.quiz}
                         onDataChange={(data, isValid) => handleStepDataChange(3, data, isValid)}
                         onNext={handleNext}
@@ -324,7 +329,7 @@ export function CompleteStepper({
             case 4:
                 return (
                     <PublishSummaryStep
-                        ref={(ref) => {stepRefs.current[4] = ref }}
+                        ref={(ref) => { stepRefs.current[4] = ref }}
                         // courseData={courseData}
                         // initialSettings={courseData.publishSettings}
                         onDataChange={(data, isValid) => handleStepDataChange(4, data, isValid)}
@@ -393,9 +398,9 @@ export function CompleteStepper({
                         steps={steps}
                         currentStep={currentStep}
                         onStepClick={handleStepClick}
-                        // completedSteps={Object.keys(stepValidation)
-                        //     .map(Number)
-                        //     .filter((stepIndex) => stepValidation[stepIndex])}
+                    // completedSteps={Object.keys(stepValidation)
+                    //     .map(Number)
+                    //     .filter((stepIndex) => stepValidation[stepIndex])}
                     />
                 </div>
             </div>

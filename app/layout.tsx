@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/context/authContext";
 
 export const metadata: Metadata = {
   title: {
@@ -99,8 +100,11 @@ export default function RootLayout({
         />
       </head>
       <body className="flex flex-col w-[100%] antialiased bg-white text-gray-900">
-        {children}
-        <Toaster />
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
+
       </body>
     </html>
   );

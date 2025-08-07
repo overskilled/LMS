@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
-import { Plus, X, DollarSign, Target } from "lucide-react"
+import { Plus, X, DollarSign, Target, Calendar } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,6 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
 import { AccessibleStepWrapper, type StepRef } from "./accessible-step-wrapper"
 import { cn } from "@/lib/utils"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { format } from "date-fns"
 
 interface AboutCourseData {
     title: string
@@ -35,7 +38,12 @@ interface AboutCourseData {
         expectedEnrollments?: number
         targetRevenue?: number
         marketingBudget?: number
-    }
+    },
+    isUpcoming: boolean
+    availabilityDate?: Date | string
+    earlyAccessEnabled: boolean
+    earlyAccessPrice?: number
+
 }
 
 interface AboutCourseStepProps {
@@ -88,6 +96,10 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                 targetRevenue: 0,
                 marketingBudget: 0,
             },
+            isUpcoming: false,
+            availabilityDate: undefined,
+            earlyAccessEnabled: false,
+            earlyAccessPrice: undefined,
             ...getInitialData(),
         });
 
@@ -140,6 +152,15 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                 errors.basePrice = "Course price must be greater than 0";
             }
 
+            // Additional validation for upcoming courses
+            if (formData.isUpcoming && !formData.availabilityDate) {
+                errors.availabilityDate = "Availability date is required for upcoming courses";
+            }
+
+            if (formData.isUpcoming && formData.earlyAccessEnabled && !formData.earlyAccessPrice) {
+                errors.earlyAccessPrice = "Early access price is required when early access is enabled";
+            }
+
             setValidationErrors(errors);
             const valid = Object.keys(errors).length === 0;
             setIsValid(valid);
@@ -154,6 +175,18 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                 // Auto-calculate target revenue
                 if (updates.pricing || updates.metrics) {
                     newData.metrics.targetRevenue = newData.pricing.basePrice * (newData.metrics.expectedEnrollments || 0);
+                }
+
+                // If turning off upcoming status, clear related fields
+                if (updates.isUpcoming === false) {
+                    newData.availabilityDate = undefined;
+                    newData.earlyAccessEnabled = false;
+                    newData.earlyAccessPrice = undefined;
+                }
+
+                // If turning off early access, clear early access price
+                if (updates.earlyAccessEnabled === false) {
+                    newData.earlyAccessPrice = undefined;
                 }
 
                 return newData;
@@ -213,6 +246,10 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
             }
         };
 
+        const handleDateSelect = (date: Date | undefined) => {
+            updateFormData({ availabilityDate: date });
+        };
+
         useImperativeHandle(ref, () => ({
             validate: async () => validateForm(),
             getData: () => formData,
@@ -243,6 +280,10 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                         targetRevenue: 0,
                         marketingBudget: 0,
                     },
+                    isUpcoming: false,
+                    availabilityDate: undefined,
+                    earlyAccessEnabled: false,
+                    earlyAccessPrice: undefined,
                 });
                 setValidationErrors({});
                 try {
@@ -466,6 +507,158 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                                     </p>
                                 )}
                             </div>
+                        </CardContent>
+                    </Card>
+
+
+                    {/* Course Availability */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Calendar className="w-5 h-5" />
+                                Course Availability
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label className="text-sm font-medium">
+                                        Is this an upcoming course?
+                                    </Label>
+                                    <p className="text-xs text-gray-500">
+                                        Enable this if your course isn't ready yet but you want to start promoting it
+                                    </p>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant={formData.isUpcoming ? "default" : "outline"}
+                                    onClick={() => updateFormData({ isUpcoming: !formData.isUpcoming })}
+                                >
+                                    {formData.isUpcoming ? "Upcoming Course" : "Available Now"}
+                                </Button>
+                            </div>
+
+                            {formData.isUpcoming && (
+                                <>
+                                    <div>
+                                        <Label htmlFor="availability-date" className="text-sm font-medium">
+                                            Availability Date{" "}
+                                            <span className="text-red-500" aria-label="required">
+                                                *
+                                            </span>
+                                        </Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full justify-start text-left font-normal",
+                                                        !formData.availabilityDate && "text-muted-foreground",
+                                                        validationErrors.availabilityDate && "border-red-500"
+                                                    )}
+                                                >
+                                                    <Calendar className="mr-2 h-4 w-4" />
+                                                    {formData.availabilityDate ? (
+                                                        format(new Date(formData.availabilityDate), "PPP")
+                                                    ) : (
+                                                        <span>Pick a date</span>
+                                                    )}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <CalendarComponent
+                                                    mode="single"
+                                                    selected={formData.availabilityDate ? new Date(formData.availabilityDate) : undefined}
+                                                    onSelect={handleDateSelect}
+                                                    initialFocus
+                                                    fromDate={new Date()}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {validationErrors.availabilityDate && (
+                                            <p className="text-sm text-red-600 mt-1" role="alert">
+                                                {validationErrors.availabilityDate}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <Label className="text-sm font-medium">
+                                                Enable Early Access?
+                                            </Label>
+                                            <p className="text-xs text-gray-500">
+                                                Allow students to purchase before official release at a special price
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant={formData.earlyAccessEnabled ? "default" : "outline"}
+                                            onClick={() => updateFormData({ earlyAccessEnabled: !formData.earlyAccessEnabled })}
+                                        >
+                                            {formData.earlyAccessEnabled ? "Enabled" : "Disabled"}
+                                        </Button>
+                                    </div>
+
+                                    {formData.earlyAccessEnabled && (
+                                        <div>
+                                            <Label htmlFor="early-access-price" className="text-sm font-medium">
+                                                Early Access Price{" "}
+                                                <span className="text-red-500" aria-label="required">
+                                                    *
+                                                </span>
+                                            </Label>
+                                            <div className="flex mt-2">
+                                                <Select
+                                                    value={formData.pricing.currency}
+                                                    onValueChange={(value) => {
+                                                        if (value !== formData.pricing.currency) {
+                                                            updateFormData({
+                                                                pricing: { ...formData.pricing, currency: value }
+                                                            });
+                                                        }
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-20">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="XAF">XAF</SelectItem>
+                                                        <SelectItem value="XOF">XOF</SelectItem>
+                                                        <SelectItem value="USD">$</SelectItem>
+                                                        <SelectItem value="EUR">€</SelectItem>
+                                                        <SelectItem value="GBP">£</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <Input
+                                                    id="early-access-price"
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    placeholder="79.00"
+                                                    value={formData.earlyAccessPrice || ""}
+                                                    onChange={(e) =>
+                                                        updateFormData({
+                                                            earlyAccessPrice: Number.parseFloat(e.target.value) || undefined,
+                                                        })
+                                                    }
+                                                    className={cn("rounded-l-none", validationErrors.earlyAccessPrice && "border-red-500")}
+                                                    aria-describedby="early-access-price-help early-access-price-error"
+                                                    aria-invalid={!!validationErrors.earlyAccessPrice}
+                                                />
+                                            </div>
+                                            <div id="early-access-price-help" className="text-xs text-gray-500 mt-1">
+                                                Set a special price for students who purchase before the official release date
+                                            </div>
+                                            {validationErrors.earlyAccessPrice && (
+                                                <p id="early-access-price-error" className="text-sm text-red-600 mt-1" role="alert">
+                                                    {validationErrors.earlyAccessPrice}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 

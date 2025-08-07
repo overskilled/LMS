@@ -90,7 +90,7 @@ export default function DashboardPage() {
         try {
             const token = await user.getIdToken()
             const response = await fetch("/api/affiliate/stats", {
-                method: "POST", // Changed to GET since you're fetching data
+                method: "POST", 
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
@@ -156,7 +156,6 @@ export default function DashboardPage() {
 
     return (
         <MainLayout>
-
             <div className="flex flex-col flex-1 p-4 md:p-6">
                 <h1 className="text-2xl font-bold mb-6">Earnings Dashboard</h1>
 
@@ -167,7 +166,6 @@ export default function DashboardPage() {
                         icon={<LinkIcon className="h-4 w-4 text-muted-foreground" />}
                         description={`Last conversion: ${aggregatedStats.lastConversionDate ? formatDistanceToNow(new Date(aggregatedStats.lastConversionDate)) : 'N/A'}`}
                     />
-
 
                     <StatCard
                         title="Total Conversions"
@@ -192,7 +190,6 @@ export default function DashboardPage() {
                 </div>
             </div>
         </MainLayout>
-
     )
 }
 

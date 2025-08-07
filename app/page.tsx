@@ -4,8 +4,11 @@ import CourseListing from "@/components/course-list"
 import TestimonialsSection from "@/components/testimonials"
 import Cta from "@/components/cta"
 import MainLayout from "./main-layout"
+import { useAuth } from "@/context/authContext"
 
 export default function Page() {
+
+  
   return (
     <MainLayout>
       <HeroSection />

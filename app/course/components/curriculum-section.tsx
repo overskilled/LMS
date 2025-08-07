@@ -7,10 +7,12 @@ import Image from "next/image"
 import { useState } from "react"
 import ReactPlayer from "react-player"
 import { ReactPlayerProps } from "react-player/types"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { useAuth } from "@/context/authContext"
 
 interface CurriculumSectionProps {
     course: CourseData
-    hasPurchased: boolean
 }
 
 interface VideoMetadata {
@@ -30,9 +32,13 @@ interface VideoItem {
     }
 }
 
-export function CurriculumSection({ course, hasPurchased }: CurriculumSectionProps) {
+export function CurriculumSection({ course }: CurriculumSectionProps) {
+    const { user } = useAuth() 
     const [currentVideo, setCurrentVideo] = useState<{ url: string; title: string } | null>(null)
     const [isPlayerOpen, setIsPlayerOpen] = useState(false)
+
+    console.log(user)
+    const hasPurchased = user?.courses?.includes(course?.id || "") || false
 
     const formatDuration = (seconds: number) => {
         if (!seconds) return "0:00"
@@ -46,13 +52,11 @@ export function CurriculumSection({ course, hasPurchased }: CurriculumSectionPro
     }
 
     const handleVideoClick = (video: VideoItem) => {
-        if (hasPurchased) {
+        if (hasPurchased || video.isPreview) {
             setCurrentVideo({
                 url: video.metadata.downloadURL,
                 title: video.title || "Lecture"
             })
-
-            console.log("user video: ", video)
             setIsPlayerOpen(true)
         }
     }
@@ -62,15 +66,12 @@ export function CurriculumSection({ course, hasPurchased }: CurriculumSectionPro
         setCurrentVideo(null)
     }
 
-
-
     return (
         <section className="py-12 md:py-16 bg-white relative">
             {/* Video Player Modal */}
             {isPlayerOpen && currentVideo && (
-                <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black h-[100vh] bg-opacity-90 z-50 flex items-center justify-center p-4">
                     <div className="w-full max-w-6xl relative">
-
                         <button
                             onClick={closePlayer}
                             className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
@@ -78,7 +79,6 @@ export function CurriculumSection({ course, hasPurchased }: CurriculumSectionPro
                         >
                             <X className="h-8 w-8" />
                         </button>
-
                         <div className="bg-black rounded-lg overflow-hidden aspect-video w-full">
                             <ReactPlayer
                                 src={currentVideo.url}
@@ -88,7 +88,6 @@ export function CurriculumSection({ course, hasPurchased }: CurriculumSectionPro
                                 playing
                             />
                         </div>
-
                         <div className="mt-4">
                             <h3 className="text-xl font-bold text-white">{currentVideo.title}</h3>
                         </div>
@@ -120,8 +119,7 @@ export function CurriculumSection({ course, hasPurchased }: CurriculumSectionPro
                                                             (course.videos?.filter(v => v.order === order)
                                                                 .reduce((total, video) => total + (video.metadata?.duration || 0), 0) || 0
                                                             )
-                                                        )
-                                                        }
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
@@ -187,8 +185,7 @@ export function CurriculumSection({ course, hasPurchased }: CurriculumSectionPro
                                     <p className="text-sm text-gray-500 mt-1">
                                         {course.videos?.length || 0} lectures • {formatDuration(
                                             (course.videos?.reduce((total, video) => total + (video.metadata?.duration || 0), 0) || 0)
-                                        )
-                                        }
+                                        )}
                                     </p>
                                 </div>
                                 <div className="text-sm text-gray-500">
@@ -196,6 +193,28 @@ export function CurriculumSection({ course, hasPurchased }: CurriculumSectionPro
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-8 flex gap-4">
+                        {!user ? (
+                            <>
+                                <Button asChild className="w-full md:w-auto">
+                                    <Link href="/login">Login to Enroll</Link>
+                                </Button>
+                                <Button asChild variant="outline" className="w-full md:w-auto">
+                                    <Link href="/register">Create Account</Link>
+                                </Button>
+                            </>
+                        ) : !hasPurchased ? (
+                            <Button asChild className="w-full md:w-auto">
+                                <Link href={`/course/${course.id}/purchase`}>Purchase Course</Link>
+                            </Button>
+                        ) : (
+                            <Button asChild className="w-full md:w-auto">
+                                <Link href={`/course/${course.id}/learn`}>Continue Learning</Link>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>

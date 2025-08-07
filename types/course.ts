@@ -54,6 +54,11 @@ export interface CourseData {
             targetRevenue?: number
             marketingBudget?: number
         }
+        isUpcoming: boolean
+        availabilityDate?: Date | string
+        earlyAccessEnabled: boolean
+        earlyAccessPrice?: number
+
     }
 
     // instructor: {

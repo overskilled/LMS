@@ -34,6 +34,8 @@ export default function LoginForm() {
     ] = useSignInWithEmailAndPassword(auth);
     const [authUser, authLoading] = useAuthState(auth);
 
+    console.log("Logged in user: ", authUser)
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({
             ...formData,

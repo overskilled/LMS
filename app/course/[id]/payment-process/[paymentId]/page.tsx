@@ -98,7 +98,7 @@ export default function PaymentProcessingPage() {
             }
 
             toast.success("Subscription activated successfully!")
-            // router.push(`/course/${courseId}`)
+            router.push(`/course/${courseId}`)
         } catch (error) {
             console.error("Error subscribing:", error)
             toast.error("Failed to activate subscription. Please try again.")

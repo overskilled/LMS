@@ -599,8 +599,8 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                 <div className="relative">
                                     <Input
                                         id="affiliate-rate-input"
-                                        placeholder="0%"
-                                        value={formData.affiliateRate !== undefined ? `${formData.affiliateRate}%` : ""}
+                                        placeholder="0"
+                                        value={formData.affiliateRate !== undefined ? `${formData.affiliateRate}` : ""}
                                         onChange={(e) => {
                                             // Remove all non-digit characters except decimal point
                                             let value = e.target.value.replace(/[^0-9.]/g, '');

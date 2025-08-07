@@ -112,7 +112,7 @@ export default function CompleteCourseCreator() {
 
             clearAllCourseData()
             alert(`Course published successfully!`)
-            router.push(`/courses`)
+            router.push(`/admin/courses`)
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to publish course')
         } finally {
