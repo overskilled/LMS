@@ -15,14 +15,14 @@ export function CourseDetails({ course }: CourseDetailsProps) {
                 <div className="max-w-4xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">What You'll Learn</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                         {course.aboutCourse.learningObjectives?.slice(0, 4).map((objective, index) => (
                             <div key={index} className="flex items-start gap-3">
                                 <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                                 <p className="text-gray-700">{objective}</p>
                             </div>
                         ))}
-                    </div>
+                    </div> */}
 
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <Accordion type="single" collapsible className="w-full">

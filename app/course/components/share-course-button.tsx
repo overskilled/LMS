@@ -75,8 +75,8 @@ export function ShareCourseButton({
                 Share Course
             </Button>
 
-            <div className="flex gap-2">
-                <Button
+            <div className="flex gap-2 items-center justify-center w-full">
+                {/* <Button
                     variant="outline"
                     size="icon"
                     onClick={() => shareOn("facebook")}
@@ -107,7 +107,7 @@ export function ShareCourseButton({
                     aria-label="Share via Email"
                 >
                     <Mail className="h-4 w-4" />
-                </Button>
+                </Button> */}
                 <Button
                     variant="outline"
                     size="icon"

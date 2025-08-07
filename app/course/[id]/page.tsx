@@ -466,7 +466,7 @@ export default function CourseDetailPage() {
                                                 View Analytics
                                             </Button>
                                         </div>
-                                    ) : hasPurchased ? (
+                                    ) : user?.uid && hasPurchased ? (
                                         <div className="space-y-3">
                                             <Button
                                                 onClick={() => router.push(`/course/${courseId}/learn`)}
@@ -499,7 +499,7 @@ export default function CourseDetailPage() {
                                                 </div>
                                             )}
                                         </div>
-                                    ) : isUpcoming ? (
+                                    ) : user?.uid && isUpcoming ? (
                                         <div className="space-y-3">
                                             {isEarlyAccess ? (
                                                 <Button
@@ -524,13 +524,38 @@ export default function CourseDetailPage() {
                                                 className="w-full"
                                             />
                                         </div>
+                                    ) : user?.uid ? (
+                                        <div className="space-y-3">
+                                            {isEarlyAccess ? (
+                                                <Button
+                                                    onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
+                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold rounded-md"
+                                                >
+                                                    Enroll
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setShowWaitlistForm(true)}
+                                                    className="w-full text-white border-white hover:bg-white/10 py-3 text-lg font-semibold rounded-md flex items-center gap-2"
+                                                >
+                                                    <Bell className="h-5 w-5" />
+                                                    Join Waitlist
+                                                </Button>
+                                            )}
+                                            <ShareCourseButton
+                                                courseId={courseId}
+                                                title={course.aboutCourse.title}
+                                                className="w-full"
+                                            />
+                                        </div>
                                     ) : (
                                         <div className="space-y-3">
                                             <Button
                                                 onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
                                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md"
                                             >
-                                                Enroll Now
+                                                Log into your account
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -538,14 +563,15 @@ export default function CourseDetailPage() {
                                                 className="w-full text-md"
                                                 onClick={() => generateCode(courseId)}
                                             >
-                                                {generatingLinks ? (
+                                                {/* {generatingLinks ? (
                                                     <>
                                                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
                                                         Generating...
                                                     </>
                                                 ) : (
                                                     "Generate Affiliate Code"
-                                                )}
+                                                )} */}
+
                                             </Button>
                                             {links[courseId] && (
                                                 <div className="mt-2 flex flex-col w-full">
@@ -626,7 +652,7 @@ export default function CourseDetailPage() {
                         {/* Left Column - Course Details */}
                         <div className="lg:col-span-2 space-y-10">
                             {/* Course Progress (for enrolled students) */}
-                            {hasPurchased && (
+                            {/* {hasPurchased && (
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
@@ -643,7 +669,7 @@ export default function CourseDetailPage() {
                                         </div>
                                     </CardContent>
                                 </Card>
-                            )}
+                            )} */}
 
                             {/* Course Prerequisites */}
                             {course.aboutCourse.prerequisites?.length > 0 && (
@@ -729,13 +755,13 @@ export default function CourseDetailPage() {
                                         <span className="text-gray-600">Students Enrolled</span>
                                         <span className="font-medium">{course.enrollmentCount || 0}</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    {/* <div className="flex justify-between">
                                         <span className="text-gray-600">Average Rating</span>
                                         <div className="flex items-center gap-1">
                                             <Star className="h-4 w-4 text-yellow-400 fill-current" />
                                             <span className="font-medium">4.8</span>
                                         </div>
-                                    </div>
+                                    </div> */}
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Last Updated</span>
                                         <span className="font-medium">{formatDate(course.updatedAt)}</span>

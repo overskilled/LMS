@@ -196,7 +196,7 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mt-8 flex gap-4">
+                    {/* <div className="mt-8 flex gap-4">
                         {!user ? (
                             <>
                                 <Button asChild className="w-full md:w-auto">
@@ -215,7 +215,7 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                                 <Link href={`/course/${course.id}/learn`}>Continue Learning</Link>
                             </Button>
                         )}
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </section>
