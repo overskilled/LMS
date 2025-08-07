@@ -24,6 +24,7 @@ interface CourseDetailsData {
     totalLessons: string
     difficulty: "beginner" | "intermediate" | "advanced" | "expert"
     estimatedHours: number
+    affiliateRate?: number
 }
 
 interface CourseDetailsStepProps {
@@ -65,6 +66,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             totalLessons: "",
             difficulty: "beginner",
             estimatedHours: 1,
+            affiliateRate: 0,
             ...getInitialData(),
         });
 
@@ -254,7 +256,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                 }
             },
         }));
-        
+
         return (
             <AccessibleStepWrapper
                 stepNumber={1}
@@ -546,10 +548,10 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                         <SelectValue placeholder="Select level" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="beginner">Beginner</SelectItem>
-                                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                                        <SelectItem value="advanced">Advanced</SelectItem>
-                                        <SelectItem value="expert">Expert</SelectItem>
+                                        <SelectItem value="beginner">🟢 Beginner - No prior experience needed</SelectItem>
+                                        <SelectItem value="intermediate">🟡 Intermediate - Some experience required</SelectItem>
+                                        <SelectItem value="advanced">🟠 Advanced - Significant experience needed</SelectItem>
+                                        <SelectItem value="expert">🔴 Expert - Professional level</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <div id="course-level-help" className="sr-only">
@@ -565,7 +567,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
 
                         {/* Difficulty & Duration */}
                         <div className="space-y-4">
-                            <div>
+                            {/* <div>
                                 <Label htmlFor="difficulty-select" className="text-sm font-medium mb-2 block">
                                     Difficulty Level
                                 </Label>
@@ -586,8 +588,61 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                 <div id="difficulty-help" className="sr-only">
                                     Select the difficulty level that best matches your course content and requirements.
                                 </div>
-                            </div>
+                            </div> */}
+                            <div>
+                                <Label htmlFor="affiliate-rate-input" className="text-sm font-medium mb-2 block">
+                                    Affiliation Rate{" "}
+                                    <span className="text-red-500" aria-label="required">
+                                        *
+                                    </span>
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="affiliate-rate-input"
+                                        placeholder="0%"
+                                        value={formData.affiliateRate !== undefined ? `${formData.affiliateRate}%` : ""}
+                                        onChange={(e) => {
+                                            // Remove all non-digit characters except decimal point
+                                            let value = e.target.value.replace(/[^0-9.]/g, '');
 
+                                            // Ensure only one decimal point
+                                            const decimalCount = value.split('.').length - 1;
+                                            if (decimalCount > 1) {
+                                                value = value.substring(0, value.lastIndexOf('.'));
+                                            }
+
+                                            // Limit to 2 decimal places
+                                            if (value.includes('.')) {
+                                                const parts = value.split('.');
+                                                if (parts[1].length > 2) {
+                                                    value = `${parts[0]}.${parts[1].substring(0, 2)}`;
+                                                }
+                                            }
+
+                                            // Limit to 100.00
+                                            if (parseFloat(value) > 100) {
+                                                value = '100';
+                                            }
+
+                                            // Convert to number (or empty string if no value)
+                                            const numericValue = value === '' ? undefined : Number(value);
+                                            updateFormData({ affiliateRate: numericValue });
+                                        }}
+                                        className={cn("pr-8", validationErrors.affiliateRate && "border-red-500")}
+                                        aria-describedby="affiliate-rate-help affiliate-rate-error"
+                                        aria-invalid={!!validationErrors.affiliateRate}
+                                    />
+                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500">%</span>
+                                </div>
+                                {validationErrors.affiliateRate && (
+                                    <p id="affiliate-rate-error" className="mt-1 text-sm text-red-500">
+                                        {validationErrors.affiliateRate}
+                                    </p>
+                                )}
+                                <p id="affiliate-rate-help" className="mt-1 text-sm text-gray-500">
+                                    Enter a value between 0 and 100
+                                </p>
+                            </div>
                             <div>
                                 <Label htmlFor="estimated-hours-slider" className="text-sm font-medium mb-2 block">
                                     Estimated Course Duration: {formData.estimatedHours} hours

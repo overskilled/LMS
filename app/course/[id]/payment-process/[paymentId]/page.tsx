@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { doc, updateDoc } from "firebase/firestore"
 import Link from "next/link"
 import {
@@ -40,6 +40,7 @@ interface ParamsProps {
 
 export default function PaymentProcessingPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const { id, paymentId } = useParams<{ id: string; paymentId: string }>();
 
     const courseId = id
@@ -70,6 +71,14 @@ export default function PaymentProcessingPage() {
 
             console.log("courseid in process: ", courseId)
 
+            const refCode = searchParams.get("ref");
+            if (refCode) {
+                fetch("/api/affiliate/record-conversion", {
+                    method: "POST",
+                    body: JSON.stringify({ code: refCode, courseId, amount: transaction.depositedAmount }),
+                });
+            }
+
             // Then, update the local storage to keep it in sync.
             // First, get the current user data from local storage.
             const storedUserInfo = localStorage.getItem("user-info")
@@ -89,7 +98,7 @@ export default function PaymentProcessingPage() {
             }
 
             toast.success("Subscription activated successfully!")
-            router.push(`/course/${courseId}`)
+            // router.push(`/course/${courseId}`)
         } catch (error) {
             console.error("Error subscribing:", error)
             toast.error("Failed to activate subscription. Please try again.")

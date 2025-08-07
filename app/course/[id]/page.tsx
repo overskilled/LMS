@@ -25,12 +25,15 @@ import {
 import MainLayout from "@/app/main-layout"
 import { courseApi } from "@/utils/courseApi"
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { CourseData } from "@/types/course"
 import { format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CourseDetails } from "../components/course-details"
 import { CurriculumSection } from "../components/curriculum-section"
+import { getAuth } from "firebase/auth"
+import { LinksMap } from "@/types/link"
+import { ReferralCodeDisplay } from "../components/referral-code-display"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -40,6 +43,7 @@ export default function CourseDetailPage() {
     const [error, setError] = useState<string | null>(null)
     const [user, setUser] = useState<any>(null)
     const [hasPurchased, setHasPurchased] = useState(false)
+    const [links, setLinks] = useState<LinksMap>({});
     const router = useRouter()
 
     useEffect(() => {
@@ -80,6 +84,18 @@ export default function CourseDetailPage() {
             fetchCourse()
         }
     }, [courseId])
+
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const refCode = searchParams.get("ref");
+        if (refCode) {
+            fetch("/api/affiliate/track-click", {
+                method: "POST",
+                body: JSON.stringify({ code: refCode, courseId: params.id }),
+            });
+        }
+    }, [searchParams, params.id]);
 
     if (loading) {
         return (
@@ -158,6 +174,24 @@ export default function CourseDetailPage() {
         }
         return format(date, 'MMMM d, yyyy')
     }
+
+
+    const generateCode = async (courseId: string) => {
+        const auth = getAuth();
+        const token = await auth.currentUser?.getIdToken();
+
+        const res = await fetch("/api/affiliate/generate", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ courseId })
+        });
+
+        const data = await res.json();
+        setLinks((prev) => ({ ...prev, [courseId]: data.link }));
+    };
 
     return (
         <MainLayout>
@@ -349,22 +383,41 @@ export default function CourseDetailPage() {
                                             <Button
                                                 variant="outline"
                                                 className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-3 text-lg font-semibold rounded-md bg-transparent"
-                                                onClick={() => router.push(`/course/${courseId}/progress`)}
+                                                onClick={() => generateCode(courseId)}
                                             >
-                                                View Progress
+                                                Generate affiliation code
                                             </Button>
+                                            {links[courseId] && (
+                                                <div className="mt-2">
+                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
+                                                    <p className="mt-4 text-sm text-muted-foreground">
+                                                        Click the "Copy" button to get your referral code.
+                                                    </p>
+                                                </div>
+                                            )}
+
+
                                         </>
                                     ) : (
                                         <>
-                                            <Button onClick={() => router.push(`/course/${courseId}/subscribe`)} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
+                                            <Button onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md mt-4">
                                                 Purchase Course
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-3 text-lg font-semibold rounded-md bg-transparent"
+                                                className="w-full text-md"
+                                                onClick={() => generateCode(courseId)}
                                             >
-                                                Add to wishlist
+                                                Generate affiliation code
                                             </Button>
+                                            {links[courseId] && (
+                                                <div className="mt-2 flex flex-col w-full">
+                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
+                                                    <p className="mt-4 w-full text-xs text-center text-gray-300">
+                                                        Click the "Copy" button to get your referral code.
+                                                    </p>
+                                                </div>
+                                            )}
                                         </>
                                     )}
                                 </div>

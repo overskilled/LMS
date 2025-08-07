@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { v4 as uuidv4 } from "uuid"
 import { Check, Loader2, Shield } from "lucide-react"
 
@@ -23,6 +23,8 @@ export default function CoursePayment() {
     const [error, setError] = useState<string | null>(null)
     const [course, setCourse] = useState<any>(null)
     const router = useRouter()
+
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -89,8 +91,8 @@ export default function CoursePayment() {
                     },
                     body: JSON.stringify({
                         depositId,
-                        // amount: "10",
-                        amount: course.aboutCourse.pricing.basePrice.toString(),
+                        amount: "10",
+                        // amount: course.aboutCourse.pricing.basePrice.toString(),
                         currency: "XAF",
                         correspondent: selectedMobileMethod === "mtn" ? "MTN_MOMO_CMR" : "ORANGE_CMR",
                         payer: { address: { value: `237${phoneNumber}` }, type: "MSISDN" },
@@ -127,7 +129,7 @@ export default function CoursePayment() {
         }
 
         if (success && result?.depositId) {
-            router.push(`/course/${courseId}/payment-process/${result.depositId}`);
+            router.push(`/course/${courseId}/payment-process/${result.depositId}?ref=${searchParams.get("ref")}`);
         } else if (result?.status === "REJECTED") {
             setError("Payment was rejected, check your network or try later.");
             console.log(result?.rejectionReason?.rejectionMessage || "Payment was rejected, check your network or try later.");
