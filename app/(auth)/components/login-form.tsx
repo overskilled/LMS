@@ -11,7 +11,7 @@ import { Lock, Eye, EyeOff, User, Loader2 } from "lucide-react"
 import { FcGoogle } from "react-icons/fc"
 import { useAuthState, useSignInWithEmailAndPassword } from "react-firebase-hooks/auth"
 import { auth, db } from "@/firebase/config"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { doc, getDoc } from "firebase/firestore"
 
@@ -25,6 +25,8 @@ export default function LoginForm() {
         email: "",
         password: "",
     });
+
+    const searchParams = useSearchParams()
 
     const [
         signInWithEmailAndPassword,
@@ -80,8 +82,17 @@ export default function LoginForm() {
                     localStorage.setItem("user-info", JSON.stringify(docSnap.data()));
                 }
 
-                router.push("/");
+
                 toast.success("Welcome back to NMD Courses");
+
+                const courseId = searchParams.get("courseId")
+                const refCode = searchParams.get("ref")
+
+                if (courseId && refCode) {
+                    router.push(`/course/${courseId}?ref=${refCode}`)
+                } else {
+                    router.push("/");
+                }
             }
 
             console.log("euerer: end",)

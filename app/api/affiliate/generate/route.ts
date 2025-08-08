@@ -11,6 +11,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        console.log("uzer : ", user)
+        console.log('auth header:', req.headers.get('authorization'));
+
+
         // 2️⃣ Extract courseId from request body
         const { courseId } = await req.json();
         if (!courseId) {
@@ -59,10 +63,10 @@ export async function POST(req: NextRequest) {
         const link = `${process.env.NEXT_PUBLIC_APP_URL}/course/${courseId}?ref=${code}`;
 
         return NextResponse.json({ code, link });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Affiliate generation error:', error);
         return NextResponse.json(
-            { error: 'Failed to generate affiliate code' },
+            { error: `Failed to generate affiliate code ${error.message}` },
             { status: 500 }
         );
     }

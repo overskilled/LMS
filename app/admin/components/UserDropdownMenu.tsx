@@ -15,19 +15,7 @@ import { LogoutButton } from '@/components/custom/logoutButton';
 import { useAuth } from '@/context/authContext';
 
 const UserDropdownMenu = () => {
-    const [userData, setUserData] = useState<any | null>()
-
-    useEffect(() => {
-        const userString = localStorage.getItem('user-info');
-        if (userString) {
-            try {
-                const parsedUser = JSON.parse(userString);
-                setUserData(parsedUser);
-            } catch (error) {
-                console.error('Failed to parse user data', error);
-            }
-        }
-    }, [])
+    const { user } = useAuth()
 
     return (
         <DropdownMenu>
@@ -40,8 +28,8 @@ const UserDropdownMenu = () => {
                     /> */}
 
                     <div className="text-left">
-                        {userData?.name ? (
-                            <div className="text-sm font-medium">{userData.name}</div>
+                        {user?.name ? (
+                            <div className="text-sm font-medium">{user.name}</div>
                         ) : (
                             <Skeleton className="h-5 w-24 rounded" />
                         )}

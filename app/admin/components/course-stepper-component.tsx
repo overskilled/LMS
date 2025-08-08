@@ -12,6 +12,7 @@ import type { CourseData } from "@/types/course"
 import { AboutCourseStep } from "./about-course-step"
 import { QuizCreationStep } from "./quiz-creation-step"
 import { PublishSummaryStep } from "./publish-summary-step"
+import { useAuth } from "@/context/authContext"
 
 const steps: Step[] = [
     { id: "course-details", title: "Course Details" },
@@ -50,6 +51,8 @@ export function CompleteStepper({
         stepRefs.current = stepRefs.current.slice(0, steps.length)
     }, [])
 
+    const { user } = useAuth()
+
     function getDefaultCourseData(): Partial<CourseData> {
         return {
             courseDetails: {
@@ -61,7 +64,8 @@ export function CompleteStepper({
                 totalLessons: "",
                 difficulty: "beginner",
                 estimatedHours: 1,
-                affiliateRate: 20
+                affiliateRate: 20,
+                authorId: user?.uid!
             },
             videos: [],
             aboutCourse: {

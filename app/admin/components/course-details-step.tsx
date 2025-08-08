@@ -12,6 +12,7 @@ import { AccessibleStepWrapper, type StepRef } from "./accessible-step-wrapper"
 import { useMediaUpload } from "@/hooks/useMediaUpload"
 import { formatFileSize, type MediaMetadata } from "@/lib/mediaUpload"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/context/authContext"
 
 interface CourseDetailsData {
     thumbnailImage?: any
@@ -25,6 +26,7 @@ interface CourseDetailsData {
     difficulty: "beginner" | "intermediate" | "advanced" | "expert"
     estimatedHours: number
     affiliateRate?: number
+    authorId: string
 }
 
 interface CourseDetailsStepProps {
@@ -54,6 +56,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             }
             return initialData || {};
         };
+        const {user} = useAuth()
 
         const [formData, setFormData] = useState<CourseDetailsData>({
             thumbnailImage: null,
@@ -67,12 +70,14 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             difficulty: "beginner",
             estimatedHours: 1,
             affiliateRate: 0,
+            authorId: user?.uid!,
             ...getInitialData(),
         });
 
         const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
         const [isValid, setIsValid] = useState(false);
         const [isLoading, setIsLoading] = useState(false);
+
 
         const { uploadFile, uploading, progress, error: uploadError, clearError } = useMediaUpload();
 
@@ -247,6 +252,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                     totalLessons: "",
                     difficulty: "beginner",
                     estimatedHours: 1,
+                    authorId: user?.uid!
                 });
                 setValidationErrors({});
                 try {

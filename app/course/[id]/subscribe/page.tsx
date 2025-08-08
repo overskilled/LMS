@@ -5,6 +5,8 @@ import { useState, useEffect } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { v4 as uuidv4 } from "uuid"
 import { Check, Loader2, Shield } from "lucide-react"
+import { initializeApp } from "firebase/app"
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore"
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,6 +15,19 @@ import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { courseApi } from "@/utils/courseApi"
+
+// Initialize Firebase
+const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export default function CoursePayment() {
     const params = useParams()
@@ -64,6 +79,35 @@ export default function CoursePayment() {
         return true
     }
 
+    const createTransactionRecord = async (depositId: string, status: string) => {
+        try {
+            const transactionData = {
+                depositId,
+                courseId,
+                courseTitle: course?.aboutCourse.title,
+                amount: course?.aboutCourse.pricing.basePrice,
+                currency: "XAF",
+                paymentMethod: selectedMobileMethod === "mtn" ? "MTN Mobile Money" : "Orange Money",
+                phoneNumber: `+237${phoneNumber}`,
+                status,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                ref: searchParams.get("ref") || null,
+                metadata: {
+                    // Add any additional metadata you want to track
+                    platform: "web",
+                    attemptCount: 3 // You might want to track how many attempts were made
+                }
+            };
+
+            await addDoc(collection(db, "transactions"), transactionData);
+            console.log("Transaction record created successfully");
+        } catch (error) {
+            console.error("Error creating transaction record:", error);
+            // Don't fail the payment flow if Firestore fails
+        }
+    }
+
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -91,8 +135,7 @@ export default function CoursePayment() {
                     },
                     body: JSON.stringify({
                         depositId,
-                        amount: "10",
-                        // amount: course.aboutCourse.pricing.basePrice.toString(),
+                        amount: course.aboutCourse.pricing.basePrice.toString(),
                         currency: "XAF",
                         correspondent: selectedMobileMethod === "mtn" ? "MTN_MOMO_CMR" : "ORANGE_CMR",
                         payer: { address: { value: `237${phoneNumber}` }, type: "MSISDN" },
@@ -109,11 +152,10 @@ export default function CoursePayment() {
 
                 result = await res.json();
 
-                // ✅ Ensure success is only true for valid success responses
                 if (result?.status === "REJECTED" || result?.status === "DUPLICATE_IGNORED") {
                     success = false;
                     if (result?.status === "DUPLICATE_IGNORED") {
-                        depositId = generateDepositId(); // retry with a new ID
+                        depositId = generateDepositId();
                     }
                 } else if (res.ok && result?.status !== "DUPLICATE_IGNORED") {
                     success = true;
@@ -123,21 +165,26 @@ export default function CoursePayment() {
             } catch (error: any) {
                 if (attempt >= 2) {
                     setError("Payment failed: " + error.message);
+                    // Create a failed transaction record
+                    await createTransactionRecord(depositId, "failed");
                 }
             }
             attempt++;
         }
 
         if (success && result?.depositId) {
+            // Create a successful transaction record
+            await createTransactionRecord(result.depositId, "pending");
             router.push(`/course/${courseId}/payment-process/${result.depositId}?ref=${searchParams.get("ref")}`);
         } else if (result?.status === "REJECTED") {
             setError("Payment was rejected, check your network or try later.");
             console.log(result?.rejectionReason?.rejectionMessage || "Payment was rejected, check your network or try later.");
+            // Create a rejected transaction record
+            await createTransactionRecord(depositId, "rejected");
         }
 
         setLoading(false);
     };
-
 
     if (!course) {
         return (

@@ -30,6 +30,7 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { db } from "@/firebase/config"
 import { courseApi } from "@/utils/courseApi"
+import { useRecordAffiliateConversion } from "@/hooks/useRecordClientConversion"
 
 interface ParamsProps {
     params: {
@@ -56,6 +57,7 @@ export default function PaymentProcessingPage() {
     const userInfo = localStorage.getItem('user-info')
     const user = JSON.parse(userInfo || "")
     const [loading, setLoading] = useState<boolean>(false)
+    const { recordConversion } = useRecordAffiliateConversion();
 
     const handleSubscribe = async () => {
         try {
@@ -72,11 +74,9 @@ export default function PaymentProcessingPage() {
             console.log("courseid in process: ", courseId)
 
             const refCode = searchParams.get("ref");
+
             if (refCode) {
-                fetch("/api/affiliate/record-conversion", {
-                    method: "POST",
-                    body: JSON.stringify({ code: refCode, courseId, amount: transaction.depositedAmount }),
-                });
+                recordConversion(refCode, courseId,  transaction.depositedAmount);
             }
 
             // Then, update the local storage to keep it in sync.

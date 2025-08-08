@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { auth, db } from "@/firebase/config"
@@ -26,6 +26,7 @@ export default function SignupForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
+    const searchParams = useSearchParams()
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -61,9 +62,18 @@ export default function SignupForm() {
                 createdAt: new Date(),
             });
 
+
             toast.success("Account created successfully");
             localStorage.setItem("user-info", JSON.stringify({ uid: user.uid, name, email }));
-            router.push("/");
+
+            const courseId = searchParams.get("courseId")
+            const refCode = searchParams.get("ref")
+
+            if (courseId && refCode) {
+                router.push(`/course/${courseId}?ref=${refCode}`)
+            } else {
+                router.push("/");
+            }
         } catch (err: any) {
             console.error("Signup error:", err.message);
             setError(err.message);
@@ -80,7 +90,7 @@ export default function SignupForm() {
         await signInWithRedirect(auth, provider);
     };
 
-   
+
 
     return (
         <div className="flex w-full min-h-screen items-center justify-center bg-white px-4 py-6 sm:px-6 lg:px-8">

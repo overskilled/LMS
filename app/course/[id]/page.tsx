@@ -8,7 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
     User, Star, Clock, Book, GraduationCap, Globe, Check, Calendar,
     Facebook, Twitter, Linkedin, Instagram, ArrowUp, X, ShoppingCart,
-    Play, Loader2, Loader2Icon, Clock as ClockIcon, Bell, LockKeyhole
+    Play, Loader2, Loader2Icon, Clock as ClockIcon, Bell, LockKeyhole,
+    CheckCircle
 } from "lucide-react"
 import MainLayout from "@/app/main-layout"
 import { courseApi } from "@/utils/courseApi"
@@ -19,7 +20,6 @@ import { format, isFuture } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CourseDetails } from "../components/course-details"
 import { CurriculumSection } from "../components/curriculum-section"
-import { getAuth } from "firebase/auth"
 import { LinksMap } from "@/types/link"
 import { ReferralCodeDisplay } from "../components/referral-code-display"
 import { Progress } from "@/components/ui/progress"
@@ -29,6 +29,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { CountdownTimer } from "../components/countdown-timer"
 import { ShareCourseButton } from "../components/share-course-button"
+import { getAuth } from "firebase/auth"
+import { generateAffiliateCodeClientSide } from "@/hooks/useGenerateAffiliateCode"
+import { useTrackAffiliateClickClient } from "@/hooks/useTrackaffiliateLinks"
+import { useAuth } from "@/context/authContext"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -36,7 +40,6 @@ export default function CourseDetailPage() {
     const [course, setCourse] = useState<CourseData | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [user, setUser] = useState<any>(null)
     const [hasPurchased, setHasPurchased] = useState(false)
     const [links, setLinks] = useState<LinksMap>({})
     const [generatingLinks, setGeneratingLinks] = useState(false)
@@ -46,26 +49,15 @@ export default function CourseDetailPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
+    const { user } = useAuth()
+
+    const { trackClick } = useTrackAffiliateClickClient();
+
     // Check if course is upcoming
     const isUpcoming = course?.aboutCourse?.isUpcoming && course?.aboutCourse?.availabilityDate && isFuture(new Date(course?.aboutCourse?.availabilityDate))
     const isEarlyAccess = isUpcoming && course?.aboutCourse?.earlyAccessEnabled
 
     useEffect(() => {
-        // Get user info from localStorage
-        const userInfo = typeof window !== 'undefined' ? localStorage.getItem('user-info') : null
-        if (userInfo) {
-            try {
-                const parsedUser = JSON.parse(userInfo)
-                setUser(parsedUser)
-
-                // Check if user has purchased this course
-                if (parsedUser.courses && Array.isArray(parsedUser.courses)) {
-                    setHasPurchased(parsedUser.courses.includes(courseId))
-                }
-            } catch (e) {
-                console.error("Error parsing user info", e)
-            }
-        }
 
         const fetchCourse = async () => {
             try {
@@ -74,10 +66,10 @@ export default function CourseDetailPage() {
                 if (response.success && response.data) {
                     setCourse(response.data)
                 } else {
-                    setError(response.message || "Failed to load course")
+                    // setError(response.message || "Failed to load course")
                 }
             } catch (err) {
-                setError("An error occurred while fetching the course")
+                // setError("An error occurred while fetching the course")
                 console.error("Error fetching course:", err)
             } finally {
                 setLoading(false)
@@ -91,12 +83,8 @@ export default function CourseDetailPage() {
 
     useEffect(() => {
         const refCode = searchParams.get("ref")
-        if (refCode) {
-            fetch("/api/affiliate/track-click", {
-                method: "POST",
-                body: JSON.stringify({ code: refCode, courseId: params.id }),
-            })
-        }
+
+        trackClick(refCode!, courseId!);
     }, [searchParams, params.id])
 
     const formatPrice = (price: number, currency: string) => {
@@ -119,31 +107,20 @@ export default function CourseDetailPage() {
         return format(date, 'MMMM d, yyyy')
     }
 
+
     const generateCode = async (courseId: string) => {
-        const auth = getAuth()
-        const token = await auth.currentUser?.getIdToken()
-
         try {
-            setGeneratingLinks(true)
-            const res = await fetch("/api/affiliate/generate", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ courseId })
-            })
-
-            const data = await res.json()
-            setLinks(prev => ({ ...prev, [courseId]: data.link }))
-            toast.success( "Your referral link has been created successfully")
+            setGeneratingLinks(true);
+            const { link } = await generateAffiliateCodeClientSide(courseId);
+            setLinks((prev) => ({ ...prev, [courseId]: link }));
+            toast.success("Your referral link has been created successfully");
         } catch (error: any) {
-            console.error("An error occurred: ", error.message)
-            toast.success( "Failed to generate affiliate link")
+            console.error(error);
+            // toast.error(error.message || "Failed to generate affiliate link");
         } finally {
-            setGeneratingLinks(false)
+            setGeneratingLinks(false);
         }
-    }
+    };
 
     const joinWaitlist = async () => {
         if (!email) {
@@ -504,7 +481,7 @@ export default function CourseDetailPage() {
                                             {isEarlyAccess ? (
                                                 <Button
                                                     onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
-                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold rounded-md"
+                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold "
                                                 >
                                                     Get Early Access
                                                 </Button>
@@ -512,66 +489,26 @@ export default function CourseDetailPage() {
                                                 <Button
                                                     variant="outline"
                                                     onClick={() => setShowWaitlistForm(true)}
-                                                    className="w-full text-white border-white hover:bg-white/10 py-3 text-lg font-semibold rounded-md flex items-center gap-2"
+                                                    className="w-full text-md"
                                                 >
                                                     <Bell className="h-5 w-5" />
                                                     Join Waitlist
                                                 </Button>
                                             )}
-                                            <ShareCourseButton
-                                                courseId={courseId}
-                                                title={course.aboutCourse.title}
-                                                className="w-full"
-                                            />
-                                        </div>
-                                    ) : user?.uid ? (
-                                        <div className="space-y-3">
-                                            {isEarlyAccess ? (
-                                                <Button
-                                                    onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
-                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold rounded-md"
-                                                >
-                                                    Enroll
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setShowWaitlistForm(true)}
-                                                    className="w-full text-white border-white hover:bg-white/10 py-3 text-lg font-semibold rounded-md flex items-center gap-2"
-                                                >
-                                                    <Bell className="h-5 w-5" />
-                                                    Join Waitlist
-                                                </Button>
-                                            )}
-                                            <ShareCourseButton
-                                                courseId={courseId}
-                                                title={course.aboutCourse.title}
-                                                className="w-full"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <Button
-                                                onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
-                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md"
-                                            >
-                                                Log into your account
-                                            </Button>
                                             <Button
                                                 variant="outline"
                                                 disabled={generatingLinks}
                                                 className="w-full text-md"
                                                 onClick={() => generateCode(courseId)}
                                             >
-                                                {/* {generatingLinks ? (
+                                                {generatingLinks ? (
                                                     <>
                                                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
                                                         Generating...
                                                     </>
                                                 ) : (
                                                     "Generate Affiliate Code"
-                                                )} */}
-
+                                                )}
                                             </Button>
                                             {links[courseId] && (
                                                 <div className="mt-2 flex flex-col w-full">
@@ -581,6 +518,67 @@ export default function CourseDetailPage() {
                                                     </p>
                                                 </div>
                                             )}
+                                        </div>
+                                    ) : user?.uid ? (
+                                        <div className="space-y-3">
+                                            {isEarlyAccess ? (
+                                                <Button
+                                                    variant="default"
+                                                    onClick={() => setShowWaitlistForm(true)}
+                                                    className="w-full text-md"
+                                                >
+                                                    <Bell className="h-5 w-5" />
+                                                    Join Waitlist
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
+                                                    className="w-full text-md"
+                                                >
+                                                    <CheckCircle className="h-5 w-5" />
+                                                    Enroll
+                                                </Button>
+                                            )}
+                                            <Button
+                                                variant="outline"
+                                                disabled={generatingLinks}
+                                                className="w-full text-md"
+                                                onClick={() => generateCode(courseId)}
+                                            >
+                                                {generatingLinks ? (
+                                                    <>
+                                                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                                                        Generating...
+                                                    </>
+                                                ) : (
+                                                    "Generate Affiliate Code"
+                                                )}
+                                            </Button>
+                                            {links[courseId] && (
+                                                <div className="mt-2 flex flex-col w-full">
+                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
+                                                    <p className="mt-4 w-full text-xs text-center text-gray-300">
+                                                        Click the "Copy" button to get your referral code.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <Button
+                                                variant={"outline"}
+                                                onClick={() => router.push(`/login/?courseId=${courseId}&ref=${searchParams.get("ref")}`)}
+                                                className="w-full text-md"
+                                            >
+                                                Log into your account
+                                            </Button>
+                                            <Button
+                                                onClick={() => router.push(`/register/?courseId=${courseId}&ref=${searchParams.get("ref")}`)}
+                                                className="w-full text-md"
+                                            >
+                                                Create an account
+                                            </Button>
+
                                         </div>
                                     )}
                                 </div>
@@ -709,12 +707,12 @@ export default function CourseDetailPage() {
                             )}
 
                             {/* About This Course */}
-                            <div>
+                            <div className="w-full">
                                 <h2 className="text-3xl font-bold text-gray-900 mb-6">About This Course</h2>
-                                <div className="space-y-4 text-gray-700 text-md mb-2 font-bold leading-relaxed whitespace-pre-line">
+                                <div className="space-y-4 text-gray-700 text-md mb-2 font-bold leading-relaxed whitespace-pre-line break-words">
                                     {course.aboutCourse.shortDescription}
                                 </div>
-                                <div className="space-y-4 text-gray-700 text-lg leading-relaxed whitespace-pre-line">
+                                <div className="space-y-4 text-gray-700 text-lg leading-relaxed whitespace-pre-line break-all overflow-x-auto">
                                     {course.aboutCourse.fullDescription}
                                 </div>
                             </div>
@@ -796,8 +794,8 @@ export default function CourseDetailPage() {
 
                 <CurriculumSection
                     course={course}
-                    // hasPurchased={hasPurchased}
-                    // isUpcoming={isUpcoming}
+                // hasPurchased={hasPurchased}
+                // isUpcoming={isUpcoming}
                 />
 
                 {/* Floating scroll to top button */}

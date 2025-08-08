@@ -15,6 +15,7 @@ export interface CourseData {
         difficulty: "beginner" | "intermediate" | "advanced" | "expert"
         estimatedHours: number,
         affiliateRate?: number,
+        authorId: string,
     }
 
     // Step 1: Upload Videos
