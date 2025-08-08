@@ -75,27 +75,11 @@ export default function PaymentProcessingPage() {
 
             const refCode = searchParams.get("ref");
 
-            if (refCode) {
+            if (refCode !== null) {
                 recordConversion(refCode, courseId,  transaction.depositedAmount);
             }
 
-            // Then, update the local storage to keep it in sync.
-            // First, get the current user data from local storage.
-            const storedUserInfo = localStorage.getItem("user-info")
-            if (storedUserInfo) {
-                const userInfo = JSON.parse(storedUserInfo)
-                // Add the new courseId to the courses array.
-                // Check if the courses array exists and is an array; if not, initialize it.
-                if (!userInfo.courses || !Array.isArray(userInfo.courses)) {
-                    userInfo.courses = []
-                }
-                // Add the courseId if it's not already in the array.
-                if (!userInfo.courses.includes(courseId)) {
-                    userInfo.courses.push(courseId)
-                }
-                // Update local storage with the new user data.
-                localStorage.setItem("user-info", JSON.stringify(userInfo))
-            }
+            
 
             toast.success("Subscription activated successfully!")
             router.push(`/course/${courseId}`)

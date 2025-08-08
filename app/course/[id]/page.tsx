@@ -65,6 +65,12 @@ export default function CourseDetailPage() {
                 const response = await courseApi.getCourseById(courseId)
                 if (response.success && response.data) {
                     setCourse(response.data)
+
+                    if (user && Array.isArray(user.courses)) {
+                        setHasPurchased(user.courses.includes(courseId))
+                    } else {
+                        setHasPurchased(false)
+                    }
                 } else {
                     // setError(response.message || "Failed to load course")
                 }
@@ -79,7 +85,9 @@ export default function CourseDetailPage() {
         if (courseId) {
             fetchCourse()
         }
-    }, [courseId])
+
+
+    }, [courseId, user])
 
     useEffect(() => {
         const refCode = searchParams.get("ref")
@@ -446,7 +454,7 @@ export default function CourseDetailPage() {
                                     ) : user?.uid && hasPurchased ? (
                                         <div className="space-y-3">
                                             <Button
-                                                onClick={() => router.push(`/course/${courseId}/learn`)}
+                                                onClick={() => router.push(`/course/${courseId}`)}
                                                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md flex items-center gap-2"
                                             >
                                                 <Play className="h-5 w-5" />

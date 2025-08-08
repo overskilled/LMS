@@ -37,6 +37,7 @@ export function CompleteStepper({
     initialData,
     courseId
 }: CompleteStepperProps) {
+    const { user } = useAuth()
     const [currentStep, setCurrentStep] = useState(0)
     const [courseData, setCourseData] = useState<Partial<CourseData>>(initialData || getDefaultCourseData())
     const [stepValidation, setStepValidation] = useState<Record<number, boolean>>({})
@@ -51,7 +52,6 @@ export function CompleteStepper({
         stepRefs.current = stepRefs.current.slice(0, steps.length)
     }, [])
 
-    const { user } = useAuth()
 
     function getDefaultCourseData(): Partial<CourseData> {
         return {
@@ -65,7 +65,7 @@ export function CompleteStepper({
                 difficulty: "beginner",
                 estimatedHours: 1,
                 affiliateRate: 20,
-                authorId: user?.uid!
+                authorId: user ? user.uid : "",
             },
             videos: [],
             aboutCourse: {

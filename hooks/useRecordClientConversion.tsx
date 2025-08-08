@@ -28,7 +28,7 @@ export function useRecordAffiliateConversion() {
         setLoading(true);
         try {
             if (!code || !courseId || !amount) {
-                throw new Error("Missing data");
+                // throw new Error("Missing data");
             }
 
             // TODO: affiliateRate should be fetched or configured on client
@@ -41,7 +41,7 @@ export function useRecordAffiliateConversion() {
             const snapshot = await getDocs(q);
 
             if (snapshot.empty) {
-                throw new Error("Affiliate code not found");
+                // throw new Error("Affiliate code not found");
             }
 
             const affiliateDoc = snapshot.docs[0];
@@ -59,7 +59,7 @@ export function useRecordAffiliateConversion() {
             toast.success("Conversion recorded successfully");
             return { success: true };
         } catch (error: any) {
-            toast.error(error.message || "Failed to record conversion");
+            // toast.error(error.message || "Failed to record conversion");
             return { success: false, error: error.message };
         } finally {
             setLoading(false);

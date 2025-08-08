@@ -70,7 +70,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             difficulty: "beginner",
             estimatedHours: 1,
             affiliateRate: 0,
-            authorId: user?.uid!,
+            authorId: user ? user.uid : "",
             ...getInitialData(),
         });
 

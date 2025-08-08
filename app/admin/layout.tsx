@@ -6,6 +6,7 @@ import Loading from "./loading";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import Header from "./components/header";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/authContext";
 
 export default function AdminLayout({
     children,
@@ -13,24 +14,17 @@ export default function AdminLayout({
     children: React.ReactNode;
 }>) {
     const router = useRouter();
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    const { user } = useAuth()
 
-    useEffect(() => {
-        // Check localStorage for user info
-        const userData = JSON.parse(localStorage.getItem("user-info") || "");
+    // useEffect(() => {
+      
+    //     // if (!userData.admin) {
+    //     //     router.push('/admin/login');
+    //     // } else {
+    //     //     setIsAuthorized(true);
+    //     // }
+    // }, [router]);
 
-        console.log("userData: ", userData)
-
-            // if (!userData.admin) {
-            //     router.push('/admin/login');
-            // } else {
-            //     setIsAuthorized(true);
-            // }
-    }, [router]);
-
-    // if (!isAuthorized) {
-    //     return <Loading />;
-    // }
 
 
 
@@ -48,7 +42,7 @@ export default function AdminLayout({
                             </Suspense>
                         </div>
                     </main>
-                   
+
                 </div>
             </div>
         </SidebarProvider>

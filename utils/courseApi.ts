@@ -90,7 +90,8 @@ export const courseApi = {
         try {
             const userRef = doc(db, "users", userId);
 
-            console.log("courseid in process: ", courseId)
+            // console.log("User in process: ", userId)
+            // console.log("courseid in process: ", courseId)
 
             // This will create the courses array if it doesn't exist yet
             await setDoc(userRef, {

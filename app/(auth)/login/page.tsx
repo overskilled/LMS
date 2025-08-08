@@ -1,4 +1,5 @@
-import React from 'react'
+
+import React, { Suspense } from 'react'
 import LoginForm from '../components/login-form'
 
 const Page = () => {
@@ -17,7 +18,9 @@ const Page = () => {
             {/* Right Section - Login Form */}
             <div className="flex items-center w-full md:w-[40%] p-5 justify-center bg-white">
                 <div className="w-full max-w-md px-4 sm:px-6">
-                    <LoginForm />
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <LoginForm />
+                    </Suspense>
                 </div>
             </div>
         </div>

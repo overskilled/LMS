@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { DraftManager } from "@/components/draft-manager"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -8,6 +8,7 @@ import { courseApi } from "@/utils/courseApi"
 import type { CourseData } from "@/types/course"
 import { useRouter } from "next/navigation"
 import { CompleteStepper } from "../components/course-stepper-component"
+import Loading from "../loading"
 
 // Local storage keys used by different steps
 const LOCAL_STORAGE_KEYS = {
@@ -198,11 +199,13 @@ export default function CompleteCourseCreator() {
                 </div>
             )}
 
-            <CompleteStepper
-                onSaveAsDraft={handleSaveAsDraft}
-                onPublishCourse={handlePublishCourse}
-                onCancel={handleCancel}
-            />
+            <Suspense fallback={<Loading />}>
+                <CompleteStepper
+                    onSaveAsDraft={handleSaveAsDraft}
+                    onPublishCourse={handlePublishCourse}
+                    onCancel={handleCancel}
+                />
+            </Suspense>
         </div>
     )
 }
