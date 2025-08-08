@@ -31,6 +31,7 @@ import { toast } from "sonner"
 import { db } from "@/firebase/config"
 import { courseApi } from "@/utils/courseApi"
 import { useRecordAffiliateConversion } from "@/hooks/useRecordClientConversion"
+import { useAuth } from "@/context/authContext"
 
 interface ParamsProps {
     params: {
@@ -54,8 +55,7 @@ export default function PaymentProcessingPage() {
     const [progress, setProgress] = useState(0)
     const [pollingCount, setPollingCount] = useState(0)
 
-    const userInfo = localStorage.getItem('user-info')
-    const user = JSON.parse(userInfo || "")
+    const {user} = useAuth()
     const [loading, setLoading] = useState<boolean>(false)
     const { recordConversion } = useRecordAffiliateConversion();
 
