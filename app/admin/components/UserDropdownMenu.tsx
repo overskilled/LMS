@@ -39,7 +39,7 @@ const UserDropdownMenu = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuItem>
-                    <Link href="/dashboard/profile">
+                    <Link href="/earnings">
                         <Button variant="ghost" className="w-full justify-start">
                             <Users className="mr-2 h-4 w-4" />
                             <span>My Profile</span> {/* Translated text */}
@@ -47,12 +47,12 @@ const UserDropdownMenu = () => {
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                    <Link href="/dashboard/settings">
+                    {/* <Link href="/dashboard/settings"> */}
                         <Button variant="ghost" className="w-full justify-start">
                             <Settings className="mr-2 h-4 w-4" />
                             <span>Settings</span> {/* Translated text */}
                         </Button>
-                    </Link>
+                    {/* </Link> */}
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                     <LogoutButton />

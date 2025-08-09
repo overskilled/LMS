@@ -5,10 +5,11 @@ import TestimonialsSection from "@/components/testimonials"
 import Cta from "@/components/cta"
 import MainLayout from "./main-layout"
 import { useAuth } from "@/context/authContext"
+import WhatsAppFloating from "@/components/custom/WhatappButton"
 
 export default function Page() {
 
-  
+
   return (
     <MainLayout>
       <HeroSection />
@@ -16,6 +17,10 @@ export default function Page() {
       <CourseListing />
       {/* <TestimonialsSection /> */}
       <Cta />
+
+      
+      <WhatsAppFloating />
+
     </MainLayout>
   )
 }

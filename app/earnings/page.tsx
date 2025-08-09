@@ -188,6 +188,10 @@ export default function DashboardPage() {
                         description={aggregatedStats.lastConversionBuyer || 'No data'}
                     />
                 </div>
+
+                <div className="flex items-center justify-center w-full my-10">
+                    Affiliation cashout is coming soon 
+                </div>
             </div>
         </MainLayout>
     )

@@ -125,7 +125,7 @@ export default function Navbar() {
 
           {isClient && user ? (
             <div className="space-y-2">
-              <Link href="/profile" className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
+              <Link href="/earnings" className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
                 Profile
               </Link>
               <Link href="/my-courses" className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">

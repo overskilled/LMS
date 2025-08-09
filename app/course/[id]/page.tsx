@@ -33,6 +33,7 @@ import { getAuth } from "firebase/auth"
 import { generateAffiliateCodeClientSide } from "@/hooks/useGenerateAffiliateCode"
 import { useTrackAffiliateClickClient } from "@/hooks/useTrackaffiliateLinks"
 import { useAuth } from "@/context/authContext"
+import WhatsAppFloating from "@/components/custom/WhatappButton"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -92,8 +93,9 @@ export default function CourseDetailPage() {
     useEffect(() => {
         const refCode = searchParams.get("ref")
 
+        console.log("tracking click: ", refCode)
         trackClick(refCode!, courseId!);
-    }, [searchParams, params.id])
+    }, [searchParams])
 
     const formatPrice = (price: number, currency: string) => {
         if (price === 0) return "Free"
@@ -807,15 +809,7 @@ export default function CourseDetailPage() {
                 />
 
                 {/* Floating scroll to top button */}
-                <Button
-                    variant="default"
-                    size="icon"
-                    className="fixed bottom-4 right-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg z-50"
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                >
-                    <ArrowUp className="h-6 w-6" />
-                    <span className="sr-only">Scroll to top</span>
-                </Button>
+                <WhatsAppFloating />
             </div>
         </MainLayout>
     )

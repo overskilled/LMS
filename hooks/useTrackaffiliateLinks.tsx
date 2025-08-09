@@ -9,13 +9,12 @@ export function useTrackAffiliateClickClient() {
     async function trackClick(code: string, courseId: string) {
         setLoading(true);
         try {
-            const user = auth.currentUser;
-            if (!user) {
-                throw new Error("User must be logged in to track clicks");
-            }
+            console.log("code to add click:", code)
+            console.log("course to add click:", courseId)
+
 
             const [courseFromCode, _randomCode] = code.split("-");
-            if (courseFromCode !== courseId) {
+            if (courseFromCode !== courseId.toUpperCase()) {
                 throw new Error("Invalid code for this course");
             }
 
