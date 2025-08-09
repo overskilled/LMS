@@ -809,7 +809,11 @@ export default function CourseDetailPage() {
                 />
 
                 {/* Floating scroll to top button */}
-                <WhatsAppFloating />
+                <WhatsAppFloating
+                    href="https://chat.whatsapp.com/JuiXcG9AqDKCwNpqPnopBw"
+                    label="Join AI group"
+                    communityName="INTELLIGENCE ARTIFICIELLE"
+                />
             </div>
         </MainLayout>
     )

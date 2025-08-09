@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useCallback, useState } from "react"
-import { MessageCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useCallback, useState } from 'react'
+import { MessageCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
     Dialog,
     DialogContent,
@@ -11,24 +11,29 @@ import {
     DialogHeader,
     DialogTitle,
     DialogClose,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
 
-type Props = {
+export type WhatsAppFloatingProps = {
+    /** Link to your WhatsApp group or chat */
     href?: string
+    /** Button accessible label */
     label?: string
+    /** Name of the community for the dialog message */
     communityName?: string
 }
 
 export default function WhatsAppFloating({
-    href = "https://chat.whatsapp.com/JuiXcG9AqDKCwNpqPnopBw",
-    label = "Join our WhatsApp community",
-    communityName = "JFN TECHNOVERS",
-}: Props) {
+    href = 'https://chat.whatsapp.com/FEeas0ZegOIGLHxnRqXo04',
+    label = 'Join our WhatsApp community',
+    communityName = 'JFN TECHNOVERS',
+}: WhatsAppFloatingProps) {
     const [open, setOpen] = useState(false)
 
     const handleOpen = useCallback(() => setOpen(true), [])
     const continueToWhatsApp = useCallback(() => {
-        window.open(href, "_blank", "noopener,noreferrer")
+        if (href) {
+            window.open(href, '_blank', 'noopener,noreferrer')
+        }
         setOpen(false)
     }, [href])
 
@@ -52,7 +57,7 @@ export default function WhatsAppFloating({
                         <DialogDescription>
                             {"You'll be redirected to "}
                             <span className="font-medium">{communityName}</span>
-                            {" on WhatsApp."}
+                            {' on WhatsApp.'}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -60,7 +65,10 @@ export default function WhatsAppFloating({
                         <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button onClick={continueToWhatsApp} className="bg-[#25D366] hover:bg-[#1EBE5C] text-white">
+                        <Button
+                            onClick={continueToWhatsApp}
+                            className="bg-[#25D366] hover:bg-[#1EBE5C] text-white"
+                        >
                             Continue
                         </Button>
                     </DialogFooter>
