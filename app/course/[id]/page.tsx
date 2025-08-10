@@ -414,7 +414,7 @@ export default function CourseDetailPage() {
                                             <Globe className="h-5 w-5" />
                                             <span>Language</span>
                                         </div>
-                                        <span>{course.aboutCourse.language}</span>
+                                        <span>English & French</span>
                                     </div>
 
                                     {/* Material Includes */}

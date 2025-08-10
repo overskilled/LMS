@@ -12,7 +12,7 @@ export default function MainLayout({
             <main className="flex-1  w-full px-0">
                 {children}
             </main>
-            <Footer />
+            {/* <Footer /> */}
         </div>
     );
 }
