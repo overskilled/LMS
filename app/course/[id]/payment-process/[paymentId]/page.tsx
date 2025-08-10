@@ -76,7 +76,7 @@ export default function PaymentProcessingPage() {
             const refCode = searchParams.get("ref");
 
             if (refCode !== null) {
-                recordConversion(refCode, courseId,  transaction.depositedAmount);
+                recordConversion(refCode, courseId,  Number((transaction.depositedAmount) - 4000));
             }
 
             
