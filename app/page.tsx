@@ -16,7 +16,7 @@ export default function Page() {
       {/* <TopCategories /> */}
       <CourseListing />
       {/* <TestimonialsSection /> */}
-      <Cta />
+      {/* <Cta /> */}
 
       
       <WhatsAppFloating />

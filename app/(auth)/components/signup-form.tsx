@@ -70,7 +70,7 @@ export default function SignupForm() {
             const refCode = searchParams.get("ref")
 
             if (courseId && refCode) {
-                router.push(`/course/${courseId}?ref=${refCode}`)
+                router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
             } else {
                 router.push("/");
             }

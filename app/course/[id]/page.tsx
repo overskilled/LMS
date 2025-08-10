@@ -586,7 +586,7 @@ export default function CourseDetailPage() {
                                                 onClick={() => router.push(`/register/?courseId=${courseId}&ref=${searchParams.get("ref")}`)}
                                                 className="w-full text-md"
                                             >
-                                                Create an account
+                                                Purchase now <span className="text-sm">(Get early access)</span>
                                             </Button>
 
                                         </div>
