@@ -324,14 +324,14 @@ export default function CourseDetailPage() {
                                             <p className="text-gray-300 mb-4">
                                                 This course will be available on {formatDate(course?.aboutCourse?.availabilityDate!)}
                                             </p>
-                                            <Button
+                                            {/* <Button
                                                 variant="default"
                                                 onClick={() => setShowWaitlistForm(true)}
                                                 className="flex items-center gap-2"
                                             >
                                                 <Bell className="h-4 w-4" />
                                                 Join Waitlist
-                                            </Button>
+                                            </Button> */}
                                         </div>
                                     ) : course.courseDetails.previewVideo?.downloadURL ? (
                                         <iframe
