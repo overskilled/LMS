@@ -7,6 +7,7 @@ import { Star, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { CourseData } from "@/types/course"
+import { truncate } from "@/utils/helper"
 
 interface CourseCardProps {
     course: CourseData
@@ -62,6 +63,9 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                     <h3 className="text-lg font-semibold hover:underline hover:text-blue-400 text-gray-900 mb-2 line-clamp-2">
                         {course.aboutCourse.title}
                     </h3>
+                    <div className="space-y-4 text-gray-400 text-sm mb-2 font-meduim leading-relaxed whitespace-pre-line break-words">
+                        {truncate(course.aboutCourse.shortDescription, 90)}
+                    </div>
                     {/* <p className="text-sm text-gray-600 mb-3">By {course.instructor?.name || "Unknown Instructor"}</p> */}
 
                     <div className="mt-auto flex items-center justify-between">

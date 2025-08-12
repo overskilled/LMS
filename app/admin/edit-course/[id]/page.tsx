@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useMediaUpload } from "@/hooks/useMediaUpload"
 import { CourseFormSkeleton } from "../../components/course-skeleton"
+import LearningObjectives from "@/components/custom/learningObjectifs"
 
 export default function UpdateCoursePage() {
     const router = useRouter()
@@ -74,6 +75,8 @@ export default function UpdateCoursePage() {
         setSaving(true)
         try {
             const ref = doc(db, "courses", courseId)
+
+            console.log("data sublitted: ", course)
             await updateDoc(ref, {
                 ...course,
                 updatedAt: Date.now(),
@@ -82,7 +85,8 @@ export default function UpdateCoursePage() {
             toast.success("Course updated successfully!")
             router.push("/admin/courses")
         } catch (err: any) {
-            toast.error("Failed to update course")
+            console.log("An error occcured: ", err)
+            toast.error("Failed to update course with error: ", err)
         } finally {
             setSaving(false)
         }
@@ -127,54 +131,93 @@ export default function UpdateCoursePage() {
 
     // ✅ Handle video upload
     const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || e.target.files.length === 0) return
+        if (!e.target.files || e.target.files.length === 0) return;
 
         try {
-            const file = e.target.files[0]
-            const metadata = await uploadFile(file, "video", courseId)
+            const file = e.target.files[0];
+            const metadata = await uploadFile(file, "video", courseId);
 
+            // Ensure all fields have defined values
             const newVideo = {
-                id: metadata.id,
-                title: file.name.split(".")[0],
+                id: metadata.id || "",
+                title: file.name.split(".")[0] || "Untitled Video",
                 description: "",
-                metadata,
+                metadata: {
+                    courseId: courseId,
+                    downloadURL: metadata.downloadURL || "",
+                    duration: metadata.duration || 0,
+                    fileName: metadata.fileName || "",
+                    fileSize: metadata.fileSize || 0,
+                    frameRate: metadata.frameRate || 30, // Default to 30fps if undefined
+                    height: metadata.height || 0,
+                    mimeType: metadata.mimeType || "video/mp4",
+                    originalName: metadata.originalName || file.name,
+                    storagePath: metadata.storagePath || "",
+                    type: "video",
+                    uploadedAt: metadata.uploadedAt || new Date(),
+                    width: metadata.width || 0
+                },
                 order: course.videos ? course.videos.length : 0,
-                isPreview: false,
-            }
+                isPreview: false
+            };
 
-            const updatedVideos = course.videos ? [...course.videos, newVideo] : [newVideo]
-            handleChange("videos", updatedVideos)
-            toast.success("Video uploaded successfully")
+            const updatedVideos = course.videos ? [...course.videos, newVideo] : [newVideo];
+            handleChange("videos", updatedVideos);
+            toast.success("Video uploaded successfully");
         } catch (err) {
-            toast.error("Failed to upload video")
+            toast.error("Failed to upload video");
         }
-    }
+    };
 
     // ✅ Handle video deletion
     const handleDeleteVideo = async (index: number) => {
-        if (!course.videos || !course.videos[index]) return
+        if (!course.videos || !course.videos[index]) return;
 
-        const video = course.videos[index]
+        const video = course.videos[index];
 
         if (window.confirm(`Are you sure you want to delete "${video.title}"?`)) {
             try {
-                await deleteFile(video.id)
+                // Extract the full file ID (numbers_letters) from the filename
+                const fileName = video.metadata.fileName; // "video/1754942291190_iebb7ugvls.mp4"
+                const fileParts = fileName.split('/')[1]; // "1754942291190_iebb7ugvl
+                console.log("fileter id: ", fileParts)
 
-                const updatedVideos = [...course.videos]
-                updatedVideos.splice(index, 1)
+                // Delete the file from storage
+                await deleteFile(fileParts);
+
+                // Create a new array without the deleted video
+                const updatedVideos = course.videos.filter((_: any, i: number) => i !== index);
 
                 // Update order for remaining videos
-                updatedVideos.forEach((v, i) => {
-                    v.order = i
-                })
+                const videosWithUpdatedOrder = updatedVideos.map((v: any, i: number) => ({
+                    ...v,
+                    order: i
+                }));
 
-                handleChange("videos", updatedVideos)
-                toast.success("Video deleted successfully")
+                // Prepare the complete update object
+                const updateData = {
+                    videos: videosWithUpdatedOrder,
+                    updatedAt: Date.now(),
+                    lastEdited: serverTimestamp()
+                };
+
+                // Update Firestore document
+                const ref = doc(db, "courses", courseId);
+                await updateDoc(ref, updateData);
+
+                // Update local state
+                setCourse((prev: any) => ({
+                    ...prev,
+                    videos: videosWithUpdatedOrder
+                }));
+
+                toast.success("Video deleted successfully");
             } catch (err) {
-                toast.error("Failed to delete video")
+                console.error("Delete error:", err);
+                toast.error("Failed to delete video");
             }
         }
-    }
+    };
 
     // ✅ Handle video reordering
     const handleMoveVideo = (index: number, direction: "up" | "down") => {
@@ -273,11 +316,12 @@ export default function UpdateCoursePage() {
                                 <Label htmlFor="shortDescription" className="mb-2">
                                     Short Description
                                 </Label>
-                                <Input
+                                <Textarea
                                     id="shortDescription"
-                                    value={course?.shortDescription || ""}
-                                    onChange={(e) => handleChange("shortDescription", e.target.value)}
+                                    value={course?.aboutCourse?.shortDescription || ""}
+                                    onChange={(e) => handleChange("aboutCourse.shortDescription", e.target.value)}
                                     placeholder="Short Description"
+                                    rows={3}
                                     className="mt-1"
                                 />
                             </div>
@@ -296,7 +340,7 @@ export default function UpdateCoursePage() {
                                 />
                             </div>
 
-                            <div>
+                            {/* <div>
                                 <Label htmlFor="slug" className="mb-2">
                                     Course Slug
                                 </Label>
@@ -307,20 +351,12 @@ export default function UpdateCoursePage() {
                                     placeholder="Slug"
                                     className="mt-1"
                                 />
-                            </div>
+                            </div> */}
 
-                            <div>
-                                <Label htmlFor="targetAudience" className="mb-2">
-                                    Target Audience
-                                </Label>
-                                <Input
-                                    id="targetAudience"
-                                    value={course?.targetAudience || ""}
-                                    onChange={(e) => handleChange("targetAudience", e.target.value)}
-                                    placeholder="Target Audience"
-                                    className="mt-1"
-                                />
-                            </div>
+                            <LearningObjectives
+                                value={course?.aboutCourse?.learningObjectives || []}
+                                onChange={(newObjectives) => handleChange("aboutCourse.learningObjectives", newObjectives)}
+                            />
 
                             <div>
                                 <Label htmlFor="courseCategory" className="mb-2">
@@ -392,7 +428,7 @@ export default function UpdateCoursePage() {
                                     id="basePrice"
                                     type="number"
                                     value={course?.aboutCourse?.pricing?.basePrice || 0}
-                                    onChange={(e) => handleChange("pricing.basePrice", Number(e.target.value))}
+                                    onChange={(e) => handleChange("aboutCourse.pricing.basePrice", Number(e.target.value))}
                                     placeholder="Base Price"
                                     className="mt-1"
                                 />
@@ -404,7 +440,7 @@ export default function UpdateCoursePage() {
                                 </Label>
                                 <Select
                                     value={course?.aboutCourse?.pricing?.currency || ""}
-                                    onValueChange={(value) => handleChange("pricing.currency", value)}
+                                    onValueChange={(value) => handleChange("aboutCourse.pricing.currency", value)}
                                 >
                                     <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Select currency" />
@@ -486,10 +522,10 @@ export default function UpdateCoursePage() {
                                         disabled={uploading}
                                         className="w-full"
                                     >
-                                        {uploading  ? `Uploading... ${progress?.progress}%` : "Choose File"}
+                                        {uploading ? `Uploading... ${progress?.progress}%` : "Choose File"}
                                     </Button>
                                 </div>
-                                {uploading  && (
+                                {uploading && (
                                     <Progress value={progress?.progress} className="w-full mt-2" />
                                 )}
                             </div>
@@ -537,7 +573,7 @@ export default function UpdateCoursePage() {
                                         disabled={uploading}
                                         className="w-full"
                                     >
-                                        {uploading  ? `Uploading... ${progress?.progress}%` : "Choose File"}
+                                        {uploading ? `Uploading... ${progress?.progress}%` : "Choose File"}
                                     </Button>
                                 </div>
                                 {uploading && (
@@ -578,7 +614,7 @@ export default function UpdateCoursePage() {
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {uploading  && (
+                            {uploading && (
                                 <div className="mb-4 p-3 border rounded-lg bg-blue-50">
                                     <p className="text-sm mb-1 text-blue-700">Uploading video: {progress?.progress}</p>
                                     <Progress value={progress?.progress} className="w-full" />

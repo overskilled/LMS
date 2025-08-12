@@ -176,7 +176,7 @@ export const uploadMediaFile = async (
                         }).filter(([_, v]) => v !== undefined)
                     )
 
-                    await setDoc(doc(db, "media", mediaId), cleanedMetadata)
+                    // await setDoc(doc(db, "media", mediaId), cleanedMetadata)
 
                     resolve(metadata)
                 } catch (error) {
@@ -206,14 +206,14 @@ export const batchUploadMedia = async (
 export const deleteMediaFile = async (mediaId: string): Promise<void> => {
     try {
         // Get metadata from Firestore
-        const mediaDoc = doc(db, "media", mediaId)
+        // const mediaDoc = doc(db, "media", mediaId)
 
         // Delete from Storage
-        const storageRef = ref(storage, `media/${mediaId}`)
+        const storageRef = ref(storage, `video/${mediaId}`)
         await deleteObject(storageRef)
 
         // Delete metadata from Firestore
-        await deleteDoc(mediaDoc)
+        // await deleteDoc(mediaDoc)
     } catch (error) {
         console.error("Failed to delete media:", error)
         throw error

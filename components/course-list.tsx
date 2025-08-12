@@ -39,12 +39,12 @@ export default function CourseListing() {
     if (loading) {
         return (
             <section className="w-full bg-white font-slab">
-                <div className="container mx-auto px-4 py-12 sm:py-16">
+                <div className="container mx-auto px-4 py-6 sm:py-8">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {[...Array(4)].map((_, i) => (
                             <div
                                 key={i}
-                                className="bg-white rounded-lg shadow-md overflow-hidden h-80 animate-pulse"
+                                className="bg-white rounded-lg shadow-md overflow-hidden h-60 animate-pulse"
                             >
                                 <div className="bg-gray-200 h-48 w-full"></div>
                                 <div className="p-4 space-y-2">
@@ -96,7 +96,7 @@ export default function CourseListing() {
                         <p className="text-gray-500">No courses found</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
                         {courses.map((course, idx) => (
                             <CourseCard key={course.id} course={course} idx={idx} />
                         ))}

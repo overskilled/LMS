@@ -34,6 +34,7 @@ import { generateAffiliateCodeClientSide } from "@/hooks/useGenerateAffiliateCod
 import { useTrackAffiliateClickClient } from "@/hooks/useTrackaffiliateLinks"
 import { useAuth } from "@/context/authContext"
 import WhatsAppFloating from "@/components/custom/WhatappButton"
+import LearningObjectivesDisplay from "@/components/custom/Course/LearningObjectivesDisplay"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -753,6 +754,11 @@ export default function CourseDetailPage() {
 
                         {/* Right Column - Sidebar */}
                         <div className="space-y-6">
+
+                            {/* Learning objectifs */}
+                            <LearningObjectivesDisplay objectives={course?.aboutCourse?.learningObjectives} />
+
+
                             {/* Course Stats */}
                             <Card>
                                 <CardHeader>
