@@ -106,7 +106,16 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
 
         useEffect(() => {
             try {
-                localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify({ questions: formData.questions }))
+                localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify({
+                    questions: formData.questions,
+                    passingScore: formData.passingScore,
+                    timeLimit: formData.timeLimit,
+                    allowRetakes: formData.allowRetakes,
+                    maxAttempts: formData.maxAttempts,
+                    showCorrectAnswers: formData.showCorrectAnswers,
+                    randomizeQuestions: formData.randomizeQuestions,
+                    certificateRequired: formData.certificateRequired,
+                }))
             } catch (error) {
                 console.error("Failed to save quiz data:", error)
             }
