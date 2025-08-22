@@ -1,34 +1,86 @@
 import { CourseLevel } from "@/app/admin/components/publish-summary-step"
+import { Timestamp } from "firebase/firestore"
 
 export interface CourseData {
+    id: string
+    title: string
+    slug: string
+    status: "draft" | "published" | "archived" | string
+    revenue: number
+    enrollmentCount: number
+    createdAt: number | string
+    updatedAt: number | string
+    publishedAt?: {
+        type: string
+        seconds: number
+        nanoseconds: number
+    }
+
     // Step 0: Course Details
-    id?: string
     courseDetails: {
-        thumbnailImage?: any
+        thumbnailImage?: {
+            fileName: string
+            originalName: string
+            fileSize: number
+            dimensions: {
+                height: number
+                width: number
+            }
+            mimeType: string
+            id: string
+            uploadedAt: string
+            storagePath: string
+            width: number
+            downloadURL: string
+            type: string
+            height: number
+        }
         previewVideo?: any
         lessonName: string
         courseSlug: string
         courseCategory: string
-        courseLevel: string
+        courseLevel: CourseLevel | "beginner" | "intermediate" | "advanced" | "expert"
         courseTime: string
         totalLessons: string
         difficulty: "beginner" | "intermediate" | "advanced" | "expert"
-        estimatedHours: number,
-        affiliateRate?: number,
-        authorId: string,
+        estimatedHours: number
+        affiliateRate?: number
+        authorId: string
     }
 
     // Step 1: Upload Videos
-    videos: Array<{
-        id: string
-        metadata: any
-        title: string
-        description: string
-        duration?: number
-        order: number
-        isPreview?: boolean
-        thumbnail?: File
-    }>
+    videos: {
+        chapters: Array<{
+            id: string
+            title: string
+            description: string
+            order: number
+            isExpanded: boolean
+        }>
+        videos: Array<{
+            id: string
+            chapterId: string
+            title: string
+            description: string
+            order: number
+            isPreview: boolean
+            metadata: {
+                id: string
+                downloadURL: string
+                duration: number
+                fileName: string
+                fileSize: number
+                height: number
+                width: number
+                mimeType: string
+                originalName: string
+                storagePath: string
+                type: string
+                uploadedAt: string
+            }
+            thumbnail?: File
+        }>
+    }
 
     // Step 2: About Course
     aboutCourse: {
@@ -59,28 +111,7 @@ export interface CourseData {
         availabilityDate?: Date | string
         earlyAccessEnabled: boolean
         earlyAccessPrice?: number
-
     }
-
-    // instructor: {
-    //     name: string
-    //     bio: string
-    //     avatar?: File
-    //     title: string
-    //     experience: string
-    //     expertise: string[]
-    //     socialLinks: {
-    //         website?: string
-    //         linkedin?: string
-    //         twitter?: string
-    //         github?: string
-    //     }
-    //     credentials: string[]
-    //     teachingExperience: number
-    //     totalStudents?: number
-    //     averageRating?: number
-    //     totalCourses?: number
-    // }
 
     // Step 3: Create Quiz
     quiz: {
@@ -94,37 +125,31 @@ export interface CourseData {
             points: number
             difficulty: "easy" | "medium" | "hard"
             timeLimit?: number
+            chapterId: string
         }>
-        passingScore: number
-        timeLimit: number
-        allowRetakes: boolean
-        maxAttempts: number
-        showCorrectAnswers: boolean
-        randomizeQuestions: boolean
-        certificateRequired: boolean
+        passingScore: number,
+        timeLimit: number,
+        allowRetakes: boolean,
+        maxAttempts: number,
+        showCorrectAnswers: boolean,
+        randomizeQuestions: boolean,
+        certificateRequired: boolean,
     }
 
     // Step 4: Publish
     publishSettings: {
         isPublic: boolean
-        publishDate: Date
+        publishDate: any
         enrollmentLimit?: number
         certificateEnabled: boolean
         certificateTemplate?: string
         accessDuration?: number
-        prerequisites?: string[]
+        prerequisites: string[]
         courseLevel: string
-        // courseLevel: "beginner" | "intermediate" | "advanced" | "expert"
         supportEmail?: string
         discussionEnabled: boolean
         downloadableResources: boolean
     }
-
-    enrollmentCount?: number;
-
-    status?: any;
-    updatedAt: any;
-    createdAt: any;
 }
 
 export interface QuizQuestion {
@@ -137,4 +162,5 @@ export interface QuizQuestion {
     points: number
     difficulty: "easy" | "medium" | "hard"
     timeLimit?: number
+    chapterId: string
 }

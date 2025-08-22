@@ -68,7 +68,7 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
 
     return (
         <section className="py-12 md:py-16 bg-white relative">
-            {/* Video Player Modal */}
+            {/* Video Player Modal
             {isPlayerOpen && currentVideo && (
                 <div className="fixed inset-0 bg-black h-[100vh] bg-opacity-90 z-50 flex items-center justify-center p-4">
                     <div className="w-full max-w-6xl relative">
@@ -195,8 +195,7 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                         </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    {/* <div className="mt-8 flex gap-4">
+                    <div className="mt-8 flex gap-4">
                         {!user ? (
                             <>
                                 <Button asChild className="w-full md:w-auto">
@@ -215,9 +214,9 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                                 <Link href={`/course/${course.id}/learn`}>Continue Learning</Link>
                             </Button>
                         )}
-                    </div> */}
+                    </div>
                 </div>
-            </div>
+            </div> */}
         </section>
     )
 }

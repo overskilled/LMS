@@ -12,11 +12,11 @@ import { cn } from "@/lib/utils"
 
 // Define all local storage keys used by different steps
 const LOCAL_STORAGE_KEYS = {
-    COURSE_DETAILS: 'courseDetailsFormData',
-    VIDEO_UPLOAD: 'videoUploadFormData',
-    ABOUT_COURSE: 'aboutCourseFormData',
-    QUIZ_DATA: 'quizFormData',
-    PUBLISH_SETTINGS: 'publishSettingsFormData'
+    COURSE_DETAILS: "courseDetailsFormData",
+    VIDEO_UPLOAD: "videoUploadFormData",
+    ABOUT_COURSE: "aboutCourseFormData",
+    QUIZ_DATA: "quizFormData",
+    PUBLISH_SETTINGS: "publishSettingsFormData",
 }
 
 interface PublishSettings {
@@ -48,7 +48,7 @@ function isCourseLevel(level: any): level is CourseLevel {
 
 // Helper to safely get and parse localStorage items
 const getLocalStorageItem = <T,>(key: string, defaultValue: T): T => {
-    if (typeof window === 'undefined') return defaultValue
+    if (typeof window === "undefined") return defaultValue
     const item = localStorage.getItem(key)
     if (!item) return defaultValue
 
@@ -72,6 +72,9 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
     ({ onDataChange, onNext, onPrevious, onCancel }, ref) => {
         // Get all course data from localStorage
         const getAllCourseData = () => {
+            const videoUploadData = getLocalStorageItem(LOCAL_STORAGE_KEYS.VIDEO_UPLOAD, { chapters: [], videos: [] })
+            const quizData = getLocalStorageItem(LOCAL_STORAGE_KEYS.QUIZ_DATA, { questions: [] })
+
             return {
                 courseDetails: getLocalStorageItem(LOCAL_STORAGE_KEYS.COURSE_DETAILS, {
                     lessonName: "",
@@ -83,7 +86,8 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                     difficulty: "beginner",
                     estimatedHours: 1,
                 }),
-                videos: getLocalStorageItem(LOCAL_STORAGE_KEYS.VIDEO_UPLOAD, []),
+                chapters: videoUploadData.chapters || [],
+                videos: videoUploadData.videos || [],
                 aboutCourse: getLocalStorageItem(LOCAL_STORAGE_KEYS.ABOUT_COURSE, {
                     title: "",
                     shortDescription: "",
@@ -106,7 +110,7 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                         marketingBudget: 0,
                     },
                 }),
-                quiz: getLocalStorageItem(LOCAL_STORAGE_KEYS.QUIZ_DATA, { questions: [] }),
+                quiz: quizData,
                 publishSettings: getLocalStorageItem(LOCAL_STORAGE_KEYS.PUBLISH_SETTINGS, {
                     isPublic: true,
                     publishDate: new Date(),
@@ -117,7 +121,7 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                     supportEmail: "",
                     discussionEnabled: true,
                     downloadableResources: false,
-                })
+                }),
             }
         }
 
@@ -131,8 +135,8 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
             const handleStorageChange = () => {
                 setCourseData(getAllCourseData())
             }
-            window.addEventListener('storage', handleStorageChange)
-            return () => window.removeEventListener('storage', handleStorageChange)
+            window.addEventListener("storage", handleStorageChange)
+            return () => window.removeEventListener("storage", handleStorageChange)
         }, [])
 
         // Save to localStorage whenever publishSettings changes
@@ -192,17 +196,18 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
 
         // Update settings
         const updateSettings = (updates: Partial<PublishSettings>) => {
-            setPublishSettings(prev => ({ ...prev, ...updates }))
+            setPublishSettings((prev) => ({ ...prev, ...updates }))
         }
 
         // Calculate course statistics
         const courseStats = {
+            totalChapters: courseData.chapters?.length || 0,
             totalVideos: courseData.videos?.length || 0,
-            totalDuration: courseData.videos?.reduce((acc: number, video: any) =>
-                acc + (video.metadata?.duration || 0), 0) || 0,
+            totalDuration:
+                courseData.videos?.reduce((acc: number, video: any) => acc + (video.metadata?.duration || 0), 0) || 0,
             totalQuestions: courseData.quiz?.questions?.length || 0,
-            estimatedRevenue: (courseData.aboutCourse?.pricing?.basePrice || 0) *
-                (courseData.aboutCourse?.metrics?.expectedEnrollments || 0),
+            estimatedRevenue:
+                (courseData.aboutCourse?.pricing?.basePrice || 0) * (courseData.aboutCourse?.metrics?.expectedEnrollments || 0),
         }
 
         const formatDuration = (seconds: number) => {
@@ -277,6 +282,10 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
 
                                         <div className="flex items-center gap-4 text-sm text-gray-600">
                                             <div className="flex items-center gap-1">
+                                                <Calendar className="w-4 h-4" />
+                                                <span>{courseStats.totalChapters} chapters</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
                                                 <Play className="w-4 h-4" />
                                                 <span>{courseStats.totalVideos} videos</span>
                                             </div>
@@ -314,6 +323,14 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                                         <div className="flex items-center justify-between text-sm">
                                             <span>Course Details</span>
                                             <CheckCircle className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span>Chapters Created</span>
+                                            {courseStats.totalChapters > 0 ? (
+                                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                            ) : (
+                                                <AlertCircle className="w-4 h-4 text-red-600" />
+                                            )}
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
                                             <span>Videos Uploaded</span>

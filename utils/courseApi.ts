@@ -8,6 +8,7 @@ import {
     deleteDoc,
     getDoc,
     arrayUnion,
+    Timestamp,
 } from "firebase/firestore";
 import type { CourseData } from "../types/course";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -25,7 +26,7 @@ export interface PublishedCourse {
     id: string;
     title: string;
     slug: string;
-    publishedAt: Date;
+    publishedAt: any;
     status: "published" | "draft" | "pending";
     enrollmentCount: number;
     revenue: number;
@@ -35,14 +36,14 @@ export interface PublishedCourse {
 
 export const courseApi = {
     // Publish course to Firestore
-    publishCourse: async (courseData: CourseData): Promise<ApiResponse<PublishedCourse>> => {
+    publishCourse: async (courseData: CourseData): Promise<ApiResponse<any>> => {
         try {
             // Validate course data first
             const validationErrors = validateCourseForPublishing(courseData);
             if (validationErrors.length > 0) {
                 return {
                     success: false,
-                    message: "Course validation failed",
+                    message: "Course validation failed", 
                     errors: validationErrors,
                 };
             }
@@ -51,15 +52,14 @@ export const courseApi = {
             const courseId = `course_${Date.now()}`;
             const slug = generateSlug(courseData.aboutCourse?.title || "untitled-course");
 
-            const publishedCourse: PublishedCourse = {
-                id: courseId,
-                title: courseData.aboutCourse?.title || "Untitled Course",
-                slug,
-                publishedAt: new Date(),
-                status: "published",
-                enrollmentCount: 0,
-                revenue: 0,
+            const publishedCourse = {
                 ...courseData,
+                id: courseId,
+                // title: courseData.aboutCourse?.title || "Untitled Course",
+                // slug,
+                publishedAt: new Date().toISOString(),
+                // enrollmentCount: 0,
+                // revenue: 0,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             };
@@ -267,7 +267,7 @@ function validateCourseForPublishing(courseData: CourseData): string[] {
         errors.push("Course description is required");
     }
 
-    if (!courseData.videos || courseData.videos.length === 0) {
+    if (!courseData.videos || courseData.videos?.videos?.length === 0) {
         errors.push("At least one video is required");
     }
 

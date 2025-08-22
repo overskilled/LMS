@@ -475,7 +475,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                 </Label>
                                 <div className="flex items-center mt-2">
                                     <span className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-l-md border border-r-0">
-                                        yoursite.com/courses/
+                                        courses/
                                     </span>
                                     <Input
                                         id="course-slug-input"
@@ -520,11 +520,11 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="satallite-engineering">Satellite Engineering</SelectItem>
-                                        <SelectItem value="geomatics">Geomatics</SelectItem>
-                                        <SelectItem value="Articicial-intelligence">Artificial Intelligence</SelectItem>
-                                        <SelectItem value="mission-operations">Mission Operations</SelectItem>
-                                        <SelectItem value="space-science">Space Science</SelectItem>
+                                        <SelectItem value="Satallite Engineering">Satellite Engineering</SelectItem>
+                                        <SelectItem value="Geomatics">Geomatics</SelectItem>
+                                        <SelectItem value="Artificial intelligence">Artificial Intelligence</SelectItem>
+                                        <SelectItem value="Mission Operations">Mission Operations</SelectItem>
+                                        <SelectItem value="Space Science">Space Science</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <div id="course-category-help" className="sr-only">
@@ -554,10 +554,10 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                         <SelectValue placeholder="Select level" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="beginner">🟢 Beginner - No prior experience needed</SelectItem>
-                                        <SelectItem value="intermediate">🟡 Intermediate - Some experience required</SelectItem>
-                                        <SelectItem value="advanced">🟠 Advanced - Significant experience needed</SelectItem>
-                                        <SelectItem value="expert">🔴 Expert - Professional level</SelectItem>
+                                        <SelectItem value="beginner">🟢 Beginner </SelectItem>
+                                        <SelectItem value="intermediate">🟡 Intermediate </SelectItem>
+                                        <SelectItem value="advanced">🟠 Advanced </SelectItem>
+                                        <SelectItem value="expert">🔴 Expert  </SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <div id="course-level-help" className="sr-only">

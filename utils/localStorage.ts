@@ -127,7 +127,7 @@ function calculateProgress(data: CourseData): { completedSteps: number; totalSte
     }
 
     // Step 2: Videos
-    if (data.videos && data.videos.length > 0) {
+    if (data.videos && data.videos.videos.length > 0) {
         completedSteps++
     }
 

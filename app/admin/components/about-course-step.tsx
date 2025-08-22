@@ -269,7 +269,7 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                     tags: [],
                     pricing: {
                         basePrice: 0,
-                        currency: "USD",
+                        currency: "XAF",
                         discountPrice: 0,
                         discountPercentage: 0,
                         pricingTier: "basic",

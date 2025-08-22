@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react"
-import { Plus, X, HelpCircle, CheckCircle } from "lucide-react"
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback, useMemo, useRef } from "react"
+import { Plus, X, HelpCircle, ChevronDown, ChevronRight, BookOpen } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -24,6 +24,14 @@ interface QuizQuestion {
     points: number
     difficulty: "easy" | "medium" | "hard"
     timeLimit?: number
+    chapterId: string // Added chapterId to associate questions with chapters
+}
+
+interface Chapter {
+    id: string
+    title: string
+    description: string
+    createdAt: string
 }
 
 interface QuizData {
@@ -37,7 +45,6 @@ interface QuizData {
     certificateRequired: boolean
 }
 
-
 interface QuizCreationStepProps {
     initialData?: Partial<QuizData>
     onDataChange: (data: QuizData, isValid: boolean) => void
@@ -47,7 +54,12 @@ interface QuizCreationStepProps {
 }
 
 export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
-    ({ initialData, onDataChange, onNext, onPrevious, onCancel }, ref) => {
+    ({ onDataChange, onNext, onPrevious, onCancel }, ref) => {
+        const [chapters, setChapters] = useState<Chapter[]>([])
+        const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null)
+        const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set())
+        const [questionCounter, setQuestionCounter] = useState(0)
+
         const [formData, setFormData] = useState<QuizData>({
             questions: [],
             passingScore: 70,
@@ -57,15 +69,50 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
             showCorrectAnswers: true,
             randomizeQuestions: false,
             certificateRequired: false,
-            ...initialData,
         })
 
         const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
         const [isValid, setIsValid] = useState(false)
         const [editingQuestion, setEditingQuestion] = useState<string | null>(null)
 
-        // Validation function
-        const validateForm = (): boolean => {
+        const QUIZ_STORAGE_KEY = "quizFormData"
+
+        useEffect(() => {
+            try {
+                const videoData = localStorage.getItem("videoUploadFormData")
+                if (videoData) {
+                    const parsedData = JSON.parse(videoData)
+                    if (parsedData.chapters && Array.isArray(parsedData.chapters)) {
+                        setChapters(parsedData.chapters)
+                        // Auto-expand first chapter if available
+                        if (parsedData.chapters.length > 0) {
+                            setExpandedChapters(new Set([parsedData.chapters[0].id]))
+                        }
+                    }
+                }
+
+                // Load existing quiz data
+                const quizData = localStorage.getItem(QUIZ_STORAGE_KEY)
+                if (quizData) {
+                    const parsedQuizData = JSON.parse(quizData)
+                    if (parsedQuizData.questions) {
+                        setFormData((prev) => ({ ...prev, questions: parsedQuizData.questions }))
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load chapter or quiz data:", error)
+            }
+        }, [])
+
+        useEffect(() => {
+            try {
+                localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify({ questions: formData.questions }))
+            } catch (error) {
+                console.error("Failed to save quiz data:", error)
+            }
+        }, [formData.questions])
+
+        const validateForm = useCallback((): boolean => {
             const errors: Record<string, string> = {}
 
             if (formData.questions.length === 0) {
@@ -98,30 +145,49 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
             const valid = Object.keys(errors).length === 0
             setIsValid(valid)
             return valid
-        }
+        }, [formData])
+
+        useEffect(() => {
+            validateForm()
+        }, [validateForm])
+
+        const onDataChangeRef = useRef(onDataChange)
+
+        useEffect(() => {
+            onDataChangeRef.current = onDataChange
+        }, [onDataChange])
+
+        const notifyParent = useCallback(() => {
+            onDataChangeRef.current(formData, isValid)
+        }, [formData, isValid])
+
+        useEffect(() => {
+            notifyParent()
+        }, [notifyParent])
 
         // Update form data
-        const updateFormData = (updates: Partial<QuizData>) => {
+        const updateFormData = useCallback((updates: Partial<QuizData>) => {
             setFormData((prev) => ({ ...prev, ...updates }))
-        }
+        }, [])
 
-        // Effect to validate and notify parent
-        // useEffect(() => {
-        //     const valid = validateForm()
-        //     onDataChange(formData, valid)
-        // }, [formData, onDataChange])
-
-        // Question management
         const addQuestion = () => {
+            if (!selectedChapterId) {
+                alert("Please select a chapter first")
+                return
+            }
+
             const newQuestion: QuizQuestion = {
-                id: `question-${Date.now()}`,
+                id: `question-${questionCounter}`,
                 type: "multiple-choice",
                 question: "",
                 options: ["", ""],
                 correctAnswer: 0,
                 difficulty: "easy",
                 points: 1,
+                chapterId: selectedChapterId,
             }
+
+            setQuestionCounter((prev) => prev + 1)
 
             updateFormData({
                 questions: [...formData.questions, newQuestion],
@@ -176,6 +242,27 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
             }
         }
 
+        const toggleChapterExpansion = (chapterId: string) => {
+            setExpandedChapters((prev) => {
+                const newSet = new Set(prev)
+                if (newSet.has(chapterId)) {
+                    newSet.delete(chapterId)
+                } else {
+                    newSet.add(chapterId)
+                }
+                return newSet
+            })
+        }
+
+        const getQuestionsForChapter = (chapterId: string) => {
+            return formData.questions.filter((q) => q.chapterId === chapterId)
+        }
+
+        const selectChapter = (chapterId: string) => {
+            setSelectedChapterId(chapterId)
+            setExpandedChapters((prev) => new Set([...prev, chapterId]))
+        }
+
         useImperativeHandle(ref, () => ({
             validate: async () => validateForm(),
             getData: () => formData,
@@ -195,14 +282,24 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
                 })
                 setValidationErrors({})
                 setEditingQuestion(null)
+                setQuestionCounter(0)
             },
         }))
+
+        const passingScoreValue = useMemo(() => [formData.passingScore], [formData.passingScore])
+
+        const handlePassingScoreChange = useCallback(
+            (value: number[]) => {
+                updateFormData({ passingScore: value[0] })
+            },
+            [updateFormData],
+        )
 
         return (
             <AccessibleStepWrapper
                 stepNumber={4}
                 title="Create Quiz"
-                description="Add quiz questions to assess student learning"
+                description="Add quiz questions to assess student learning per chapter"
                 isActive={true}
                 isCompleted={false}
                 isValid={isValid}
@@ -228,8 +325,8 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
                                     </Label>
                                     <Slider
                                         id="passing-score-slider"
-                                        value={[formData.passingScore]}
-                                        onValueChange={(value) => updateFormData({ passingScore: value[0] })}
+                                        value={passingScoreValue}
+                                        onValueChange={handlePassingScoreChange}
                                         max={100}
                                         min={0}
                                         step={5}
@@ -348,245 +445,300 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
                         </CardContent>
                     </Card>
 
-                    {/* Questions */}
                     <Card>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center gap-2">
-                                    <CheckCircle className="w-5 h-5" />
-                                    Quiz Questions ({formData.questions.length})
-                                </CardTitle>
-                                <Button id="add-question-button" onClick={addQuestion} aria-describedby="add-question-help">
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add Question
-                                </Button>
-                                <div id="add-question-help" className="sr-only">
-                                    Add a new question to your quiz.
-                                </div>
-                            </div>
+                            <CardTitle className="flex items-center gap-2">
+                                <BookOpen className="w-5 h-5" />
+                                Quiz Questions by Chapter
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {validationErrors.questions && (
-                                <p className="text-sm text-red-600 mb-4" role="alert">
-                                    {validationErrors.questions}
-                                </p>
-                            )}
-
-                            {formData.questions.length === 0 ? (
+                            {chapters.length === 0 ? (
                                 <div className="text-center py-8 text-gray-500">
-                                    <HelpCircle className="w-12 h-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
-                                    <p>No questions added yet. Create your first question to get started.</p>
+                                    <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
+                                    <p className="text-lg font-medium mb-2">No Chapters Found</p>
+                                    <p>Please create chapters in the video upload step first before adding quiz questions.</p>
                                 </div>
                             ) : (
-                                <div className="space-y-6" role="list" aria-label="Quiz questions">
-                                    {formData.questions.map((question, index) => (
-                                        <Card key={question.id} className="border-l-4 border-l-blue-500" role="listitem">
-                                            <CardHeader className="pb-3">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Badge variant="outline">Question {index + 1}</Badge>
-                                                        <Badge variant="secondary">{question.type.replace("-", " ")}</Badge>
-                                                    </div>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => removeQuestion(question.id)}
-                                                        className="text-red-500 hover:text-red-700"
-                                                        aria-label={`Remove question ${index + 1}`}
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-4">
-                                                {/* Question Type */}
-                                                <div>
-                                                    <Label htmlFor={`question-type-${question.id}`} className="text-sm font-medium">
-                                                        Question Type
-                                                    </Label>
-                                                    <Select
-                                                        value={question.type}
-                                                        onValueChange={(value: any) => updateQuestion(question.id, { type: value })}
-                                                    >
-                                                        <SelectTrigger id={`question-type-${question.id}`}>
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
-                                                            <SelectItem value="true-false">True/False</SelectItem>
-                                                            <SelectItem value="short-answer">Short Answer</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
+                                <div className="space-y-4">
+                                    {chapters.map((chapter) => {
+                                        const chapterQuestions = getQuestionsForChapter(chapter.id)
+                                        const isExpanded = expandedChapters.has(chapter.id)
+                                        const isSelected = selectedChapterId === chapter.id
 
-                                                {/* Question Text */}
-                                                <div>
-                                                    <Label htmlFor={`question-text-${question.id}`} className="text-sm font-medium">
-                                                        Question{" "}
-                                                        <span className="text-red-500" aria-label="required">
-                                                            *
-                                                        </span>
-                                                    </Label>
-                                                    <Textarea
-                                                        id={`question-text-${question.id}`}
-                                                        placeholder="Enter your question here..."
-                                                        value={question.question}
-                                                        onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
-                                                        className={cn(validationErrors[`question-${index}-text`] && "border-red-500")}
-                                                        aria-describedby={`question-text-help-${question.id} ${validationErrors[`question-${index}-text`] ? `question-text-error-${question.id}` : ""
-                                                            }`}
-                                                        aria-invalid={!!validationErrors[`question-${index}-text`]}
-                                                        rows={2}
-                                                    />
-                                                    <div id={`question-text-help-${question.id}`} className="sr-only">
-                                                        Enter the question text that students will see.
-                                                    </div>
-                                                    {validationErrors[`question-${index}-text`] && (
-                                                        <p
-                                                            id={`question-text-error-${question.id}`}
-                                                            className="text-sm text-red-600 mt-1"
-                                                            role="alert"
+                                        return (
+                                            <Card
+                                                key={chapter.id}
+                                                className={cn(
+                                                    "border-l-4 transition-all",
+                                                    isSelected ? "border-l-blue-500 bg-blue-50/50" : "border-l-gray-300",
+                                                )}
+                                            >
+                                                <CardHeader className="pb-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <button
+                                                            onClick={() => toggleChapterExpansion(chapter.id)}
+                                                            className="flex items-center gap-2 text-left flex-1 hover:text-blue-600 transition-colors"
                                                         >
-                                                            {validationErrors[`question-${index}-text`]}
-                                                        </p>
-                                                    )}
-                                                </div>
-
-                                                {/* Options for Multiple Choice */}
-                                                {question.type === "multiple-choice" && (
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <Label className="text-sm font-medium">Answer Options</Label>
+                                                            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                                            <div>
+                                                                <h3 className="font-medium">{chapter.title}</h3>
+                                                                <p className="text-sm text-gray-500">{chapter.description}</p>
+                                                            </div>
+                                                        </button>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="outline">
+                                                                {chapterQuestions.length} question{chapterQuestions.length !== 1 ? "s" : ""}
+                                                            </Badge>
                                                             <Button
-                                                                type="button"
-                                                                variant="outline"
+                                                                variant={isSelected ? "default" : "outline"}
                                                                 size="sm"
-                                                                onClick={() => addOption(question.id)}
-                                                                disabled={question.options.length >= 6}
+                                                                onClick={() => selectChapter(chapter.id)}
                                                             >
-                                                                <Plus className="w-4 h-4 mr-1" />
-                                                                Add Option
+                                                                {isSelected ? "Selected" : "Select"}
                                                             </Button>
                                                         </div>
+                                                    </div>
+                                                </CardHeader>
 
-                                                        <div className="space-y-2" role="group" aria-label="Answer options">
-                                                            {question.options.map((option, optionIndex) => (
-                                                                <div key={optionIndex} className="flex items-center gap-2">
-                                                                    <input
-                                                                        type="radio"
-                                                                        name={`correct-${question.id}`}
-                                                                        checked={question.correctAnswer === optionIndex}
-                                                                        onChange={() => updateQuestion(question.id, { correctAnswer: optionIndex })}
-                                                                        className="mt-1"
-                                                                        aria-label={`Mark option ${optionIndex + 1} as correct answer`}
-                                                                    />
-                                                                    <Input
-                                                                        placeholder={`Option ${optionIndex + 1}`}
-                                                                        value={option}
-                                                                        onChange={(e) => updateOption(question.id, optionIndex, e.target.value)}
-                                                                        className="flex-1"
-                                                                        aria-label={`Option ${optionIndex + 1} text`}
-                                                                    />
-                                                                    {question.options.length > 2 && (
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            onClick={() => removeOption(question.id, optionIndex)}
-                                                                            aria-label={`Remove option ${optionIndex + 1}`}
-                                                                        >
-                                                                            <X className="w-4 h-4" />
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                {isExpanded && (
+                                                    <CardContent className="pt-0">
+                                                        {chapterQuestions.length === 0 ? (
+                                                            <div className="text-center py-6 text-gray-500">
+                                                                <HelpCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                                                <p className="text-sm">No questions added to this chapter yet.</p>
+                                                                {isSelected && (
+                                                                    <p className="text-xs mt-1">
+                                                                        Click "Add Question" below to create questions for this chapter.
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="space-y-4">
+                                                                {chapterQuestions.map((question, index) => (
+                                                                    <Card key={question.id} className="bg-white">
+                                                                        <CardHeader className="pb-3">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <Badge variant="outline">Question {index + 1}</Badge>
+                                                                                    <Badge variant="secondary">{question.type.replace("-", " ")}</Badge>
+                                                                                </div>
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    onClick={() => removeQuestion(question.id)}
+                                                                                    className="text-red-500 hover:text-red-700"
+                                                                                    aria-label={`Remove question ${index + 1}`}
+                                                                                >
+                                                                                    <X className="w-4 h-4" />
+                                                                                </Button>
+                                                                            </div>
+                                                                        </CardHeader>
+                                                                        <CardContent className="space-y-4">
+                                                                            {/* Question Type */}
+                                                                            <div>
+                                                                                <Label htmlFor={`question-type-${question.id}`} className="text-sm font-medium">
+                                                                                    Question Type
+                                                                                </Label>
+                                                                                <Select
+                                                                                    value={question.type}
+                                                                                    onValueChange={(value: any) => updateQuestion(question.id, { type: value })}
+                                                                                >
+                                                                                    <SelectTrigger id={`question-type-${question.id}`}>
+                                                                                        <SelectValue />
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent>
+                                                                                        <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+                                                                                        <SelectItem value="true-false">True/False</SelectItem>
+                                                                                        <SelectItem value="short-answer">Short Answer</SelectItem>
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            </div>
 
-                                                        {validationErrors[`question-${index}-options`] && (
-                                                            <p className="text-sm text-red-600 mt-1" role="alert">
-                                                                {validationErrors[`question-${index}-options`]}
-                                                            </p>
+                                                                            {/* Question Text */}
+                                                                            <div>
+                                                                                <Label htmlFor={`question-text-${question.id}`} className="text-sm font-medium">
+                                                                                    Question{" "}
+                                                                                    <span className="text-red-500" aria-label="required">
+                                                                                        *
+                                                                                    </span>
+                                                                                </Label>
+                                                                                <Textarea
+                                                                                    id={`question-text-${question.id}`}
+                                                                                    placeholder="Enter your question here..."
+                                                                                    value={question.question}
+                                                                                    onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
+                                                                                    className={cn(validationErrors[`question-${index}-text`] && "border-red-500")}
+                                                                                    rows={2}
+                                                                                />
+                                                                                {validationErrors[`question-${index}-text`] && (
+                                                                                    <p className="text-sm text-red-600 mt-1" role="alert">
+                                                                                        {validationErrors[`question-${index}-text`]}
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Options for Multiple Choice */}
+                                                                            {question.type === "multiple-choice" && (
+                                                                                <div>
+                                                                                    <div className="flex items-center justify-between mb-2">
+                                                                                        <Label className="text-sm font-medium">Answer Options</Label>
+                                                                                        <Button
+                                                                                            type="button"
+                                                                                            variant="outline"
+                                                                                            size="sm"
+                                                                                            onClick={() => addOption(question.id)}
+                                                                                            disabled={question.options.length >= 6}
+                                                                                        >
+                                                                                            <Plus className="w-4 h-4 mr-1" />
+                                                                                            Add Option
+                                                                                        </Button>
+                                                                                    </div>
+
+                                                                                    <div className="space-y-2">
+                                                                                        {question.options.map((option, optionIndex) => (
+                                                                                            <div key={optionIndex} className="flex items-center gap-2">
+                                                                                                <input
+                                                                                                    type="radio"
+                                                                                                    name={`correct-${question.id}`}
+                                                                                                    checked={question.correctAnswer === optionIndex}
+                                                                                                    onChange={() =>
+                                                                                                        updateQuestion(question.id, { correctAnswer: optionIndex })
+                                                                                                    }
+                                                                                                    className="mt-1"
+                                                                                                />
+                                                                                                <Input
+                                                                                                    placeholder={`Option ${optionIndex + 1}`}
+                                                                                                    value={option}
+                                                                                                    onChange={(e) =>
+                                                                                                        updateOption(question.id, optionIndex, e.target.value)
+                                                                                                    }
+                                                                                                    className="flex-1"
+                                                                                                />
+                                                                                                {question.options.length > 2 && (
+                                                                                                    <Button
+                                                                                                        type="button"
+                                                                                                        variant="ghost"
+                                                                                                        size="sm"
+                                                                                                        onClick={() => removeOption(question.id, optionIndex)}
+                                                                                                    >
+                                                                                                        <X className="w-4 h-4" />
+                                                                                                    </Button>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+
+                                                                                    {validationErrors[`question-${index}-options`] && (
+                                                                                        <p className="text-sm text-red-600 mt-1" role="alert">
+                                                                                            {validationErrors[`question-${index}-options`]}
+                                                                                        </p>
+                                                                                    )}
+
+                                                                                    {validationErrors[`question-${index}-answer`] && (
+                                                                                        <p className="text-sm text-red-600 mt-1" role="alert">
+                                                                                            {validationErrors[`question-${index}-answer`]}
+                                                                                        </p>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* True/False Options */}
+                                                                            {question.type === "true-false" && (
+                                                                                <div>
+                                                                                    <Label className="text-sm font-medium mb-2 block">Correct Answer</Label>
+                                                                                    <div className="flex gap-4">
+                                                                                        <label className="flex items-center gap-2">
+                                                                                            <input
+                                                                                                type="radio"
+                                                                                                name={`tf-${question.id}`}
+                                                                                                checked={question.correctAnswer === "true"}
+                                                                                                onChange={() => updateQuestion(question.id, { correctAnswer: "true" })}
+                                                                                            />
+                                                                                            <span>True</span>
+                                                                                        </label>
+                                                                                        <label className="flex items-center gap-2">
+                                                                                            <input
+                                                                                                type="radio"
+                                                                                                name={`tf-${question.id}`}
+                                                                                                checked={question.correctAnswer === "false"}
+                                                                                                onChange={() => updateQuestion(question.id, { correctAnswer: "false" })}
+                                                                                            />
+                                                                                            <span>False</span>
+                                                                                        </label>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Short Answer */}
+                                                                            {question.type === "short-answer" && (
+                                                                                <div>
+                                                                                    <Label htmlFor={`answer-${question.id}`} className="text-sm font-medium">
+                                                                                        Expected Answer
+                                                                                    </Label>
+                                                                                    <Input
+                                                                                        id={`answer-${question.id}`}
+                                                                                        placeholder="Enter the expected answer or keywords..."
+                                                                                        value={question.correctAnswer as string}
+                                                                                        onChange={(e) =>
+                                                                                            updateQuestion(question.id, { correctAnswer: e.target.value })
+                                                                                        }
+                                                                                    />
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Points */}
+                                                                            <div>
+                                                                                <Label htmlFor={`points-${question.id}`} className="text-sm font-medium">
+                                                                                    Points
+                                                                                </Label>
+                                                                                <Input
+                                                                                    id={`points-${question.id}`}
+                                                                                    type="number"
+                                                                                    min="1"
+                                                                                    max="10"
+                                                                                    value={question.points}
+                                                                                    onChange={(e) =>
+                                                                                        updateQuestion(question.id, {
+                                                                                            points: Number.parseInt(e.target.value) || 1,
+                                                                                        })
+                                                                                    }
+                                                                                    className="w-24"
+                                                                                />
+                                                                            </div>
+                                                                        </CardContent>
+                                                                    </Card>
+                                                                ))}
+                                                            </div>
                                                         )}
-
-                                                        {validationErrors[`question-${index}-answer`] && (
-                                                            <p className="text-sm text-red-600 mt-1" role="alert">
-                                                                {validationErrors[`question-${index}-answer`]}
-                                                            </p>
-                                                        )}
-                                                    </div>
+                                                    </CardContent>
                                                 )}
+                                            </Card>
+                                        )
+                                    })}
 
-                                                {/* True/False Options */}
-                                                {question.type === "true-false" && (
-                                                    <div>
-                                                        <Label className="text-sm font-medium mb-2 block">Correct Answer</Label>
-                                                        <div className="flex gap-4" role="radiogroup" aria-label="True or false answer">
-                                                            <label className="flex items-center gap-2">
-                                                                <input
-                                                                    type="radio"
-                                                                    name={`tf-${question.id}`}
-                                                                    checked={question.correctAnswer === "true"}
-                                                                    onChange={() => updateQuestion(question.id, { correctAnswer: "true" })}
-                                                                />
-                                                                <span>True</span>
-                                                            </label>
-                                                            <label className="flex items-center gap-2">
-                                                                <input
-                                                                    type="radio"
-                                                                    name={`tf-${question.id}`}
-                                                                    checked={question.correctAnswer === "false"}
-                                                                    onChange={() => updateQuestion(question.id, { correctAnswer: "false" })}
-                                                                />
-                                                                <span>False</span>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                    {/* Add Question Button */}
+                                    {selectedChapterId && (
+                                        <div className="flex justify-center pt-4">
+                                            <Button onClick={addQuestion} size="lg" id="add-question-button">
+                                                <Plus className="w-4 h-4 mr-2" />
+                                                Add Question to Selected Chapter
+                                            </Button>
+                                        </div>
+                                    )}
 
-                                                {/* Short Answer */}
-                                                {question.type === "short-answer" && (
-                                                    <div>
-                                                        <Label htmlFor={`answer-${question.id}`} className="text-sm font-medium">
-                                                            Expected Answer
-                                                        </Label>
-                                                        <Input
-                                                            id={`answer-${question.id}`}
-                                                            placeholder="Enter the expected answer or keywords..."
-                                                            value={question.correctAnswer as string}
-                                                            onChange={(e) => updateQuestion(question.id, { correctAnswer: e.target.value })}
-                                                            aria-describedby={`answer-help-${question.id}`}
-                                                        />
-                                                        <div id={`answer-help-${question.id}`} className="sr-only">
-                                                            Enter the expected answer or key terms for this short answer question.
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Points */}
-                                                <div>
-                                                    <Label htmlFor={`points-${question.id}`} className="text-sm font-medium">
-                                                        Points
-                                                    </Label>
-                                                    <Input
-                                                        id={`points-${question.id}`}
-                                                        type="number"
-                                                        min="1"
-                                                        max="10"
-                                                        value={question.points}
-                                                        onChange={(e) =>
-                                                            updateQuestion(question.id, { points: Number.parseInt(e.target.value) || 1 })
-                                                        }
-                                                        className="w-24"
-                                                        aria-describedby={`points-help-${question.id}`}
-                                                    />
-                                                    <div id={`points-help-${question.id}`} className="sr-only">
-                                                        Set how many points this question is worth.
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
+                                    {!selectedChapterId && chapters.length > 0 && (
+                                        <div className="text-center py-4 text-gray-500">
+                                            <p className="text-sm">Select a chapter above to start adding quiz questions.</p>
+                                        </div>
+                                    )}
                                 </div>
+                            )}
+
+                            {validationErrors.questions && (
+                                <p className="text-sm text-red-600 mt-4" role="alert">
+                                    {validationErrors.questions}
+                                </p>
                             )}
                         </CardContent>
                     </Card>

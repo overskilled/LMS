@@ -7,7 +7,7 @@ import { courseApi } from "@/utils/courseApi";
 import { CourseData } from "@/types/course";
 import { useAuth } from "@/context/authContext";
 
-export default function CourseListing() {
+export default function PublishedCourseListing() {
     const [courses, setCourses] = useState<CourseData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -23,8 +23,12 @@ export default function CourseListing() {
                 const response = await courseApi.getPublishedCourses();
 
                 if (response) {
-                    
-                    setCourses(response);
+                    // Filter courses where publishSettings.isPublic is true
+                    const publicCourses = response.filter(
+                        (course: any) => course.publishSettings?.isPublic === true
+                    );
+
+                    setCourses(publicCourses);
                 }
             } catch (err) {
                 setError("Failed to fetch courses");
@@ -36,6 +40,7 @@ export default function CourseListing() {
 
         fetchCourses();
     }, []);
+
 
     if (loading) {
         return (

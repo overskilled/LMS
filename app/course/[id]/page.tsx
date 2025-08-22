@@ -35,6 +35,14 @@ import { useTrackAffiliateClickClient } from "@/hooks/useTrackaffiliateLinks"
 import { useAuth } from "@/context/authContext"
 import WhatsAppFloating from "@/components/custom/WhatappButton"
 import LearningObjectivesDisplay from "@/components/custom/Course/LearningObjectivesDisplay"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -50,6 +58,8 @@ export default function CourseDetailPage() {
     const [email, setEmail] = useState("")
     const router = useRouter()
     const searchParams = useSearchParams()
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [open, setOpen] = useState(false)
 
     const { user } = useAuth()
 
@@ -67,6 +77,7 @@ export default function CourseDetailPage() {
                 const response = await courseApi.getCourseById(courseId)
                 if (response.success && response.data) {
                     setCourse(response.data)
+                    console.log("Courses: ", response.data)
 
                     if (user && Array.isArray(user.courses)) {
                         setHasPurchased(user.courses.includes(courseId))
@@ -90,6 +101,27 @@ export default function CourseDetailPage() {
 
 
     }, [courseId, user])
+
+
+    const handleCourseDelete = async () => {
+        try {
+            await courseApi.deleteCourse(courseId)
+            
+            toast.success("Course deleted successfully!", {
+                description: "The course has been removed from the system.",
+            })
+        } catch (error: any) {
+            console.error("An error occurred:", error)
+
+            toast.error("Failed to delete course!", {
+                description: "Please try again later.",
+            })
+        } finally {
+            setIsDeleting(false)
+            router.push("/admin")
+        }
+    }
+
 
     useEffect(() => {
         const refCode = searchParams.get("ref")
@@ -405,7 +437,7 @@ export default function CourseDetailPage() {
                                             <Book className="h-5 w-5" />
                                             <span>Lectures</span>
                                         </div>
-                                        <span>{course.videos?.length || 0} lectures</span>
+                                        <span>{course.videos?.videos?.length || 0} lectures</span>
                                         <div className="flex items-center gap-2">
                                             <GraduationCap className="h-5 w-5" />
                                             <span>Subject</span>
@@ -447,17 +479,50 @@ export default function CourseDetailPage() {
                                                     Update Course
                                                 </Button>
                                             </Link>
+
                                             <Button
                                                 variant="outline"
                                                 className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-3 text-lg font-semibold rounded-md bg-transparent"
                                             >
                                                 View Analytics
                                             </Button>
+                                            <Button
+                                                onClick={() => setOpen(true)}
+                                                variant="destructive"
+                                                disabled={isDeleting}
+                                                className="w-full border-gray-600 text-white bg-red-500 hover:bg-red-400 py-3 text-lg font-semibold rounded-md"
+                                            >
+                                                Delete Course
+                                            </Button>
+
+                                            <Dialog open={open} onOpenChange={setOpen}>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Delete Course</DialogTitle>
+                                                        <DialogDescription>
+                                                            Are you sure you want to delete this course? This action cannot be undone.
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <DialogFooter>
+                                                        <Button variant="secondary" onClick={() => setOpen(false)} disabled={isDeleting}>
+                                                            Cancel
+                                                        </Button>
+                                                        <Button
+                                                            variant="destructive"
+                                                            onClick={handleCourseDelete}
+                                                            disabled={isDeleting}
+                                                            className="bg-red-500 hover:bg-red-400"
+                                                        >
+                                                            {isDeleting ? "Deleting..." : "Confirm Delete"}
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
                                         </div>
                                     ) : user?.uid && hasPurchased ? (
                                         <div className="space-y-3">
                                             <Button
-                                                onClick={() => router.push(`/course/${courseId}`)}
+                                                onClick={() => router.push(`/course/${courseId}/learn`)}
                                                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md flex items-center gap-2"
                                             >
                                                 <Play className="h-5 w-5" />
@@ -808,11 +873,11 @@ export default function CourseDetailPage() {
 
                 <CourseDetails course={course} />
 
-                <CurriculumSection
+                {/* <CurriculumSection
                     course={course}
                 // hasPurchased={hasPurchased}
                 // isUpcoming={isUpcoming}
-                />
+                /> */}
 
                 {/* Floating scroll to top button */}
                 <WhatsAppFloating

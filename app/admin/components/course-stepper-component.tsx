@@ -52,22 +52,26 @@ export function CompleteStepper({
         stepRefs.current = stepRefs.current.slice(0, steps.length)
     }, [])
 
-
-    function getDefaultCourseData(): Partial<CourseData> {
+    function getDefaultCourseData(user?: { uid: string }): Partial<CourseData> {
         return {
             courseDetails: {
                 lessonName: "",
                 courseSlug: "",
                 courseCategory: "",
-                courseLevel: "",
+                courseLevel: "intermediate",
                 courseTime: "",
                 totalLessons: "",
                 difficulty: "beginner",
                 estimatedHours: 1,
                 affiliateRate: 20,
                 authorId: user ? user.uid : "",
+                thumbnailImage: undefined,
+                previewVideo: undefined,
             },
-            videos: [],
+            videos: {
+                chapters: [],
+                videos: [],
+            },
             aboutCourse: {
                 title: "",
                 shortDescription: "",
@@ -80,12 +84,12 @@ export function CompleteStepper({
                 tags: [],
                 pricing: {
                     basePrice: 0,
-                    currency: "USD",
+                    currency: "XAF",
                     pricingTier: "basic",
                     paymentOptions: ["one-time"],
                 },
                 metrics: {
-                    expectedEnrollments: 100,
+                    expectedEnrollments: 0,
                     targetRevenue: 0,
                     marketingBudget: 0,
                 },
@@ -96,7 +100,7 @@ export function CompleteStepper({
             },
             quiz: {
                 questions: [],
-                passingScore: 70,
+                passingScore: 100,
                 timeLimit: 30,
                 allowRetakes: true,
                 maxAttempts: 3,
@@ -108,12 +112,20 @@ export function CompleteStepper({
                 isPublic: false,
                 publishDate: new Date(),
                 certificateEnabled: false,
+                certificateTemplate: "default",
                 discussionEnabled: true,
                 downloadableResources: false,
                 courseLevel: "beginner",
+                prerequisites: [],
+                supportEmail: "",
             },
+            enrollmentCount: 0,
+            status: "draft",
+            updatedAt: Date.now(),
+            createdAt: Date.now(),
         }
     }
+
 
     const handleStepClick = useCallback(
         (stepIndex: number) => {
@@ -139,7 +151,7 @@ export function CompleteStepper({
             return {
                 ...prev,
                 [key]: {
-                    ...prev[key],
+                    // ...prev[key],
                     ...data
                 }
             }
@@ -323,7 +335,6 @@ export function CompleteStepper({
                 return (
                     <QuizCreationStep
                         ref={(ref) => { stepRefs.current[3] = ref }}
-                        initialData={courseData.quiz}
                         onDataChange={(data, isValid) => handleStepDataChange(3, data, isValid)}
                         onNext={handleNext}
                         onPrevious={handlePrevious}
