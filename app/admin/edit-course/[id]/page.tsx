@@ -131,11 +131,11 @@ export default function UpdateCoursePage() {
 
     // ✅ Handle video upload
     const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || e.target.files.length === 0) return;
+        if (!e.target.files || e.target.files.length === 0) return
 
         try {
-            const file = e.target.files[0];
-            const metadata = await uploadFile(file, "video", courseId);
+            const file = e.target.files[0]
+            const metadata = await uploadFile(file, "video", courseId)
 
             // Ensure all fields have defined values
             const newVideo = {
@@ -155,69 +155,69 @@ export default function UpdateCoursePage() {
                     storagePath: metadata.storagePath || "",
                     type: "video",
                     uploadedAt: metadata.uploadedAt || new Date(),
-                    width: metadata.width || 0
+                    width: metadata.width || 0,
                 },
                 order: course.videos ? course.videos.length : 0,
-                isPreview: false
-            };
+                isPreview: false,
+            }
 
-            const updatedVideos = course.videos ? [...course.videos, newVideo] : [newVideo];
-            handleChange("videos", updatedVideos);
-            toast.success("Video uploaded successfully");
+            const updatedVideos = course.videos ? [...course.videos, newVideo] : [newVideo]
+            handleChange("videos", updatedVideos)
+            toast.success("Video uploaded successfully")
         } catch (err) {
-            toast.error("Failed to upload video");
+            toast.error("Failed to upload video")
         }
-    };
+    }
 
     // ✅ Handle video deletion
     const handleDeleteVideo = async (index: number) => {
-        if (!course.videos || !course.videos[index]) return;
+        if (!course.videos || !course.videos[index]) return
 
-        const video = course.videos[index];
+        const video = course.videos[index]
 
         if (window.confirm(`Are you sure you want to delete "${video.title}"?`)) {
             try {
                 // Extract the full file ID (numbers_letters) from the filename
-                const fileName = video.metadata.fileName; // "video/1754942291190_iebb7ugvls.mp4"
-                const fileParts = fileName.split('/')[1]; // "1754942291190_iebb7ugvl
+                const fileName = video.metadata.fileName // "video/1754942291190_iebb7ugvls.mp4"
+                const fileParts = fileName.split("/")[1] // "1754942291190_iebb7ugvl
                 console.log("fileter id: ", fileParts)
 
                 // Delete the file from storage
-                await deleteFile(fileParts);
+                await deleteFile(fileParts)
 
                 // Create a new array without the deleted video
-                const updatedVideos = course.videos.filter((_: any, i: number) => i !== index);
+                const updatedVideos = course.videos.filter((_: any, i: number) => i !== index)
 
                 // Update order for remaining videos
                 const videosWithUpdatedOrder = updatedVideos.map((v: any, i: number) => ({
                     ...v,
-                    order: i
-                }));
+                    order: i,
+                }))
 
                 // Prepare the complete update object
                 const updateData = {
                     videos: videosWithUpdatedOrder,
                     updatedAt: Date.now(),
-                    lastEdited: serverTimestamp()
-                };
+                    lastEdited: serverTimestamp(),
+                }
 
                 // Update Firestore document
-                const ref = doc(db, "courses", courseId);
-                await updateDoc(ref, updateData);
+                const ref = doc(db, "courses", courseId)
+                await updateDoc(ref, updateData)
 
                 // Update local state
                 setCourse((prev: any) => ({
                     ...prev,
-                    videos: videosWithUpdatedOrder
-                }));
+                    videos: videosWithUpdatedOrder,
+                }))
 
-                toast.success("Video deleted successfully");
+                toast.success("Video deleted successfully")
             } catch (err) {
-                console.error("Delete error:", err);
-                toast.error("Failed to delete video");
+                console.error("Delete error:", err)
+                toast.error("Failed to delete video")
             }
         }
-    };
+    }
 
     // ✅ Handle video reordering
     const handleMoveVideo = (index: number, direction: "up" | "down") => {
@@ -525,9 +525,7 @@ export default function UpdateCoursePage() {
                                         {uploading ? `Uploading... ${progress?.progress}%` : "Choose File"}
                                     </Button>
                                 </div>
-                                {uploading && (
-                                    <Progress value={progress?.progress} className="w-full mt-2" />
-                                )}
+                                {uploading && <Progress value={progress?.progress} className="w-full mt-2" />}
                             </div>
                         </CardContent>
                     </Card>
@@ -576,9 +574,7 @@ export default function UpdateCoursePage() {
                                         {uploading ? `Uploading... ${progress?.progress}%` : "Choose File"}
                                     </Button>
                                 </div>
-                                {uploading && (
-                                    <Progress value={progress?.progress} className="w-full mt-2" />
-                                )}
+                                {uploading && <Progress value={progress?.progress} className="w-full mt-2" />}
                             </div>
                         </CardContent>
                     </Card>

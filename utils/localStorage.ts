@@ -17,7 +17,7 @@ export interface CourseDraft {
 
 export const draftStorage = {
     // Save current draft
-    saveDraft: (data: CourseData, draftId?: string): string => {
+    saveDraft: (data: any, draftId?: string): string => {
         const id = draftId || generateDraftId()
         const title = data.aboutCourse?.title || data.courseDetails?.lessonName || "Untitled Course"
 

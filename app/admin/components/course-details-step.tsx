@@ -41,7 +41,9 @@ interface CourseDetailsStepProps {
 const LOCAL_STORAGE_KEY = 'courseDetailsFormData';
 
 export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
-    ({ initialData, onDataChange, onNext, onPrevious, onCancel, courseId }, ref) => {
+    ({ onNext, onPrevious, onCancel, courseId }, ref) => {
+
+        const [initialData, setInitialData] = useState()
         // Load initial data from localStorage if available
         const getInitialData = (): Partial<CourseDetailsData> => {
             try {
@@ -54,8 +56,10 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             } catch (error) {
                 console.error('Failed to parse saved form data:', error);
             }
-            return initialData || {};
+
+            return {}
         };
+
         const {user} = useAuth()
 
         const [formData, setFormData] = useState<CourseDetailsData>({

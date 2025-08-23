@@ -39,7 +39,7 @@ export function CompleteStepper({
 }: CompleteStepperProps) {
     const { user } = useAuth()
     const [currentStep, setCurrentStep] = useState(0)
-    const [courseData, setCourseData] = useState<Partial<CourseData>>(initialData || getDefaultCourseData())
+    const [courseData, setCourseData] = useState<Partial<CourseData>>(initialData!)
     const [stepValidation, setStepValidation] = useState<Record<number, boolean>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -52,79 +52,6 @@ export function CompleteStepper({
         stepRefs.current = stepRefs.current.slice(0, steps.length)
     }, [])
 
-    function getDefaultCourseData(user?: { uid: string }): Partial<CourseData> {
-        return {
-            courseDetails: {
-                lessonName: "",
-                courseSlug: "",
-                courseCategory: "",
-                courseLevel: "intermediate",
-                courseTime: "",
-                totalLessons: "",
-                difficulty: "beginner",
-                estimatedHours: 1,
-                affiliateRate: 20,
-                authorId: user ? user.uid : "",
-                thumbnailImage: undefined,
-                previewVideo: undefined,
-            },
-            videos: {
-                chapters: [],
-                videos: [],
-            },
-            aboutCourse: {
-                title: "",
-                shortDescription: "",
-                fullDescription: "",
-                learningObjectives: [],
-                prerequisites: [],
-                targetAudience: "",
-                language: "English",
-                subtitles: [],
-                tags: [],
-                pricing: {
-                    basePrice: 0,
-                    currency: "XAF",
-                    pricingTier: "basic",
-                    paymentOptions: ["one-time"],
-                },
-                metrics: {
-                    expectedEnrollments: 0,
-                    targetRevenue: 0,
-                    marketingBudget: 0,
-                },
-                isUpcoming: false,
-                availabilityDate: undefined,
-                earlyAccessEnabled: false,
-                earlyAccessPrice: undefined,
-            },
-            quiz: {
-                questions: [],
-                passingScore: 100,
-                timeLimit: 30,
-                allowRetakes: true,
-                maxAttempts: 3,
-                showCorrectAnswers: false,
-                randomizeQuestions: false,
-                certificateRequired: false,
-            },
-            publishSettings: {
-                isPublic: false,
-                publishDate: new Date(),
-                certificateEnabled: false,
-                certificateTemplate: "default",
-                discussionEnabled: true,
-                downloadableResources: false,
-                courseLevel: "beginner",
-                prerequisites: [],
-                supportEmail: "",
-            },
-            enrollmentCount: 0,
-            status: "draft",
-            updatedAt: Date.now(),
-            createdAt: Date.now(),
-        }
-    }
 
 
     const handleStepClick = useCallback(
@@ -249,7 +176,6 @@ export function CompleteStepper({
 
             // Combine all data into complete course data
             const completeCourseData: CourseData = {
-                ...getDefaultCourseData(),
                 ...courseData
             } as CourseData
 
@@ -285,7 +211,6 @@ export function CompleteStepper({
             try {
                 const parsedData = JSON.parse(savedData)
                 setCourseData(prev => ({
-                    ...getDefaultCourseData(),
                     ...parsedData
                 }))
             } catch (e) {

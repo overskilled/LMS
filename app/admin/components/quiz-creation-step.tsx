@@ -59,6 +59,22 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
         const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null)
         const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set())
         const [questionCounter, setQuestionCounter] = useState(0)
+        const QUIZ_STORAGE_KEY = "quizFormData"
+
+        const getInitialData = (): Partial<QuizData> => {
+            try {
+                if (typeof window !== 'undefined') {
+                    const savedData = localStorage.getItem(QUIZ_STORAGE_KEY);
+                    if (savedData) {
+                        return JSON.parse(savedData);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to parse saved form data:', error);
+            }
+
+            return {}
+        };
 
         const [formData, setFormData] = useState<QuizData>({
             questions: [],
@@ -69,13 +85,22 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
             showCorrectAnswers: true,
             randomizeQuestions: false,
             certificateRequired: false,
+            ...getInitialData()
         })
 
         const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
         const [isValid, setIsValid] = useState(false)
         const [editingQuestion, setEditingQuestion] = useState<string | null>(null)
 
-        const QUIZ_STORAGE_KEY = "quizFormData"
+        // Save to localStorage whenever formData changes
+        useEffect(() => {
+            try {
+                localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(formData));
+            } catch (error) {
+                console.error('Failed to save form data:', error);
+            }
+        }, [formData]);
+
 
         useEffect(() => {
             try {
