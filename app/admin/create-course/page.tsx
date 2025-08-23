@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { CompleteStepper } from "../components/course-stepper-component"
 import Loading from "../loading"
 import type { CourseData } from "@/types/course"
+import { courseApi } from "@/utils/courseApi"
 
 // Keys for localStorage
 const LOCAL_STORAGE_KEYS = {
@@ -69,6 +70,7 @@ export default function CompleteCourseCreator() {
             const data = getAllCourseData()
             // Replace this with your API call
             console.log("Publishing course:", data)
+            await courseApi.publishCourse(data)
             alert("Course published successfully!")
             // Optionally clear localStorage
             Object.values(LOCAL_STORAGE_KEYS).forEach((key) => localStorage.removeItem(key))

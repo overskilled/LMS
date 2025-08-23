@@ -149,31 +149,31 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
         const validateForm = useCallback((): boolean => {
             const errors: Record<string, string> = {}
 
-            if (formData.questions.length === 0) {
-                errors.questions = "At least one question is required"
-            }
+            // if (formData.questions.length === 0) {
+            //     errors.questions = "At least one question is required"
+            // }
 
-            formData.questions.forEach((question, index) => {
-                if (!question.question.trim()) {
-                    errors[`question-${index}-text`] = "Question text is required"
-                }
+            // formData.questions.forEach((question, index) => {
+            //     if (!question.question.trim()) {
+            //         errors[`question-${index}-text`] = "Question text is required"
+            //     }
 
-                if (question.type === "multiple-choice" && question.options.length < 2) {
-                    errors[`question-${index}-options`] = "Multiple choice questions need at least 2 options"
-                }
+            //     if (question.type === "multiple-choice" && question.options.length < 2) {
+            //         errors[`question-${index}-options`] = "Multiple choice questions need at least 2 options"
+            //     }
 
-                if (question.type === "multiple-choice" && typeof question.correctAnswer !== "number") {
-                    errors[`question-${index}-answer`] = "Please select the correct answer"
-                }
-            })
+            //     if (question.type === "multiple-choice" && typeof question.correctAnswer !== "number") {
+            //         errors[`question-${index}-answer`] = "Please select the correct answer"
+            //     }
+            // })
 
             if (formData.passingScore < 0 || formData.passingScore > 100) {
                 errors.passingScore = "Passing score must be between 0 and 100"
             }
 
-            if (formData.timeLimit < 1) {
-                errors.timeLimit = "Time limit must be at least 1 minute"
-            }
+            // if (formData.timeLimit < 1) {
+            //     errors.timeLimit = "Time limit must be at least 1 minute"
+            // }
 
             setValidationErrors(errors)
             const valid = Object.keys(errors).length === 0
