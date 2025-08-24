@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/authContext";
+import { I18nProviderClient } from "@/locales/client";
 
 export const metadata: Metadata = {
   title: {
@@ -69,11 +70,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
+interface AdminLayoutProps {
+  params: Promise<{ locale: string }>;
   children: React.ReactNode;
-}) {
+}
+
+export default async function RootLayout({ params, children }: AdminLayoutProps) {
+
+
+  const { locale } = await params;
+
   return (
     <html lang="en">
       <head>
@@ -101,8 +107,10 @@ export default function RootLayout({
       </head>
       <body className="flex flex-col w-[100%] antialiased bg-white text-gray-900">
         <AuthProvider>
-          {children}
-          <Toaster />
+          <I18nProviderClient locale={locale}>
+            {children}
+            <Toaster />
+          </I18nProviderClient>
         </AuthProvider>
 
       </body>

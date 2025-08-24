@@ -10,6 +10,7 @@ import { ReactPlayerProps } from "react-player/types"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useAuth } from "@/context/authContext"
+import { useI18n } from "@/locales/client"
 
 interface CurriculumSectionProps {
     course: CourseData
@@ -33,9 +34,11 @@ interface VideoItem {
 }
 
 export function CurriculumSection({ course }: CurriculumSectionProps) {
-    const { user } = useAuth() 
+    const { user } = useAuth()
     const [currentVideo, setCurrentVideo] = useState<{ url: string; title: string } | null>(null)
     const [isPlayerOpen, setIsPlayerOpen] = useState(false)
+
+    const t = useI18n()
 
     console.log(user)
     const hasPurchased = user?.courses?.includes(course?.id || "") || false
@@ -68,7 +71,6 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
 
     return (
         <section className="py-12 md:py-16 bg-white relative">
-            {/* Video Player Modal
             {isPlayerOpen && currentVideo && (
                 <div className="fixed inset-0 bg-black h-[100vh] bg-opacity-90 z-50 flex items-center justify-center p-4">
                     <div className="w-full max-w-6xl relative">
@@ -97,11 +99,13 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
 
             <div className="container mx-auto px-4 md:px-6">
                 <div className="max-w-4xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">Course Curriculum</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+                        {t("course.curriculum.title")}
+                    </h2>
 
                     <div className="border border-gray-200 rounded-xl overflow-hidden">
                         <Accordion type="multiple" className="w-full">
-                            {Array.from(new Set(course.videos?.map(v => v.order) || []))
+                            {Array.from(new Set(course.videos.chapters?.map(v => v.order) || []))
                                 .sort((a, b) => a - b)
                                 .map((order, sectionIndex) => (
                                     <AccordionItem key={`section-${order}`} value={`section-${order}`}>
@@ -112,11 +116,11 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                                                 </div>
                                                 <div className="text-left">
                                                     <h3 className="font-semibold text-gray-900">
-                                                        {order === 0 ? "Getting Started" : `Section ${sectionIndex + 1}`}
+                                                        {order === 0 ? t("course.curriculum.gettingStarted") : `${t("course.curriculum.section")} ${sectionIndex + 1}`}
                                                     </h3>
                                                     <p className="text-sm text-gray-500 mt-1">
-                                                        {course.videos?.filter(v => v.order === order).length || 0} lectures • {formatDuration(
-                                                            (course.videos?.filter(v => v.order === order)
+                                                        {course.videos.videos?.filter(v => v.order === order).length || 0} {t("course.curriculum.lectures")} • {formatDuration(
+                                                            (course.videos.videos?.filter(v => v.order === order)
                                                                 .reduce((total, video) => total + (video.metadata?.duration || 0), 0) || 0
                                                             )
                                                         )}
@@ -126,7 +130,7 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                                         </AccordionTrigger>
                                         <AccordionContent className="border-t border-gray-200">
                                             <ul className="divide-y divide-gray-200">
-                                                {course.videos
+                                                {course.videos.videos
                                                     ?.filter(v => v.order === order)
                                                     .map((video, index) => {
                                                         const isAccessible = hasPurchased || video.isPreview
@@ -152,10 +156,10 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
                                                                         <h4 className="text-gray-900 font-medium truncate">
-                                                                            {video.title || `Lecture ${index + 1}`}
+                                                                            {video.title || `${t("course.curriculum.lecture")} ${index + 1}`}
                                                                             {video.isPreview && !hasPurchased && (
                                                                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                                                    Preview
+                                                                                    {t("course.curriculum.preview")}
                                                                                 </span>
                                                                             )}
                                                                         </h4>
@@ -181,21 +185,21 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-semibold text-gray-900">Total</h4>
+                                    <h4 className="font-semibold text-gray-900">{t("course.curriculum.total")}</h4>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        {course.videos?.length || 0} lectures • {formatDuration(
-                                            (course.videos?.reduce((total, video) => total + (video.metadata?.duration || 0), 0) || 0)
+                                        {course.videos?.videos?.length || 0} {t("course.curriculum.lectures")} • {formatDuration(
+                                            (course.videos?.videos?.reduce((total, video) => total + (video.metadata?.duration || 0), 0) || 0)
                                         )}
                                     </p>
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    {course.courseDetails.estimatedHours} hours total length
+                                    {course.courseDetails.estimatedHours} {t("course.curriculum.totalHours")}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-8 flex gap-4">
+                    {/* <div className="mt-8 flex gap-4">
                         {!user ? (
                             <>
                                 <Button asChild className="w-full md:w-auto">
@@ -214,9 +218,9 @@ export function CurriculumSection({ course }: CurriculumSectionProps) {
                                 <Link href={`/course/${course.id}/learn`}>Continue Learning</Link>
                             </Button>
                         )}
-                    </div>
+                    </div> */}
                 </div>
-            </div> */}
+            </div>
         </section>
     )
 }

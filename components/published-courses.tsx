@@ -6,11 +6,14 @@ import { CourseCard } from "./course-card";
 import { courseApi } from "@/utils/courseApi";
 import { CourseData } from "@/types/course";
 import { useAuth } from "@/context/authContext";
+import { useI18n } from "@/locales/client";
 
 export default function PublishedCourseListing() {
     const [courses, setCourses] = useState<CourseData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const t = useI18n()
 
     const { user } = useAuth()
 
@@ -80,7 +83,7 @@ export default function PublishedCourseListing() {
                         className="mt-4"
                         onClick={() => window.location.reload()}
                     >
-                        Retry
+                        {t("course.retry")}
                     </Button>
                 </div>
             </section>
@@ -92,14 +95,14 @@ export default function PublishedCourseListing() {
             <div className="container mx-auto px-4 py-12 sm:py-16">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold relative inline-block mb-4 md:mb-0">
-                        Courses
+                        {t("course.courses")}
                         <span className="absolute left-0 right-0 bottom-0 h-1 bg-yellow-400 rounded-full -mb-2" />
                     </h2>
                 </div>
 
                 {courses.length === 0 ? (
                     <div className="text-center py-16 sm:py-20">
-                        <p className="text-gray-500">No courses found</p>
+                        <p className="text-gray-500">{t('course.noCourses')}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">

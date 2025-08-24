@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/locales/client";
 import { CheckCircle2 } from "lucide-react";
 
 type Props = {
@@ -8,10 +9,10 @@ type Props = {
 
 export default function LearningObjectivesDisplay({ objectives }: Props) {
     if (!objectives || objectives.length === 0) return null;
-
+    const t = useI18n();
     return (
         <section className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">What You’ll Learn</h2>
+            <h2 className="text-2xl font-bold mb-4">{t("course.learn.title")}</h2>
             <ul className="space-y-3">
                 {objectives.map((obj, i) => (
                     <li

@@ -128,7 +128,7 @@ export default function CoursePayment() {
 
         while (attempt < 3 && !success) {
             try {
-                const res = await fetch("/api/deposits", {
+                const res = await fetch("/en/api/deposits", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

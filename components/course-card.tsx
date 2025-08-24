@@ -8,6 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { CourseData } from "@/types/course"
 import { truncate } from "@/utils/helper"
+import { useI18n } from "@/locales/client"
 
 interface CourseCardProps {
     course: CourseData
@@ -20,6 +21,8 @@ export function CourseCard({ course, idx }: CourseCardProps) {
         once: true,
         margin: "0px 0px -100px 0px",
     })
+
+    const t = useI18n()
 
     // Helper function to format price
     const formatPrice = (price: number, currency: string) => {
@@ -51,7 +54,7 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                     />
                     {course.aboutCourse?.pricing?.basePrice === 0 && (
                         <Badge className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
-                            FREE
+                            {t('course.free')}
                         </Badge>
                     )}
                 </div>

@@ -11,7 +11,7 @@ import {
     Play, Loader2, Loader2Icon, Clock as ClockIcon, Bell, LockKeyhole,
     CheckCircle
 } from "lucide-react"
-import MainLayout from "@/app/main-layout"
+import MainLayout from "@/app/[locale]/main-layout"
 import { courseApi } from "@/utils/courseApi"
 import { useEffect, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
@@ -43,6 +43,7 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog"
+import { useI18n } from "@/locales/client"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -60,6 +61,8 @@ export default function CourseDetailPage() {
     const searchParams = useSearchParams()
     const [isDeleting, setIsDeleting] = useState(false)
     const [open, setOpen] = useState(false)
+
+    const t = useI18n()
 
     const { user } = useAuth()
 
@@ -106,16 +109,16 @@ export default function CourseDetailPage() {
     const handleCourseDelete = async () => {
         try {
             await courseApi.deleteCourse(courseId)
-            
-            toast.success("Course deleted successfully!", {
-                description: "The course has been removed from the system.",
-            })
-        } catch (error: any) {
-            console.error("An error occurred:", error)
 
-            toast.error("Failed to delete course!", {
-                description: "Please try again later.",
-            })
+            toast.success(t("course.delete.success.title"), {
+                description: t("course.delete.success.description"),
+            });
+        } catch (error: any) {
+            console.error("An error occurred:", error);
+
+            toast.error(t("course.delete.error.title"), {
+                description: t("course.delete.error.description"),
+            });
         } finally {
             setIsDeleting(false)
             router.push("/admin")
@@ -131,7 +134,7 @@ export default function CourseDetailPage() {
     }, [searchParams])
 
     const formatPrice = (price: number, currency: string) => {
-        if (price === 0) return "Free"
+        if (price === 0) return t("course.free")
 
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -156,7 +159,7 @@ export default function CourseDetailPage() {
             setGeneratingLinks(true);
             const { link } = await generateAffiliateCodeClientSide(courseId);
             setLinks((prev) => ({ ...prev, [courseId]: link }));
-            toast.success("Your referral link has been created successfully");
+            toast.success(t("course.affiliate.success"));
         } catch (error: any) {
             console.error(error);
             // toast.error(error.message || "Failed to generate affiliate link");
@@ -167,7 +170,7 @@ export default function CourseDetailPage() {
 
     const joinWaitlist = async () => {
         if (!email) {
-            toast.success("Please enter a valid email address")
+            toast.error(t("course.waitlist.invalidEmail"));
             return
         }
 
@@ -186,10 +189,10 @@ export default function CourseDetailPage() {
                 })
             })
 
-            toast.success("You've been added to the waitlist for this course")
+            toast.success(t("course.waitlist.success"));
             setShowWaitlistForm(false)
         } catch (error) {
-            toast.success("Failed to join waitlist. Please try again.")
+            toast.error(t("course.waitlist.error"));
         } finally {
             setIsSubmitting(false)
         }
@@ -220,14 +223,14 @@ export default function CourseDetailPage() {
             <MainLayout>
                 <div className="bg-white min-h-screen flex items-center justify-center">
                     <Alert variant="destructive" className="w-full max-w-md">
-                        <AlertTitle>Error</AlertTitle>
+                        <AlertTitle>{t('course.error')}</AlertTitle>
                         <AlertDescription>{error}</AlertDescription>
                         <Button
                             variant="outline"
                             className="mt-4"
                             onClick={() => window.location.reload()}
                         >
-                            Retry
+                            {t('course.retry')}
                         </Button>
                     </Alert>
                 </div>
@@ -240,16 +243,17 @@ export default function CourseDetailPage() {
             <MainLayout>
                 <div className="bg-white min-h-screen flex items-center justify-center">
                     <Alert>
-                        <AlertTitle>Course not found</AlertTitle>
+                        <AlertTitle>{t("course.notFound.title")}</AlertTitle>
                         <AlertDescription>
-                            The course you're looking for doesn't exist or may have been removed.
+                            {t("course.notFound.description")}
                         </AlertDescription>
                         <Link href="/courses" className="mt-4 inline-block">
-                            <Button variant="outline">Browse Courses</Button>
+                            <Button variant="outline">{t("course.notFound.browseButton")}</Button>
                         </Link>
                     </Alert>
                 </div>
             </MainLayout>
+
         )
     }
 
@@ -262,13 +266,13 @@ export default function CourseDetailPage() {
                         <ol className="flex items-center space-x-2">
                             <li>
                                 <Link href="/" className="hover:underline" prefetch={false}>
-                                    Home
+                                    {t("breadcrumbs.home")}
                                 </Link>
                             </li>
                             <li>/</li>
                             <li>
                                 <Link href="/courses" className="hover:underline" prefetch={false}>
-                                    Courses
+                                    {t("breadcrumbs.courses")}
                                 </Link>
                             </li>
                             <li>/</li>
@@ -285,16 +289,18 @@ export default function CourseDetailPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                                 {isUpcoming && (
                                     <Badge className="bg-purple-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
-                                        Coming Soon
+                                        {t("course.comingSoon")}
                                     </Badge>
                                 )}
                                 {course.aboutCourse.pricing.discountPrice && (
                                     <Badge className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
                                         {Math.round(
-                                            ((course.aboutCourse.pricing.basePrice - course.aboutCourse.pricing.discountPrice) /
-                                                course.aboutCourse.pricing.basePrice * 100
-                                            ))
-                                        }% OFF
+                                            ((course.aboutCourse.pricing.basePrice -
+                                                course.aboutCourse.pricing.discountPrice) /
+                                                course.aboutCourse.pricing.basePrice) *
+                                            100
+                                        )}
+                                        % {t("course.off")}
                                     </Badge>
                                 )}
                                 <Badge className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md text-sm font-semibold capitalize">
@@ -305,38 +311,43 @@ export default function CourseDetailPage() {
                                 {course.aboutCourse.title}
                             </h1>
                             <div className="flex items-center gap-4 text-gray-600 text-lg flex-wrap">
-                                {/* <div className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
-                                    <span>{course.instructor?.name || "Unknown Instructor"}</span>
-                                </div> */}
-                                <span>Last Update {formatDate(course.updatedAt)}</span>
+                                <span>
+                                    {t("course.lastUpdate")} {formatDate(course.updatedAt)}
+                                </span>
                                 {isUpcoming && course?.aboutCourse?.availabilityDate && (
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-5 w-5" />
-                                        <span>Starts {formatDate(course?.aboutCourse?.availabilityDate)}</span>
+                                        <span>
+                                            {t("course.starts")} {formatDate(course?.aboutCourse?.availabilityDate)}
+                                        </span>
                                     </div>
                                 )}
                             </div>
                             {user?.admin ? (
                                 <div className="flex items-center gap-4">
-                                    <span className="text-gray-600">{course.enrollmentCount || 0} already enrolled</span>
-                                    <span className="text-gray-600">{(course?.aboutCourse?.metrics?.targetRevenue || 0).toLocaleString()} {course.aboutCourse.pricing.currency} revenue</span>
+                                    <span className="text-gray-600">
+                                        {course.enrollmentCount || 0} {t("course.alreadyEnrolled")}
+                                    </span>
+                                    <span className="text-gray-600">
+                                        {(course?.aboutCourse?.metrics?.targetRevenue || 0).toLocaleString()}{" "}
+                                        {course.aboutCourse.pricing.currency} {t("course.revenue")}
+                                    </span>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-4 text-gray-600 text-lg">
                                     <span className="font-bold">4.8 / 5</span>
                                     <div className="flex items-center gap-1 text-yellow-400">
                                         {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                className={`h-5 w-5 ${i < 4 ? 'fill-current' : ''}`}
-                                            />
+                                            <Star key={i} className={`h-5 w-5 ${i < 4 ? "fill-current" : ""}`} />
                                         ))}
                                     </div>
-                                    <span>({course.enrollmentCount || 0} students)</span>
+                                    <span>
+                                        ({course.enrollmentCount || 0} {t("course.students")})
+                                    </span>
                                 </div>
                             )}
                         </div>
+
 
                         {/* Right Content - Video and Price Box */}
                         <div className="flex flex-col items-center lg:items-end">
@@ -346,7 +357,7 @@ export default function CourseDetailPage() {
                                         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-6">
                                             <ClockIcon className="h-12 w-12 text-white mb-4" />
                                             <h3 className="text-xl font-bold text-white mb-2">
-                                                Course Coming Soon
+                                                {t("course.upcoming.title")}
                                             </h3>
                                             {course?.aboutCourse?.availabilityDate && (
                                                 <CountdownTimer
@@ -355,7 +366,7 @@ export default function CourseDetailPage() {
                                                 />
                                             )}
                                             <p className="text-gray-300 mb-4">
-                                                This course will be available on {formatDate(course?.aboutCourse?.availabilityDate!)}
+                                                {t('course.upcoming.expectedLaunch', { date: formatDate(course?.aboutCourse?.availabilityDate!) })} 
                                             </p>
                                             {/* <Button
                                                 variant="default"
@@ -401,19 +412,23 @@ export default function CourseDetailPage() {
                                                             course.aboutCourse.pricing.currency
                                                         )}
                                                     </span>
-                                                    <span className="text-sm text-gray-300">Early Access Price</span>
+                                                    <span className="text-sm text-gray-300">{t("course.earlyAccessPrice")}</span>
                                                 </>
                                             ) : (
                                                 <>
                                                     <span className="text-3xl font-bold text-white">
                                                         {formatPrice(
-                                                            course.aboutCourse.pricing.discountPrice || course.aboutCourse.pricing.basePrice,
+                                                            course.aboutCourse.pricing.discountPrice ||
+                                                            course.aboutCourse.pricing.basePrice,
                                                             course.aboutCourse.pricing.currency
                                                         )}
                                                     </span>
                                                     {course.aboutCourse.pricing.discountPrice && (
                                                         <span className="text-md text-gray-400 line-through">
-                                                            {formatPrice(course.aboutCourse.pricing.basePrice, course.aboutCourse.pricing.currency)}
+                                                            {formatPrice(
+                                                                course.aboutCourse.pricing.basePrice,
+                                                                course.aboutCourse.pricing.currency
+                                                            )}
                                                         </span>
                                                     )}
                                                 </>
@@ -425,48 +440,56 @@ export default function CourseDetailPage() {
                                     <div className="grid grid-cols-2 gap-4 text-gray-300">
                                         <div className="flex items-center gap-2">
                                             <GraduationCap className="h-5 w-5" />
-                                            <span>Level</span>
+                                            <span>{t("course.level")}</span>
                                         </div>
-                                        <span className="capitalize">{course.courseDetails.difficulty || course.courseDetails.courseLevel}</span>
+                                        <span className="capitalize">
+                                            {course.courseDetails.difficulty || course.courseDetails.courseLevel}
+                                        </span>
+
                                         <div className="flex items-center gap-2">
                                             <Clock className="h-5 w-5" />
-                                            <span>Duration</span>
+                                            <span>{t("course.duration")}</span>
                                         </div>
-                                        <span>{course.courseDetails.estimatedHours} hours</span>
+                                        <span>{course.courseDetails.estimatedHours} {t("course.hours")}</span>
+
                                         <div className="flex items-center gap-2">
                                             <Book className="h-5 w-5" />
-                                            <span>Lectures</span>
+                                            <span>{t("course.lectures")}</span>
                                         </div>
-                                        <span>{course.videos?.videos?.length || 0} lectures</span>
+                                        <span>{course.videos?.videos?.length || 0} {t("course.lectures")}</span>
+
                                         <div className="flex items-center gap-2">
                                             <GraduationCap className="h-5 w-5" />
-                                            <span>Subject</span>
+                                            <span>{t("course.subject")}</span>
                                         </div>
                                         <span className="capitalize">{course.courseDetails.courseCategory}</span>
+
                                         <div className="flex items-center gap-2">
                                             <Globe className="h-5 w-5" />
-                                            <span>Language</span>
+                                            <span>{t("course.language")}</span>
                                         </div>
-                                        <span>English & French</span>
+                                        <span>{t("course.languagesAvailable")}</span>
                                     </div>
 
                                     {/* Material Includes */}
                                     <div className="space-y-2 pt-4">
-                                        <h4 className="text-lg font-semibold text-white">Material Includes</h4>
+                                        <h4 className="text-lg font-semibold text-white">
+                                            {t("course.materialIncludes")}
+                                        </h4>
                                         <div className="flex items-center gap-2 text-gray-300">
                                             <Check className="h-5 w-5 text-green-400" />
-                                            <span>Videos</span>
+                                            <span>{t("course.videos")}</span>
                                         </div>
                                         {course.publishSettings.downloadableResources && (
                                             <div className="flex items-center gap-2 text-gray-300">
                                                 <Check className="h-5 w-5 text-green-400" />
-                                                <span>Resources</span>
+                                                <span>{t("course.resources")}</span>
                                             </div>
                                         )}
                                         {course.publishSettings.certificateEnabled && (
                                             <div className="flex items-center gap-2 text-gray-300">
                                                 <Check className="h-5 w-5 text-green-400" />
-                                                <span>Certificate of Completion</span>
+                                                <span>{t("course.certificate")}</span>
                                             </div>
                                         )}
                                     </div>
@@ -476,7 +499,7 @@ export default function CourseDetailPage() {
                                         <div className="space-y-3">
                                             <Link href={`/admin/edit-course/${courseId}`}>
                                                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md">
-                                                    Update Course
+                                                    {t("course.updateCourse")}
                                                 </Button>
                                             </Link>
 
@@ -484,28 +507,32 @@ export default function CourseDetailPage() {
                                                 variant="outline"
                                                 className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-3 text-lg font-semibold rounded-md bg-transparent"
                                             >
-                                                View Analytics
+                                                {t("course.viewAnalytics")}
                                             </Button>
+
                                             <Button
                                                 onClick={() => setOpen(true)}
                                                 variant="destructive"
                                                 disabled={isDeleting}
                                                 className="w-full border-gray-600 text-white bg-red-500 hover:bg-red-400 py-3 text-lg font-semibold rounded-md"
                                             >
-                                                Delete Course
+                                                {t("course.deleteCourse")}
                                             </Button>
 
+                                            {/* Delete Dialog */}
                                             <Dialog open={open} onOpenChange={setOpen}>
                                                 <DialogContent>
                                                     <DialogHeader>
-                                                        <DialogTitle>Delete Course</DialogTitle>
-                                                        <DialogDescription>
-                                                            Are you sure you want to delete this course? This action cannot be undone.
-                                                        </DialogDescription>
+                                                        <DialogTitle>{t("course.deleteCourse")}</DialogTitle>
+                                                        <DialogDescription>{t("course.deleteWarning")}</DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>
-                                                        <Button variant="secondary" onClick={() => setOpen(false)} disabled={isDeleting}>
-                                                            Cancel
+                                                        <Button
+                                                            variant="secondary"
+                                                            onClick={() => setOpen(false)}
+                                                            disabled={isDeleting}
+                                                        >
+                                                            {t("common.cancel")}
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
@@ -513,7 +540,7 @@ export default function CourseDetailPage() {
                                                             disabled={isDeleting}
                                                             className="bg-red-500 hover:bg-red-400"
                                                         >
-                                                            {isDeleting ? "Deleting..." : "Confirm Delete"}
+                                                            {isDeleting ? t("course.deleting") : t("course.confirmDelete")}
                                                         </Button>
                                                     </DialogFooter>
                                                 </DialogContent>
@@ -521,12 +548,9 @@ export default function CourseDetailPage() {
                                         </div>
                                     ) : user?.uid && hasPurchased ? (
                                         <div className="space-y-3">
-                                            <Button
-                                                onClick={() => router.push(`/course/${courseId}/learn`)}
-                                                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md flex items-center gap-2"
-                                            >
+                                            <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md flex items-center gap-2">
                                                 <Play className="h-5 w-5" />
-                                                Continue Learning
+                                                {t("course.continueLearning")}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -537,17 +561,17 @@ export default function CourseDetailPage() {
                                                 {generatingLinks ? (
                                                     <>
                                                         <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
-                                                        Generating...
+                                                        {t("course.generating")}
                                                     </>
                                                 ) : (
-                                                    "Generate Affiliate Code"
+                                                    t("course.generateAffiliate")
                                                 )}
                                             </Button>
                                             {links[courseId] && (
                                                 <div className="mt-2 flex flex-col w-full">
                                                     <ReferralCodeDisplay referralCode={links[courseId]} />
                                                     <p className="mt-4 w-full text-xs text-center text-gray-300">
-                                                        Click the "Copy" button to get your referral code.
+                                                        {t("course.copyReferral")}
                                                     </p>
                                                 </div>
                                             )}
@@ -556,10 +580,12 @@ export default function CourseDetailPage() {
                                         <div className="space-y-3">
                                             {isEarlyAccess ? (
                                                 <Button
-                                                    onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
+                                                    onClick={() =>
+                                                        router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
+                                                    }
                                                     className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold "
                                                 >
-                                                    Get Early Access
+                                                    {t("course.getEarlyAccess")}
                                                 </Button>
                                             ) : (
                                                 <Button
@@ -568,7 +594,7 @@ export default function CourseDetailPage() {
                                                     className="w-full text-md"
                                                 >
                                                     <Bell className="h-5 w-5" />
-                                                    Join Waitlist
+                                                    {t("course.joinWaitlist")}
                                                 </Button>
                                             )}
                                             <Button
@@ -580,17 +606,17 @@ export default function CourseDetailPage() {
                                                 {generatingLinks ? (
                                                     <>
                                                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                                        Generating...
+                                                        {t("course.generating")}
                                                     </>
                                                 ) : (
-                                                    "Generate Affiliate Code"
+                                                    t("course.generateAffiliate")
                                                 )}
                                             </Button>
                                             {links[courseId] && (
                                                 <div className="mt-2 flex flex-col w-full">
                                                     <ReferralCodeDisplay referralCode={links[courseId]} />
                                                     <p className="mt-4 w-full text-xs text-center text-gray-300">
-                                                        Click the "Copy" button to get your referral code.
+                                                        {t("course.copyReferral")}
                                                     </p>
                                                 </div>
                                             )}
@@ -604,15 +630,17 @@ export default function CourseDetailPage() {
                                                     className="w-full text-md"
                                                 >
                                                     <Bell className="h-5 w-5" />
-                                                    Join Waitlist
+                                                    {t("course.joinWaitlist")}
                                                 </Button>
                                             ) : (
                                                 <Button
-                                                    onClick={() => router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)}
+                                                    onClick={() =>
+                                                        router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
+                                                    }
                                                     className="w-full text-md"
                                                 >
                                                     <CheckCircle className="h-5 w-5" />
-                                                    Enroll
+                                                    {t("course.enroll")}
                                                 </Button>
                                             )}
                                             <Button
@@ -624,17 +652,17 @@ export default function CourseDetailPage() {
                                                 {generatingLinks ? (
                                                     <>
                                                         <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                                        Generating...
+                                                        {t("course.generating")}
                                                     </>
                                                 ) : (
-                                                    "Generate Affiliate Code"
+                                                    t("course.generateAffiliate")
                                                 )}
                                             </Button>
                                             {links[courseId] && (
                                                 <div className="mt-2 flex flex-col w-full">
                                                     <ReferralCodeDisplay referralCode={links[courseId]} />
                                                     <p className="mt-4 w-full text-xs text-center text-gray-300">
-                                                        Click the "Copy" button to get your referral code.
+                                                        {t("course.copyReferral")}
                                                     </p>
                                                 </div>
                                             )}
@@ -642,19 +670,22 @@ export default function CourseDetailPage() {
                                     ) : (
                                         <div className="space-y-3">
                                             <Button
-                                                variant={"outline"}
-                                                onClick={() => router.push(`/login/?courseId=${courseId}&ref=${searchParams.get("ref")}`)}
+                                                variant="outline"
+                                                onClick={() =>
+                                                    router.push(`/login/?courseId=${courseId}&ref=${searchParams.get("ref")}`)
+                                                }
                                                 className="w-full text-md"
                                             >
-                                                Log into your account
+                                                {t("auth.loginToContinue")}
                                             </Button>
                                             <Button
-                                                onClick={() => router.push(`/register/?courseId=${courseId}&ref=${searchParams.get("ref")}`)}
+                                                onClick={() =>
+                                                    router.push(`/register/?courseId=${courseId}&ref=${searchParams.get("ref")}`)
+                                                }
                                                 className="w-full text-md"
                                             >
-                                                Purchase now <span className="text-sm">(Get early access)</span>
+                                                {t("course.purchaseNow")} <span className="text-sm">{t("course.getEarlyAccess")}</span>
                                             </Button>
-
                                         </div>
                                     )}
                                 </div>
@@ -664,91 +695,75 @@ export default function CourseDetailPage() {
                 </section>
 
                 {/* Waitlist Modal */}
-                {showWaitlistForm && (
-                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                        <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-bold">Join the Waitlist</h3>
-                                <button
-                                    onClick={() => setShowWaitlistForm(false)}
-                                    className="text-gray-500 hover:text-gray-700"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-                            <p className="text-gray-600 mb-4">
-                                Be the first to know when this course launches. We'll notify you when it's available.
-                            </p>
-                            <div className="space-y-4">
-                                <div>
-                                    <Label htmlFor="waitlist-email" className="block mb-1">
-                                        Email Address
-                                    </Label>
-                                    <Input
-                                        id="waitlist-email"
-                                        type="email"
-                                        placeholder="your@email.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={joinWaitlist}
-                                        disabled={isSubmitting}
-                                        className="flex-1"
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                                Joining...
-                                            </>
-                                        ) : (
-                                            "Join Waitlist"
-                                        )}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
+                {
+                    showWaitlistForm && (
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xl font-bold">{t("waitlist.title")}</h3>
+                                    <button
                                         onClick={() => setShowWaitlistForm(false)}
-                                        className="flex-1"
+                                        className="text-gray-500 hover:text-gray-700"
                                     >
-                                        Cancel
-                                    </Button>
+                                        <X className="h-5 w-5" />
+                                    </button>
+                                </div>
+                                <p className="text-gray-600 mb-4">
+                                    {t("waitlist.description")}
+                                </p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label htmlFor="waitlist-email" className="block mb-1">
+                                            {t("waitlist.emailLabel")}
+                                        </Label>
+                                        <Input
+                                            id="waitlist-email"
+                                            type="email"
+                                            placeholder={t("waitlist.emailPlaceholder")}
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            onClick={joinWaitlist}
+                                            disabled={isSubmitting}
+                                            className="flex-1"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                                                    {t("waitlist.joining")}
+                                                </>
+                                            ) : (
+                                                t("waitlist.joinButton")
+                                            )}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setShowWaitlistForm(false)}
+                                            className="flex-1"
+                                        >
+                                            {t("waitlist.cancelButton")}
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* Main Content Section */}
                 <section className="py-12 md:py-20">
                     <div className="container mx-auto px-4 md:px-6 grid lg:grid-cols-3 gap-12">
                         {/* Left Column - Course Details */}
                         <div className="lg:col-span-2 space-y-10">
-                            {/* Course Progress (for enrolled students) */}
-                            {/* {hasPurchased && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
-                                            Your Progress
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span>25% Complete</span>
-                                                <span>3 of 12 lessons</span>
-                                            </div>
-                                            <Progress value={25} className="h-2" />
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )} */}
-
                             {/* Course Prerequisites */}
                             {course.aboutCourse.prerequisites?.length > 0 && (
                                 <div>
-                                    <h2 className="text-3xl font-bold text-gray-900 mb-6">Course Prerequisites</h2>
+                                    <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                                        {t("course.prerequisites.title")}
+                                    </h2>
                                     <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -766,8 +781,8 @@ export default function CourseDetailPage() {
                                             <path d="M12 9v4" />
                                             <path d="M12 17h.01" />
                                         </svg>
-                                        <AlertTitle>Please note that this course has the following prerequisites</AlertTitle>
-                                        <AlertDescription>which must be completed before it can be accessed</AlertDescription>
+                                        <AlertTitle>{t("course.prerequisites.alertTitle")}</AlertTitle>
+                                        <AlertDescription>{t("course.prerequisites.alertDescription")}</AlertDescription>
                                     </Alert>
                                     <div className="mt-6 space-y-4">
                                         {course.aboutCourse.prerequisites.map((prereq, i) => (
@@ -784,7 +799,7 @@ export default function CourseDetailPage() {
 
                             {/* About This Course */}
                             <div className="w-full">
-                                <h2 className="text-3xl font-bold text-gray-900 mb-6">About This Course</h2>
+                                <h2 className="text-3xl font-bold text-gray-900 mb-6">{t("course.about.title")}</h2>
                                 <div className="space-y-4 text-gray-700 text-md mb-2 font-bold leading-relaxed whitespace-pre-line break-words">
                                     {course.aboutCourse.shortDescription}
                                 </div>
@@ -801,14 +816,12 @@ export default function CourseDetailPage() {
                                             <ClockIcon className="h-6 w-6 text-blue-600" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-2">This Course Is Coming Soon</h3>
-                                            <p className="text-gray-700 mb-4">
-                                                The instructor is still working on this course. You can join the waitlist to be notified when it's ready.
-                                            </p>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">{t("course.upcoming.title")}</h3>
+                                            <p className="text-gray-700 mb-4">{t("course.upcoming.description")}</p>
                                             {course?.aboutCourse?.availabilityDate && (
                                                 <div className="flex items-center gap-2 text-blue-600 font-medium">
                                                     <Calendar className="h-5 w-5" />
-                                                    <span>Expected launch: {formatDate(course?.aboutCourse?.availabilityDate)}</span>
+                                                    <span>{t("course.upcoming.expectedLaunch", { date: formatDate(course?.aboutCourse?.availabilityDate) })}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -816,6 +829,7 @@ export default function CourseDetailPage() {
                                 </div>
                             )}
                         </div>
+
 
                         {/* Right Column - Sidebar */}
                         <div className="space-y-6">
@@ -827,27 +841,27 @@ export default function CourseDetailPage() {
                             {/* Course Stats */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Course Stats</CardTitle>
+                                    <CardTitle className="text-lg">{t("course.stats.title")}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600">Students Enrolled</span>
+                                        <span className="text-gray-600">{t("course.stats.studentsEnrolled")}</span>
                                         <span className="font-medium">{course.enrollmentCount || 0}</span>
                                     </div>
                                     {/* <div className="flex justify-between">
-                                        <span className="text-gray-600">Average Rating</span>
-                                        <div className="flex items-center gap-1">
-                                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                                            <span className="font-medium">4.8</span>
-                                        </div>
-                                    </div> */}
+      <span className="text-gray-600">{t("course.stats.averageRating")}</span>
+      <div className="flex items-center gap-1">
+        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+        <span className="font-medium">4.8</span>
+      </div>
+    </div> */}
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600">Last Updated</span>
+                                        <span className="text-gray-600">{t("course.stats.lastUpdated")}</span>
                                         <span className="font-medium">{formatDate(course.updatedAt)}</span>
                                     </div>
                                     {isUpcoming && course?.aboutCourse?.availabilityDate && (
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Expected Launch</span>
+                                            <span className="text-gray-600">{t("course.stats.expectedLaunch")}</span>
                                             <span className="font-medium">{formatDate(course?.aboutCourse?.availabilityDate)}</span>
                                         </div>
                                     )}
@@ -857,7 +871,7 @@ export default function CourseDetailPage() {
                             {/* Share Course */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Share This Course</CardTitle>
+                                    <CardTitle className="text-lg">{t("course.share.title")}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <ShareCourseButton
@@ -867,25 +881,26 @@ export default function CourseDetailPage() {
                                     />
                                 </CardContent>
                             </Card>
+
                         </div>
                     </div>
                 </section>
 
                 <CourseDetails course={course} />
 
-                {/* <CurriculumSection
+                <CurriculumSection
                     course={course}
                 // hasPurchased={hasPurchased}
                 // isUpcoming={isUpcoming}
-                /> */}
+                />
 
                 {/* Floating scroll to top button */}
                 <WhatsAppFloating
                     href="https://chat.whatsapp.com/JuiXcG9AqDKCwNpqPnopBw"
-                    label="Join AI group"
+                    label="Join Whatsapp Community"
                     communityName="INTELLIGENCE ARTIFICIELLE"
                 />
-            </div>
-        </MainLayout>
+            </div >
+        </MainLayout >
     )
 }

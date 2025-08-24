@@ -13,7 +13,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import UserDropdownMenu from "@/app/admin/components/UserDropdownMenu"
+import UserDropdownMenu from "@/app/[locale]/admin/components/UserDropdownMenu"
+import LanguageSelector from "./LanguageSelector"
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null)
@@ -66,6 +67,7 @@ export default function Navbar() {
             Courses
           </span>
         </Link>
+        <LanguageSelector />
       </div>
 
       {/* Search bar - hidden on mobile */}
@@ -140,6 +142,7 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
+              <LanguageSelector />
               <Link href="/login">
                 <Button variant="secondary" className="w-full">
                   Log In

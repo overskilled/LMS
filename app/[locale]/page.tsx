@@ -1,4 +1,4 @@
-import HeroSection from "../components/hero-section"
+import HeroSection from "../../components/hero-section"
 
 import MainLayout from "./main-layout"
 import { useAuth } from "@/context/authContext"

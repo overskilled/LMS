@@ -1,4 +1,4 @@
-import { CourseLevel } from "@/app/admin/components/publish-summary-step"
+import { CourseLevel } from "@/app/[locale]/admin/components/publish-summary-step"
 import { Timestamp } from "firebase/firestore"
 
 export interface CourseData {
