@@ -8,8 +8,9 @@ type Props = {
 };
 
 export default function LearningObjectivesDisplay({ objectives }: Props) {
-    if (!objectives || objectives.length === 0) return null;
     const t = useI18n();
+    
+    if (!objectives || objectives.length === 0) return null;
     return (
         <section className="mt-8">
             <h2 className="text-2xl font-bold mb-4">{t("course.learn.title")}</h2>
