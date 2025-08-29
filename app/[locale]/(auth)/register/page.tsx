@@ -4,7 +4,7 @@ import SignupForm from '../components/signup-form'
 
 const Page = () => {
     return (
-        <div className="flex flex-col md:flex-row w-full h-screen">
+        <div className="fixed flex flex-col md:flex-row w-full h-screen">
             {/* Left Section - Image or Illustration */}
             <div className="hidden md:flex items-center justify-center w-full md:w-[60%] p-5 bg-blue-500">
                 {/* Replace with your image */}

@@ -1,23 +1,9 @@
 export default {
     "hero": {
-        "title": "Learn Something",
-        "highlight": "New",
-        "subtitle": "Today",
-        "searchPlaceholder": "What do you want to learn?",
-        "features": {
-            "online": {
-                "title": "Fully Online Courses",
-                "description": "Explore wide-range of online courses"
-            },
-            "tailored": {
-                "title": "Tailored-made",
-                "description": "Learn from the best experts of the subjects"
-            },
-            "portable": {
-                "title": "Portable Programs",
-                "description": "Allow you to learn anywhere, anytime"
-            }
-        }
+        "title": "Practical Training Excellence with",
+        "subtitle": "We deliver high-impact courses and masterclasses in Space Missions, Satellites, Artificial Intelligence, Geomatics, and beyond — equipping you with the skills to innovate and lead.",
+        "getStarted": "Get Started",
+        "login": "Log In"
     },
     "breadcrumbs": {
         "home": "Home",
@@ -162,5 +148,49 @@ export default {
         },
         "cancel": "Cancel",
         "continue": "Continue"
+    },
+    "login": {
+        "courses": "Courses",
+        "title": "Welcome Back!",
+        "subtitle": "Please sign in to your account and get back at it.",
+        "emailLabel": "Email or Username",
+        "emailPlaceholder": "Enter your email",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "••••••••",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "rememberMe": "Remember Me",
+        "forgotPassword": "Forgot Password?",
+        "signIn": "Sign In",
+        "signingIn": "Signing In",
+        "or": "or",
+        "newUser": "New on our platform?",
+        "createAccount": "Create an account",
+        "success": "Welcome back to NMD Courses",
+        "errors": {
+            "required": "Please fill in all required fields",
+            "invalidCredentials": "We couldn't log you in, check your information or try later!"
+        }
+    },
+    "signup": {
+        "tag": "Courses",
+        "title": "Create your account",
+        "subtitle": "Sign up to get started with our platform.",
+        "nameLabel": "Full Name",
+        "namePlaceholder": "Full name",
+        "emailLabel": "Email",
+        "emailPlaceholder": "Email address",
+        "phoneLabel": "Phone",
+        "phonePlaceholder": "Phone number",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Password",
+        "togglePassword": "Toggle password visibility",
+        "errorRequired": "All fields are required.",
+        "success": "Account created successfully",
+        "failed": "Signup failed",
+        "creating": "Creating Account...",
+        "createBtn": "Create Account",
+        "haveAccount": "Already have an account?",
+        "signIn": "Sign In"
     }
 } as const

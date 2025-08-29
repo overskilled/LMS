@@ -1,59 +1,50 @@
 "use client";
 
 import React from "react";
-import { Globe, Laptop, Search, User } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useI18n } from "@/locales/client";
+import { Button } from "./ui/button";
 
 export default function HeroSection() {
   const t = useI18n();
 
   return (
-    <section className="relative bg-[#f8f9fd] px-6 md:px-20 w-full py-16 flex flex-col items-center text-center overflow-hidden">
-      {/* Heading */}
-      <h1 className="text-4xl font-bold text-gray-900 leading-tight">
-        {t("hero.title")}{" "}
-        <span className="text-blue-600">{t("hero.highlight")}</span>{" "}
-        {t("hero.subtitle")}
-      </h1>
-
-      {/* Search bar */}
-      <div className="mt-6 flex items-center bg-white rounded-lg shadow-md w-full max-w-lg px-4 py-3">
-        <input
-          type="text"
-          placeholder={t("hero.searchPlaceholder")}
-          className="flex-1 outline-none text-gray-700 text-sm"
+    <section className="relative overflow-hidden py-16">
+      <div className="absolute inset-x-0 top-0 flex h-full w-full items-center justify-center opacity-100">
+        <img
+          alt="background"
+          src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/patterns/square-alt-grid.svg"
+          className="[mask-image:radial-gradient(75%_75%_at_center,white,transparent)] opacity-90"
         />
-        <Search className="text-gray-500 w-5 h-5" />
       </div>
-
-      {/* Features */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
-        <div className="flex flex-col items-center">
-          <Globe />
-          <h3 className="mt-2 font-semibold text-gray-900">
-            {t("hero.features.online.title")}
-          </h3>
-          <p className="text-gray-500 text-sm text-center">
-            {t("hero.features.online.description")}
-          </p>
-        </div>
-        <div className="flex flex-col items-center">
-          <User />
-          <h3 className="mt-2 font-semibold text-gray-900">
-            {t("hero.features.tailored.title")}
-          </h3>
-          <p className="text-gray-500 text-sm text-center">
-            {t("hero.features.tailored.description")}
-          </p>
-        </div>
-        <div className="flex flex-col items-center">
-          <Laptop />
-          <h3 className="mt-2 font-semibold text-gray-900">
-            {t("hero.features.portable.title")}
-          </h3>
-          <p className="text-gray-500 text-sm text-center">
-            {t("hero.features.portable.description")}
-          </p>
+      <div className="relative z-10 container">
+        <div className="mx-auto flex max-w-5xl flex-col items-center">
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div className="rounded-xl bg-background/30 p-4 shadow-sm backdrop-blur-sm">
+              <img
+                src="/spaceship.webp"
+                alt="logo"
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            </div>
+            <div className="text-center">
+              <h1 className="mb-6 text-3xl font-extrabold leading-tight tracking-tight lg:text-6xl">
+                {t("hero.title")} <span className="text-primary">NMD</span> & Partners
+              </h1>
+              <p className="mx-auto max-w-3xl text-muted-foreground lg:text-xl">
+                {t("hero.subtitle")}
+              </p>
+            </div>
+            <div className="mt-6 flex justify-center gap-3">
+              <Button className="shadow-sm transition-shadow hover:shadow">
+                {t("hero.getStarted")}
+              </Button>
+              <Button variant="outline" className="group">
+                {t("hero.login")}{" "}
+                <ExternalLink className="ml-2 h-4 transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

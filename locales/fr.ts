@@ -1,23 +1,9 @@
 export default {
     "hero": {
-        "title": "Apprenez Quelque Chose",
-        "highlight": "Nouveau",
-        "subtitle": "Aujourd'hui",
-        "searchPlaceholder": "Que voulez-vous apprendre ?",
-        "features": {
-            "online": {
-                "title": "Cours Entièrement en Ligne",
-                "description": "Découvrez une large gamme de cours en ligne"
-            },
-            "tailored": {
-                "title": "Sur Mesure",
-                "description": "Apprenez auprès des meilleurs experts de chaque matière"
-            },
-            "portable": {
-                "title": "Programmes Portables",
-                "description": "Vous permettent d'apprendre partout, à tout moment"
-            }
-        }
+        "title": "L'excellence de la formation pratique avec",
+        "subtitle": "Nous proposons des cours et masterclasses à fort impact dans les domaines des missions spatiales, des satellites, de l'intelligence artificielle, de la géomatique, et bien plus encore — pour vous doter des compétences nécessaires afin d'innover et de diriger.",
+        "getStarted": "Commencer",
+        "login": "Se connecter"
     },
     "breadcrumbs": {
         "home": "Accueil",
@@ -162,5 +148,49 @@ export default {
         },
         "cancel": "Annuler",
         "continue": "Continuer"
+    },
+    "login": {
+        "courses": "Cours",
+        "title": "Bon retour !",
+        "subtitle": "Veuillez vous connecter à votre compte et reprendre là où vous vous étiez arrêté.",
+        "emailLabel": "Email ou Nom d’utilisateur",
+        "emailPlaceholder": "Entrez votre email",
+        "passwordLabel": "Mot de passe",
+        "passwordPlaceholder": "••••••••",
+        "showPassword": "Afficher le mot de passe",
+        "hidePassword": "Masquer le mot de passe",
+        "rememberMe": "Se souvenir de moi",
+        "forgotPassword": "Mot de passe oublié ?",
+        "signIn": "Se connecter",
+        "signingIn": "Connexion en cours",
+        "or": "ou",
+        "newUser": "Nouveau sur notre plateforme ?",
+        "createAccount": "Créer un compte",
+        "success": "Bon retour sur NMD Cours",
+        "errors": {
+            "required": "Veuillez remplir tous les champs obligatoires",
+            "invalidCredentials": "Impossible de vous connecter, vérifiez vos informations ou réessayez plus tard !"
+        }
+    },
+    "signup": {
+        "tag": "Cours",
+        "title": "Créez votre compte",
+        "subtitle": "Inscrivez-vous pour commencer avec notre plateforme.",
+        "nameLabel": "Nom complet",
+        "namePlaceholder": "Nom complet",
+        "emailLabel": "Email",
+        "emailPlaceholder": "Adresse e-mail",
+        "phoneLabel": "Téléphone",
+        "phonePlaceholder": "Numéro de téléphone",
+        "passwordLabel": "Mot de passe",
+        "passwordPlaceholder": "Mot de passe",
+        "togglePassword": "Afficher/Masquer le mot de passe",
+        "errorRequired": "Tous les champs sont obligatoires.",
+        "success": "Compte créé avec succès",
+        "failed": "Échec de l'inscription",
+        "creating": "Création du compte...",
+        "createBtn": "Créer un compte",
+        "haveAccount": "Vous avez déjà un compte ?",
+        "signIn": "Se connecter"
     }
 } as const
