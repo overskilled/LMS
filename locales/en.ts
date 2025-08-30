@@ -192,5 +192,6 @@ export default {
         "createBtn": "Create Account",
         "haveAccount": "Already have an account?",
         "signIn": "Sign In"
-    }
+    },
+    "partners": "Partners"
 } as const

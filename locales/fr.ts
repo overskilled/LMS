@@ -192,5 +192,7 @@ export default {
         "createBtn": "Créer un compte",
         "haveAccount": "Vous avez déjà un compte ?",
         "signIn": "Se connecter"
-    }
+    },
+    "partners": "Partenaires"
+
 } as const

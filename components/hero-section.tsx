@@ -4,6 +4,7 @@ import React from "react";
 import { ExternalLink } from "lucide-react";
 import { useI18n } from "@/locales/client";
 import { Button } from "./ui/button";
+import Link from "next/link";
 
 export default function HeroSection() {
   const t = useI18n();
@@ -36,13 +37,17 @@ export default function HeroSection() {
               </p>
             </div>
             <div className="mt-6 flex justify-center gap-3">
-              <Button className="shadow-sm transition-shadow hover:shadow">
-                {t("hero.getStarted")}
-              </Button>
-              <Button variant="outline" className="group">
-                {t("hero.login")}{" "}
-                <ExternalLink className="ml-2 h-4 transition-transform group-hover:translate-x-0.5" />
-              </Button>
+              <Link href={"/register"}>
+                <Button className="shadow-sm transition-shadow hover:shadow">
+                  {t("hero.getStarted")}
+                </Button>
+              </Link>
+              <Link href={"/login"}>
+                <Button variant="outline" className="group">
+                  {t("hero.login")}{" "}
+                  <ExternalLink className="ml-2 h-4 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
