@@ -581,7 +581,8 @@ export default function CourseDetailPage() {
                                             {isEarlyAccess ? (
                                                 <Button
                                                     onClick={() =>
-                                                        router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
+                                                        router.push(`/course/${courseId}/choose-payment-method?ref=${searchParams.get("ref")}`)
+                                                        // router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
                                                     }
                                                     className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold "
                                                 >
@@ -635,7 +636,8 @@ export default function CourseDetailPage() {
                                             ) : (
                                                 <Button
                                                     onClick={() =>
-                                                        router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
+                                                        router.push(`/course/${courseId}/choose-payment-method?ref=${searchParams.get("ref")}`)
+                                                        // router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
                                                     }
                                                     className="w-full text-md"
                                                 >

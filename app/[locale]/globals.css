@@ -11,6 +11,23 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
+.paypal-button-container {
+  max-width: 400px;
+  margin: 2rem auto;
+}
+
+.message {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.product {
+  text-align: center;
+  margin-bottom: 2rem;
+}
 
 @custom-variant dark (&:is(.dark *));
 
