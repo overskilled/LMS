@@ -3,7 +3,8 @@ export default {
         "title": "Practical Training Excellence with",
         "subtitle": "We deliver high-impact courses and masterclasses in Space Missions, Satellites, Artificial Intelligence, Geomatics, and beyond — equipping you with the skills to innovate and lead.",
         "getStarted": "Get Started",
-        "login": "Log In"
+        "login": "Log In",
+        "loginAgain": "Log In Again (If password updated)"
     },
     "breadcrumbs": {
         "home": "Home",
@@ -171,6 +172,15 @@ export default {
             "required": "Please fill in all required fields",
             "invalidCredentials": "We couldn't log you in, check your information or try later!"
         }
+    },
+    "resetPassword": {
+        "resetPasswordTitle": "Reset Your Password",
+        "resetPasswordDescription": "Enter your email below and we'll send you a link to reset your password.",
+        "emailPlaceholder": "Enter your email",
+        "submitButton": "Send Reset Link",
+        "enterValidEmail": "Please enter a valid email address",
+        "resetLinkSent": "A password reset link has been sent to your email",
+        "errorOccurred": "An error occurred: {message}"
     },
     "signup": {
         "tag": "Courses",

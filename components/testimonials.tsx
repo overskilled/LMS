@@ -19,7 +19,7 @@ const testimonials = [
             "I completed the course on Space Mission Management Tools, and I highly recommend it. Dr. Ifriky TADADJEU is an inspiring individual.",
         name: "Y. ZAINAB K",
         designation: "THERMAL ANALYSIS ENGINEER - EXPLEO GROUP, FRANCE",
-        src: "/profile.webp",
+        src: "/zeigab.jpg",
     },
 ];
 export default function TestimonialsSection() {

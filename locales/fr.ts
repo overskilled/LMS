@@ -3,7 +3,8 @@ export default {
         "title": "L'excellence de la formation pratique avec",
         "subtitle": "Nous proposons des cours et masterclasses à fort impact dans les domaines des missions spatiales, des satellites, de l'intelligence artificielle, de la géomatique, et bien plus encore — pour vous doter des compétences nécessaires afin d'innover et de diriger.",
         "getStarted": "Commencer",
-        "login": "Se connecter"
+        "login": "Se connecter",
+        "loginAgain": "Se connecter (Si vous avez reinitailisé votre mot de passe"
     },
     "breadcrumbs": {
         "home": "Accueil",
@@ -171,6 +172,15 @@ export default {
             "required": "Veuillez remplir tous les champs obligatoires",
             "invalidCredentials": "Impossible de vous connecter, vérifiez vos informations ou réessayez plus tard !"
         }
+    },
+    "resetPassword": {
+        "resetPasswordTitle": "Réinitialiser le mot de passe",
+        "resetPasswordDescription": "Saisissez votre email ci-dessous et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+        "emailPlaceholder": "Entrez votre email",
+        "submitButton": "Envoyer le lien de réinitialisation",
+        "enterValidEmail": "Veuillez entrer une adresse email valide",
+        "resetLinkSent": "Un lien de réinitialisation du mot de passe a été envoyé à votre email",
+        "errorOccurred": "Une erreur est survenue : {message}"
     },
     "signup": {
         "tag": "Cours",

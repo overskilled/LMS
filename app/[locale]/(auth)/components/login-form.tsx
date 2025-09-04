@@ -162,7 +162,7 @@ export default function LoginForm() {
                             </Label>
                         </div>
                         <Link
-                            href="#"
+                            href="/reset"
                             className="text-sm font-medium text-blue-600 hover:underline"
                         >
                             {t("login.forgotPassword")}
