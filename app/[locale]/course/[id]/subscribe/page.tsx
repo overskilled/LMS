@@ -94,9 +94,8 @@ export default function CoursePayment() {
                 updatedAt: serverTimestamp(),
                 ref: searchParams.get("ref") || null,
                 metadata: {
-                    // Add any additional metadata you want to track
                     platform: "web",
-                    attemptCount: 3 // You might want to track how many attempts were made
+                    attemptCount: 3 
                 }
             };
 
@@ -134,7 +133,8 @@ export default function CoursePayment() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        depositId,
+                         depositId,
+                        // amount: 10,
                         amount: course.aboutCourse.pricing.basePrice.toString(),
                         currency: "XAF",
                         correspondent: selectedMobileMethod === "mtn" ? "MTN_MOMO_CMR" : "ORANGE_CMR",

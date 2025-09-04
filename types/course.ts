@@ -18,6 +18,7 @@ export interface CourseData {
 
     // Step 0: Course Details
     courseDetails: {
+        courseType: string
         thumbnailImage?: {
             fileName: string
             originalName: string

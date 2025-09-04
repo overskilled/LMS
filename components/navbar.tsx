@@ -15,28 +15,16 @@ import {
 } from "@/components/ui/popover"
 import UserDropdownMenu from "@/app/[locale]/admin/components/UserDropdownMenu"
 import LanguageSelector from "./LanguageSelector"
+import { useAuth } from "@/context/authContext"
 
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null)
   const [isClient, setIsClient] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    setIsClient(true)
-    const userInfo = localStorage.getItem('user-info')
-    if (userInfo) {
-      try {
-        setUser(JSON.parse(userInfo))
-      } catch (e) {
-        console.error("Error parsing user info", e)
-      }
-    }
-  }, [])
+  const { user, logout } = useAuth()
 
-  const handleLogout = () => {
-    localStorage.removeItem('user-info')
-    setUser(null)
-    window.location.href = '/login'
+  const handleLogout = async () => {
+    await logout()
   }
 
   return (
@@ -90,7 +78,7 @@ export default function Navbar() {
 
       {/* Desktop navigation */}
       <nav className="hidden lg:flex items-center gap-4">
-        {isClient && user ? (
+        {user ? (
           <UserDropdownMenu />
         ) : (
           <div className="flex items-center gap-2 border-l pl-4 ml-4">

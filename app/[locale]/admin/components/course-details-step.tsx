@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/context/authContext"
 
 interface CourseDetailsData {
+    courseType: string
     thumbnailImage?: any
     previewVideo?: any
     lessonName: string
@@ -60,10 +61,11 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             return {}
         };
 
-        const {user} = useAuth()
+        const { user } = useAuth()
 
         const [formData, setFormData] = useState<CourseDetailsData>({
             thumbnailImage: null,
+            courseType: "",
             previewVideo: null,
             lessonName: "",
             courseSlug: "",
@@ -114,6 +116,10 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
 
             if (!formData.courseCategory) {
                 errors.courseCategory = "Please select a course category";
+            }
+            
+            if (!formData.courseType) {
+                errors.courseCategory = "Please select a course type";
             }
 
             if (!formData.courseLevel) {
@@ -246,6 +252,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             },
             reset: () => {
                 setFormData({
+                    courseType: "",
                     thumbnailImage: null,
                     previewVideo: null,
                     lessonName: "",
@@ -442,6 +449,33 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                         {/* Course Name & Slug */}
                         <div className="space-y-4">
                             <div>
+                                <Label htmlFor="course-type-input" className="text-sm font-medium">
+                                    Course Type{" "}
+                                    <span className="text-red-500" aria-label="required">
+                                        *
+                                    </span>
+                                </Label>
+                                <div className="relative mt-2">
+                                    <select
+                                        id="course-type-input"
+                                        value={formData.courseType}
+                                        onChange={(e) => updateFormData({ courseType: e.target.value })}
+                                        className={cn(
+                                            "w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-16",
+                                            validationErrors.courseType && "border-red-500"
+                                        )}
+                                        aria-describedby="course-type-help course-type-error"
+                                        aria-invalid={!!validationErrors.courseType}
+                                    >
+                                        <option value="" disabled>
+                                            Select a course type
+                                        </option>
+                                        <option value="masterclass">NMD Masterclass</option>
+                                        <option value="course">NMD Course</option>
+                                        <option value="partner">NMD Partner Course</option>
+                                    </select>
+                                </div>
+
                                 <Label htmlFor="lesson-name-input" className="text-sm font-medium">
                                     Course Name{" "}
                                     <span className="text-red-500" aria-label="required">
@@ -529,6 +563,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                         <SelectItem value="Artificial intelligence">Artificial Intelligence</SelectItem>
                                         <SelectItem value="Mission Operations">Mission Operations</SelectItem>
                                         <SelectItem value="Space Science">Space Science</SelectItem>
+                                        <SelectItem value="Code/Integration">Code/Integration</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <div id="course-category-help" className="sr-only">

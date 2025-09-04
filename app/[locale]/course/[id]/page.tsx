@@ -292,7 +292,7 @@ export default function CourseDetailPage() {
                                         {t("course.comingSoon")}
                                     </Badge>
                                 )}
-                                {course.aboutCourse.pricing.discountPrice && (
+                                {/* {course.aboutCourse.pricing.discountPrice && (
                                     <Badge className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
                                         {Math.round(
                                             ((course.aboutCourse.pricing.basePrice -
@@ -302,7 +302,7 @@ export default function CourseDetailPage() {
                                         )}
                                         % {t("course.off")}
                                     </Badge>
-                                )}
+                                )} */}
                                 <Badge className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md text-sm font-semibold capitalize">
                                     {course.courseDetails.courseCategory}
                                 </Badge>
@@ -366,7 +366,7 @@ export default function CourseDetailPage() {
                                                 />
                                             )}
                                             <p className="text-gray-300 mb-4">
-                                                {t('course.upcoming.expectedLaunch', { date: formatDate(course?.aboutCourse?.availabilityDate!) })} 
+                                                {t('course.upcoming.expectedLaunch', { date: formatDate(course?.aboutCourse?.availabilityDate!) })}
                                             </p>
                                             {/* <Button
                                                 variant="default"
@@ -839,34 +839,37 @@ export default function CourseDetailPage() {
 
 
                             {/* Course Stats */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">{t("course.stats.title")}</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">{t("course.stats.studentsEnrolled")}</span>
-                                        <span className="font-medium">{course.enrollmentCount || 0}</span>
-                                    </div>
-                                    {/* <div className="flex justify-between">
+                            {user?.admin && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">{t("course.stats.title")}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">{t("course.stats.studentsEnrolled")}</span>
+                                            <span className="font-medium">{course.enrollmentCount || 0}</span>
+                                        </div>
+                                        {/* <div className="flex justify-between">
       <span className="text-gray-600">{t("course.stats.averageRating")}</span>
       <div className="flex items-center gap-1">
         <Star className="h-4 w-4 text-yellow-400 fill-current" />
         <span className="font-medium">4.8</span>
       </div>
     </div> */}
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">{t("course.stats.lastUpdated")}</span>
-                                        <span className="font-medium">{formatDate(course.updatedAt)}</span>
-                                    </div>
-                                    {isUpcoming && course?.aboutCourse?.availabilityDate && (
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">{t("course.stats.expectedLaunch")}</span>
-                                            <span className="font-medium">{formatDate(course?.aboutCourse?.availabilityDate)}</span>
+                                            <span className="text-gray-600">{t("course.stats.lastUpdated")}</span>
+                                            <span className="font-medium">{formatDate(course.updatedAt)}</span>
                                         </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                        {isUpcoming && course?.aboutCourse?.availabilityDate && (
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">{t("course.stats.expectedLaunch")}</span>
+                                                <span className="font-medium">{formatDate(course?.aboutCourse?.availabilityDate)}</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
+
 
                             {/* Share Course */}
                             <Card>
