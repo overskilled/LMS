@@ -45,8 +45,11 @@ import {
 } from "@/components/ui/dialog"
 import { useI18n } from "@/locales/client"
 import Head from "next/head"
+import { Metadata, ResolvingMetadata } from "next"
 
-export default function CourseDetailPage() {
+
+export default function Page() {
+
     const params = useParams()
     const courseId = params.id as string
     const [course, setCourse] = useState<CourseData | null>(null)
@@ -260,26 +263,26 @@ export default function CourseDetailPage() {
 
     return (
         <MainLayout>
-            <Head>
-                <title>{course.aboutCourse.title}</title>
-                <meta name="description" content={course.aboutCourse.shortDescription} />
+            {/* <Head> */}
+                {/* <title>{course.aboutCourse.title}</title>
+                <meta name="description" content={course.aboutCourse.shortDescription} /> */}
 
                 {/* Open Graph / Facebook */}
-                <meta property="og:type" content="website" />
+                {/* <meta property="og:type" content="website" />
                 <meta property="og:url" content={`https://learning.nanosatellitemissions.com/fr/course/${courseId}`} />
                 <meta property="og:title" content={course.aboutCourse.title} />
                 <meta property="og:description" content={course.aboutCourse.shortDescription} />
                 <meta property="og:image" content={course?.courseDetails?.thumbnailImage?.downloadURL} />
                 <meta property="og:image:width" content="1200" />
-                <meta property="og:image:height" content="630" />
+                <meta property="og:image:height" content="630" /> */}
 
                 {/* Twitter */}
-                <meta property="twitter:card" content="summary_large_image" />
+                {/* <meta property="twitter:card" content="summary_large_image" />
                 <meta property="twitter:url" content={`https://yourdomain.com/course/${courseId}`} />
                 <meta property="twitter:title" content={course.aboutCourse.title} />
                 <meta property="twitter:description" content={course.aboutCourse.shortDescription} />
-                <meta property="twitter:image" content={course?.courseDetails?.thumbnailImage?.downloadURL} />
-            </Head>
+                <meta property="twitter:image" content={course?.courseDetails?.thumbnailImage?.downloadURL} /> */}
+            {/* </Head> */}
 
 
 
@@ -358,17 +361,18 @@ export default function CourseDetailPage() {
                                     </span>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-4 text-gray-600 text-lg">
-                                    <span className="font-bold">4.8 / 5</span>
-                                    <div className="flex items-center gap-1 text-yellow-400">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className={`h-5 w-5 ${i < 4 ? "fill-current" : ""}`} />
-                                        ))}
-                                    </div>
-                                    <span>
-                                        ({course.enrollmentCount || 0} {t("course.students")})
-                                    </span>
-                                </div>
+                                <></>
+                                // <div className="flex items-center gap-4 text-gray-600 text-lg">
+                                //     <span className="font-bold">4.8 / 5</span>
+                                //     <div className="flex items-center gap-1 text-yellow-400">
+                                //         {[...Array(5)].map((_, i) => (
+                                //             <Star key={i} className={`h-5 w-5 ${i < 4 ? "fill-current" : ""}`} />
+                                //         ))}
+                                //     </div>
+                                //     <span>
+                                //         ({course.enrollmentCount || 0} {t("course.students")})
+                                //     </span>
+                                // </div>
                             )}
                         </div>
 
@@ -377,31 +381,7 @@ export default function CourseDetailPage() {
                         <div className="flex flex-col items-center lg:items-end">
                             <div className="w-full max-w-md bg-gray-600 rounded-lg overflow-hidden shadow-lg">
                                 <div className="relative w-full aspect-video bg-black flex items-center justify-center text-gray-400 overflow-hidden">
-                                    {isUpcoming ? (
-                                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-6">
-                                            <ClockIcon className="h-12 w-12 text-white mb-4" />
-                                            <h3 className="text-xl font-bold text-white mb-2">
-                                                {t("course.upcoming.title")}
-                                            </h3>
-                                            {course?.aboutCourse?.availabilityDate && (
-                                                <CountdownTimer
-                                                    targetDate={new Date(course.aboutCourse?.availabilityDate)}
-                                                    className="text-white mb-4"
-                                                />
-                                            )}
-                                            <p className="text-gray-300 mb-4">
-                                                {t('course.upcoming.expectedLaunch', { date: formatDate(course?.aboutCourse?.availabilityDate!) })}
-                                            </p>
-                                            {/* <Button
-                                                variant="default"
-                                                onClick={() => setShowWaitlistForm(true)}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <Bell className="h-4 w-4" />
-                                                Join Waitlist
-                                            </Button> */}
-                                        </div>
-                                    ) : course.courseDetails.previewVideo?.downloadURL ? (
+                                    {course.courseDetails.previewVideo?.downloadURL ? (
                                         <iframe
                                             src={course.courseDetails.previewVideo.downloadURL}
                                             title={`Preview of ${course.aboutCourse.title}`}
@@ -417,9 +397,43 @@ export default function CourseDetailPage() {
                                             className="absolute inset-0 w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center">
-                                            <p>Video not available</p>
-                                            <p className="text-sm">Preview video or thumbnail not set</p>
+                                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                            <p className="text-white">Video not available</p>
+                                        </div>
+                                    )}
+
+                                    {/* ✅ Overlay only if upcoming */}
+                                    {isUpcoming && (
+                                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-6">
+                                            <ClockIcon className="h-12 w-12 text-white mb-4" />
+                                            <h3 className="text-xl font-bold text-white mb-2">
+                                                {t("course.upcoming.title")}
+                                            </h3>
+
+                                            {course?.aboutCourse?.availabilityDate && (
+                                                <CountdownTimer
+                                                    targetDate={new Date(course.aboutCourse.availabilityDate)}
+                                                    className="text-white mb-4"
+                                                />
+                                            )}
+
+                                            <p className="text-gray-300 mb-4">
+                                                {t("course.upcoming.expectedLaunch", {
+                                                    date: formatDate(course?.aboutCourse?.availabilityDate!),
+                                                })}
+                                            </p>
+
+                                            {/* Example: Waitlist button */}
+                                            {/* 
+      <Button
+        variant="default"
+        onClick={() => setShowWaitlistForm(true)}
+        className="flex items-center gap-2"
+      >
+        <Bell className="h-4 w-4" />
+        Join Waitlist
+      </Button> 
+      */}
                                         </div>
                                     )}
                                 </div>
