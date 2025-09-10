@@ -44,6 +44,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog"
 import { useI18n } from "@/locales/client"
+import Head from "next/head"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -259,6 +260,29 @@ export default function CourseDetailPage() {
 
     return (
         <MainLayout>
+            <Head>
+                <title>{course.aboutCourse.title}</title>
+                <meta name="description" content={course.aboutCourse.shortDescription} />
+
+                {/* Open Graph / Facebook */}
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={`https://learning.nanosatellitemissions.com/fr/course/${courseId}`} />
+                <meta property="og:title" content={course.aboutCourse.title} />
+                <meta property="og:description" content={course.aboutCourse.shortDescription} />
+                <meta property="og:image" content={course?.courseDetails?.thumbnailImage?.downloadURL} />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+
+                {/* Twitter */}
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:url" content={`https://yourdomain.com/course/${courseId}`} />
+                <meta property="twitter:title" content={course.aboutCourse.title} />
+                <meta property="twitter:description" content={course.aboutCourse.shortDescription} />
+                <meta property="twitter:image" content={course?.courseDetails?.thumbnailImage?.downloadURL} />
+            </Head>
+
+
+
             <div className="bg-white min-h-screen">
                 {/* Breadcrumbs */}
                 <div className="bg-blue-50 text-black py-3 px-4 md:px-6">
