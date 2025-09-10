@@ -33,9 +33,6 @@ const client = new Client({
 
 const ordersController = new OrdersController(client);
 
-/**
- * Capture payment for the created order to complete the transaction.
- */
 const captureOrder = async (orderID: string) => {
     const collect = {
         id: orderID,
@@ -56,18 +53,13 @@ const captureOrder = async (orderID: string) => {
     }
 };
 
-interface Params {
-    params: {
-        orderID: string;
-    };
-}
-
+// ✅ Fix: Next.js expects this type for the second argument
 export async function POST(
     request: NextRequest,
-    { params }: Params
-): Promise<NextResponse> {
+    context: { params: { orderID: string } }
+) {
     try {
-        const { orderID } = params;
+        const { orderID } = context.params;
         const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
         return NextResponse.json(jsonResponse, { status: httpStatusCode });
     } catch (error) {
