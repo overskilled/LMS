@@ -8,18 +8,22 @@ import { toast } from "sonner";
 import { addToSubCollection } from "@/functions/add-to-subcollection";
 import { setToCollection } from "@/functions/add-to-collection";
 import { nanoid } from "nanoid";
+import { courseApi } from "@/utils/courseApi";
+import { useRouter } from "next/navigation";
 
 interface PayPalButtonProps {
     amount: number;
-    currency?: string;
+    courseId: string;
     description: string;
 }
 
-export default function PayPalButton({ amount, description, currency = "XAF" }: PayPalButtonProps) {
+export default function PayPalButton({ amount, description, courseId }: PayPalButtonProps) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paypalError, setPaypalError] = useState("");
 
     const { user } = useAuth()
+
+    const router = useRouter()
 
 
     const createOrder = (data: any, actions: any) => {
@@ -56,11 +60,21 @@ export default function PayPalButton({ amount, description, currency = "XAF" }: 
 
             console.log("Sending to API:", paymentData);
 
-            const response = await fetch("/api/payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(paymentData),
-            });
+            // const response = await fetch("/en/api/payment", {
+            //     method: "POST",
+            //     headers: { "Content-Type": "application/json" },
+            //     body: JSON.stringify(paymentData),
+            // });
+
+            const response = await fetch(
+                `/en/api/orders/${paymentData.orderID}/capture`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -85,14 +99,16 @@ export default function PayPalButton({ amount, description, currency = "XAF" }: 
                         : "Course purchase",
                 });
 
+                await courseApi.purchaseCourse(user?.uid || "", courseId)
+
             } catch (error) {
-                toast.error("Failed to create user. Please try again.");
+                toast.error("Failed to transaction record . Please try again.");
             }
 
             toast.success("Subscription activated successfully!");
 
             // Ridirect to success page 
-            // router.push()
+            router.push("/payment/success")
 
 
             const result = await response.json();
@@ -105,6 +121,7 @@ export default function PayPalButton({ amount, description, currency = "XAF" }: 
             setIsProcessing(false);
         }
     };
+
 
 
     const onError = (err: any) => {

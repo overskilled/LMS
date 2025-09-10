@@ -95,13 +95,15 @@ export interface CourseData {
         subtitles: string[]
         tags: string[]
         pricing: {
-            basePrice: number
-            currency: string
-            discountPrice?: number
-            discountPercentage?: number
-            discountEndDate?: Date | string
-            pricingTier: "free" | "basic" | "premium" | "enterprise"
-            paymentOptions: ("one-time" | "subscription" | "installments")[]
+            currency: string;
+            xafPrice: number;
+            usdPrice: number;
+            euroPrice: number;
+            discountPrice?: number | undefined;
+            discountPercentage?: number | undefined;
+            discountEndDate?: string | Date | undefined;
+            pricingTier: "basic" | "free" | "premium" | "enterprise";
+            paymentOptions: ("one-time" | "subscription" | "installments")[];
         }
         metrics: {
             expectedEnrollments?: number

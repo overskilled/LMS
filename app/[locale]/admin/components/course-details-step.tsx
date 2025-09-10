@@ -13,6 +13,8 @@ import { useMediaUpload } from "@/hooks/useMediaUpload"
 import { formatFileSize, type MediaMetadata } from "@/lib/mediaUpload"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/context/authContext"
+import { courseApi } from "@/utils/courseApi"
+import { useParams, useRouter } from "next/navigation"
 
 interface CourseDetailsData {
     courseType: string
@@ -33,6 +35,7 @@ interface CourseDetailsData {
 interface CourseDetailsStepProps {
     initialData?: Partial<CourseDetailsData>
     onDataChange: (data: CourseDetailsData, isValid: boolean) => void
+    isEditing?: boolean
     onNext?: () => void
     onPrevious?: () => void
     onCancel?: () => void
@@ -42,28 +45,18 @@ interface CourseDetailsStepProps {
 const LOCAL_STORAGE_KEY = 'courseDetailsFormData';
 
 export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
-    ({ onNext, onPrevious, onCancel, courseId }, ref) => {
+    ({ onNext, onPrevious, onCancel, courseId, isEditing }, ref) => {
 
-        const [initialData, setInitialData] = useState()
-        // Load initial data from localStorage if available
-        const getInitialData = (): Partial<CourseDetailsData> => {
-            try {
-                if (typeof window !== 'undefined') {
-                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (savedData) {
-                        return JSON.parse(savedData);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to parse saved form data:', error);
-            }
+        const { user } = useAuth();
+        const router = useRouter();
 
-            return {}
-        };
+        const params = useParams();
 
-        const { user } = useAuth()
+        const [initialData, setInitialData] = useState<Partial<CourseDetailsData>>({});
+        const [loading, setLoading] = useState(false);
 
-        const [formData, setFormData] = useState<CourseDetailsData>({
+        // Default template for formData
+        const defaultFormData: CourseDetailsData = {
             thumbnailImage: null,
             courseType: "",
             previewVideo: null,
@@ -77,26 +70,93 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             estimatedHours: 1,
             affiliateRate: 0,
             authorId: user ? user.uid : "",
+        };
+
+        // LocalStorage fallback
+        const getInitialData = (): Partial<CourseDetailsData> => {
+            try {
+                if (typeof window !== "undefined") {
+                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (savedData) {
+                        return JSON.parse(savedData);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to parse saved form data:", error);
+            }
+            return {};
+        };
+
+        // Fetch course if editing
+        useEffect(() => {
+            const fetchCourse = async () => {
+                if (isEditing) {
+                    setLoading(true);
+                    try {
+                        const idFromUrl = params?.id as string | undefined;
+                        const idToUse = courseId || idFromUrl;
+
+                        if (!idToUse) return;
+
+                        const response = await courseApi.getCourseById(idToUse);
+                        if (response.success && response.data) {
+                            setInitialData(response.data.courseDetails || {});
+                        } else {
+                            console.error("Failed to fetch course:", response.message);
+                        }
+                    } catch (err) {
+                        console.error("Error while fetching course:", err);
+                    } finally {
+                        setLoading(false);
+                    }
+                } else {
+                    setInitialData(getInitialData());
+                }
+            };
+
+            fetchCourse();
+        }, [isEditing, courseId, params?.id]);
+
+        // 🔑 Sync formData with defaults + initialData + user
+        const [formData, setFormData] = useState<CourseDetailsData>({
+            ...defaultFormData,
             ...getInitialData(),
         });
 
-        const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+        useEffect(() => {
+            if (user) {
+                setFormData({
+                    ...defaultFormData,
+                    ...initialData,
+                    authorId: user.uid, // always override with current user
+                });
+            }
+        }, [initialData, user]);
+
+        const [validationErrors, setValidationErrors] = useState<Record<string, string>>(
+            {}
+        );
         const [isValid, setIsValid] = useState(false);
         const [isLoading, setIsLoading] = useState(false);
 
+        const {
+            uploadFile,
+            uploading,
+            progress,
+            error: uploadError,
+            clearError,
+        } = useMediaUpload();
 
-        const { uploadFile, uploading, progress, error: uploadError, clearError } = useMediaUpload();
-
-        // Save to localStorage whenever formData changes
+        // Save to localStorage whenever formData changes 
         useEffect(() => {
-            try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
-            } catch (error) {
-                console.error('Failed to save form data:', error);
-            }
-        }, [formData]);
+                try {
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+                } catch (error) {
+                    console.error("Failed to save form data:", error);
+                }
+        }, [formData, isEditing]);
 
-        // Validation function - only called when needed
+        // Validation function
         const validateForm = (): boolean => {
             const errors: Record<string, string> = {};
 
@@ -111,15 +171,16 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             if (!formData.courseSlug.trim()) {
                 errors.courseSlug = "Course URL slug is required";
             } else if (!/^[a-z0-9-]+$/.test(formData.courseSlug)) {
-                errors.courseSlug = "URL slug can only contain lowercase letters, numbers, and hyphens";
+                errors.courseSlug =
+                    "URL slug can only contain lowercase letters, numbers, and hyphens";
             }
 
             if (!formData.courseCategory) {
                 errors.courseCategory = "Please select a course category";
             }
-            
+
             if (!formData.courseType) {
-                errors.courseCategory = "Please select a course type";
+                errors.courseType = "Please select a course type";
             }
 
             if (!formData.courseLevel) {
@@ -146,7 +207,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
 
         // Update form data without validation
         const updateFormData = useCallback((updates: Partial<CourseDetailsData>) => {
-            setFormData(prev => {
+            setFormData((prev) => {
                 let newData = { ...prev, ...updates };
 
                 // Only auto-generate slug if lessonName is being updated
@@ -156,7 +217,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                         courseSlug: updates.lessonName
                             .toLowerCase()
                             .replace(/[^a-z0-9]+/g, "-")
-                            .replace(/^-+|-+$/g, "")
+                            .replace(/^-+|-+$/g, ""),
                     };
                 }
 
@@ -165,56 +226,64 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
         }, []);
 
         // Handle file uploads
-        const handleThumbnailUpload = useCallback(async (file: File) => {
-            setIsLoading(true);
-            clearError();
+        const handleThumbnailUpload = useCallback(
+            async (file: File) => {
+                setIsLoading(true);
+                clearError();
 
-            try {
-                const metadata = await uploadFile(file, "thumbnail", courseId);
-                updateFormData({ thumbnailImage: metadata });
-            } catch (error) {
-                console.error("Thumbnail upload failed:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }, [uploadFile, courseId, clearError]);
+                try {
+                    const metadata = await uploadFile(file, "thumbnail", courseId);
+                    updateFormData({ thumbnailImage: metadata });
+                } catch (error) {
+                    console.error("Thumbnail upload failed:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            },
+            [uploadFile, courseId, clearError, updateFormData]
+        );
 
-        const handlePreviewVideoUpload = useCallback(async (file: File) => {
-            setIsLoading(true);
-            clearError();
+        const handlePreviewVideoUpload = useCallback(
+            async (file: File) => {
+                setIsLoading(true);
+                clearError();
 
-            try {
-                const metadata = await uploadFile(file, "preview", courseId);
-                updateFormData({ previewVideo: metadata });
-            } catch (error) {
-                console.error("Preview video upload failed:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }, [uploadFile, courseId, clearError]);
+                try {
+                    const metadata = await uploadFile(file, "preview", courseId);
+                    updateFormData({ previewVideo: metadata });
+                } catch (error) {
+                    console.error("Preview video upload failed:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            },
+            [uploadFile, courseId, clearError, updateFormData]
+        );
 
         // File input handlers
         const handleFileInput = (
             event: React.ChangeEvent<HTMLInputElement>,
             type: "thumbnail" | "preview",
             maxSize: number,
-            acceptedTypes: string[],
+            acceptedTypes: string[]
         ) => {
             const file = event.target.files?.[0];
             if (!file) return;
 
             // Validate file size
             if (file.size > maxSize) {
-                setValidationErrors(prev => ({
+                setValidationErrors((prev) => ({
                     ...prev,
-                    [type]: `File size (${formatFileSize(file.size)}) exceeds maximum allowed size (${formatFileSize(maxSize)})`,
+                    [type]: `File size (${formatFileSize(
+                        file.size
+                    )}) exceeds maximum allowed size (${formatFileSize(maxSize)})`,
                 }));
                 return;
             }
 
             // Validate file type
             if (!acceptedTypes.includes(file.type)) {
-                setValidationErrors(prev => ({
+                setValidationErrors((prev) => ({
                     ...prev,
                     [type]: `File type ${file.type} is not supported`,
                 }));
@@ -222,7 +291,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             }
 
             // Clear previous errors
-            setValidationErrors(prev => {
+            setValidationErrors((prev) => {
                 const newErrors = { ...prev };
                 delete newErrors[type];
                 return newErrors;
@@ -252,27 +321,18 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
             },
             reset: () => {
                 setFormData({
-                    courseType: "",
-                    thumbnailImage: null,
-                    previewVideo: null,
-                    lessonName: "",
-                    courseSlug: "",
-                    courseCategory: "",
-                    courseLevel: "",
-                    courseTime: "",
-                    totalLessons: "",
-                    difficulty: "beginner",
-                    estimatedHours: 1,
-                    authorId: user?.uid!
+                    ...defaultFormData,
+                    authorId: user?.uid || "",
                 });
                 setValidationErrors({});
                 try {
                     localStorage.removeItem(LOCAL_STORAGE_KEY);
                 } catch (error) {
-                    console.error('Failed to clear saved form data:', error);
+                    console.error("Failed to clear saved form data:", error);
                 }
             },
         }));
+
 
         return (
             <AccessibleStepWrapper

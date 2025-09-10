@@ -15,6 +15,8 @@ import { AccessibleStepWrapper, type StepRef } from "./accessible-step-wrapper"
 import { useMediaUpload } from "@/hooks/useMediaUpload"
 import { batchUploadMedia, formatFileSize, formatDuration } from "@/lib/mediaUpload"
 import { cn } from "@/lib/utils"
+import { courseApi } from "@/utils/courseApi"
+import { useParams } from "next/navigation"
 
 interface Chapter {
     id: string
@@ -40,6 +42,7 @@ interface VideoUploadStepProps {
     initialData?: any
     onDataChange: (data: { chapters: Chapter[]; videos: Video[] }, isValid: boolean) => void
     onNext?: () => void
+    isEditing?: boolean
     onPrevious?: () => void
     onCancel?: () => void
     courseId?: string
@@ -48,32 +51,10 @@ interface VideoUploadStepProps {
 const LOCAL_STORAGE_KEY = "videoUploadFormData"
 
 export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
-    ({ initialData = { chapters: [], videos: [] }, onDataChange, onNext, onPrevious, onCancel, courseId }, ref) => {
-        const getInitialData = (): { chapters: Chapter[]; videos: Video[] } => {
-            try {
-                if (typeof window !== "undefined") {
-                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY)
-                    if (savedData) {
-                        const parsed = JSON.parse(savedData)
-                        // Ensure we have valid structure
-                        return {
-                            chapters: Array.isArray(parsed.chapters) ? parsed.chapters : [],
-                            videos: Array.isArray(parsed.videos) ? parsed.videos : [],
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to parse saved video data:", error)
-            }
-            return {
-                chapters: [],
-                videos: initialData?.videos || [],
-            }
-        }
+    ({ initialData = { chapters: [], videos: [] }, onDataChange, onNext, onPrevious, onCancel, courseId, isEditing }, ref) => {
 
-        const initialFormData = getInitialData()
-        const [chapters, setChapters] = useState<Chapter[]>(initialFormData.chapters)
-        const [videos, setVideos] = useState<Video[]>(initialFormData.videos)
+        const [chapters, setChapters] = useState<Chapter[]>([])
+        const [videos, setVideos] = useState<Video[]>([])
         const [activeChapterId, setActiveChapterId] = useState<string | null>(null)
         const [dragActive, setDragActive] = useState(false)
         const [uploadingFiles, setUploadingFiles] = useState<File[]>([])
@@ -82,29 +63,87 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
         const [isValid, setIsValid] = useState(false)
         const [isLoading, setIsLoading] = useState(false)
 
+        const params = useParams();
+
         const fileInputRef = useRef<HTMLInputElement>(null)
         const { error: uploadError, clearError } = useMediaUpload()
 
+        // ------------------------------
+        // Load initial data (create or edit mode)
+        // ------------------------------
+        useEffect(() => {
+            const fetchData = async () => {
+                try {
+                    if (isEditing) {
+                        // 🔹 Fetch course data when editing
+                        const idFromUrl = params?.id as string | undefined;
+                        const idToUse = courseId || idFromUrl;
+
+                        if (!idToUse) return;
+
+                        const response = await courseApi.getCourseById(idToUse);
+                        if (response.success && response.data) {
+                            const courseVideos = response.data?.videos;
+                            if (courseVideos) {
+                                setChapters(courseVideos.chapters || []);
+                                setVideos(courseVideos.videos || []);
+
+                                // Set the first chapter as active if available
+                                if (courseVideos.chapters?.length > 0) {
+                                    setActiveChapterId(courseVideos.chapters[0].id);
+                                }
+                            }
+                        } else {
+                            console.error("Failed to fetch course:", response.message);
+                            // Fallback to localStorage draft if available
+                            const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                            if (savedData) {
+                                const parsed = JSON.parse(savedData);
+                                setChapters(Array.isArray(parsed.chapters) ? parsed.chapters : []);
+                                setVideos(Array.isArray(parsed.videos) ? parsed.videos : []);
+                                if (parsed.chapters?.length > 0) {
+                                    setActiveChapterId(parsed.chapters[0].id);
+                                }
+                            }
+                        }
+                    } else {
+                        // 🔹 Creating new course - load draft from localStorage
+                        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                        if (savedData) {
+                            const parsed = JSON.parse(savedData);
+                            setChapters(Array.isArray(parsed.chapters) ? parsed.chapters : []);
+                            setVideos(Array.isArray(parsed.videos) ? parsed.videos : []);
+                            if (parsed.chapters?.length > 0) {
+                                setActiveChapterId(parsed.chapters[0].id);
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to load initial course data:", err);
+                }
+            };
+
+            fetchData();
+        }, [courseId, isEditing, params?.id]);
+
+
+        // ------------------------------
+        // Save drafts only in create mode
+        // ------------------------------
         useEffect(() => {
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ chapters, videos }))
             } catch (error) {
                 console.error("Failed to save video data:", error)
             }
-        }, [chapters, videos])
+        }, [chapters, videos, isEditing])
 
-        const notifyDataChange = useCallback(() => {
-            onDataChange({ chapters, videos }, isValid)
-        }, [chapters, videos, isValid, onDataChange])
-
-        useEffect(() => {
-            notifyDataChange()
-        }, [notifyDataChange])
-
+        // ------------------------------
+        // Validation
+        // ------------------------------
         const validateVideos = useCallback((): boolean => {
             const errors: Record<string, string> = {}
 
-            // Only require chapters if user has started creating content
             if (chapters.length === 0 && videos.length > 0) {
                 errors.chapters = "At least one chapter is required when videos are uploaded"
             }
@@ -131,6 +170,20 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
             validateVideos()
         }, [validateVideos])
 
+        // ------------------------------
+        // Notify parent when data changes
+        // ------------------------------
+        const notifyDataChange = useCallback(() => {
+            onDataChange({ chapters, videos }, isValid)
+        }, [chapters, videos, isValid, onDataChange])
+
+        useEffect(() => {
+            notifyDataChange()
+        }, [notifyDataChange])
+
+        // ------------------------------
+        // Chapter operations
+        // ------------------------------
         const addChapter = () => {
             const newChapter: Chapter = {
                 id: `chapter-${Date.now()}`,
@@ -148,7 +201,6 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
         }
 
         const removeChapter = (id: string) => {
-            // Remove all videos in this chapter
             setVideos((prev) => prev.filter((video) => video.chapterId !== id))
             setChapters((prev) => prev.filter((chapter) => chapter.id !== id))
             if (activeChapterId === id) {
@@ -158,36 +210,13 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
 
         const toggleChapterExpansion = (id: string) => {
             setChapters((prev) =>
-                prev.map((chapter) => (chapter.id === id ? { ...chapter, isExpanded: !chapter.isExpanded } : chapter)),
+                prev.map((chapter) => (chapter.id === id ? { ...chapter, isExpanded: !chapter.isExpanded } : chapter))
             )
         }
 
-        const handleDrag = (e: React.DragEvent) => {
-            e.preventDefault()
-            e.stopPropagation()
-            if (e.type === "dragenter" || e.type === "dragover") {
-                setDragActive(true)
-            } else if (e.type === "dragleave") {
-                setDragActive(false)
-            }
-        }
-
-        const handleDrop = (e: React.DragEvent) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setDragActive(false)
-
-            if (!activeChapterId) {
-                setValidationErrors({ upload: "Please select a chapter first" })
-                return
-            }
-
-            const files = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith("video/"))
-            if (files.length > 0) {
-                handleMultipleFileUpload(files)
-            }
-        }
-
+        // ------------------------------
+        // Video operations
+        // ------------------------------
         const handleMultipleFileUpload = async (files: File[]) => {
             if (!activeChapterId) {
                 setValidationErrors({ upload: "Please select a chapter first" })
@@ -242,8 +271,38 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
                 prev.map((video) => ({
                     ...video,
                     isPreview: video.id === id ? !video.isPreview : false,
-                })),
+                }))
             )
+        }
+
+        const handleDrag = (e: React.DragEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            if (e.type === "dragenter" || e.type === "dragover") {
+                setDragActive(true)
+            } else if (e.type === "dragleave") {
+                setDragActive(false)
+            }
+        }
+
+        const handleDrop = (e: React.DragEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setDragActive(false)
+
+            if (!activeChapterId) {
+                setValidationErrors({ upload: "Please select a chapter first" })
+                return
+            }
+
+            const files = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith("video/"))
+            if (files.length > 0) {
+                handleMultipleFileUpload(files)
+            }
+        }
+
+        const getChapterVideos = (chapterId: string) => {
+            return videos.filter((video) => video.chapterId === chapterId).sort((a, b) => a.order - b.order)
         }
 
         const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,10 +312,9 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
             }
         }
 
-        const getChapterVideos = (chapterId: string) => {
-            return videos.filter((video) => video.chapterId === chapterId).sort((a, b) => a.order - b.order)
-        }
-
+        // ------------------------------
+        // Expose methods to parent
+        // ------------------------------
         useImperativeHandle(ref, () => ({
             validate: async () => validateVideos(),
             getData: () => ({ chapters, videos }),
@@ -269,13 +327,16 @@ export const VideoUploadStep = forwardRef<StepRef, VideoUploadStepProps>(
                 setActiveChapterId(null)
                 setValidationErrors({})
                 setIsValid(false)
-                try {
-                    localStorage.removeItem(LOCAL_STORAGE_KEY)
-                } catch (error) {
-                    console.error("Failed to clear saved video data:", error)
+                if (!isEditing) {
+                    try {
+                        localStorage.removeItem(LOCAL_STORAGE_KEY)
+                    } catch (error) {
+                        console.error("Failed to clear saved video data:", error)
+                    }
                 }
             },
         }))
+
 
         return (
             <AccessibleStepWrapper

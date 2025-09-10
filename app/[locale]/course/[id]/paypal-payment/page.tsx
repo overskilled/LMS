@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Skeleton } from "@/components/ui/skeleton";
 import { courseApi } from "@/utils/courseApi";
 import PayPalButton from "@/components/custom/PayPalButton/PayPalButton";
@@ -15,24 +14,20 @@ export default function PayPalPaymentPage() {
     const [course, setCourse] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [message, setMessage] = useState("");
 
-    // Get the courseId from the URL params and ref from search params
     const params = useParams();
-    const searchParams = useSearchParams();
     const courseId = params.id as string;
-    const refCode = searchParams.get("ref");
 
-    // PayPal initial options
-    const initialOptions = {
-        "clientId": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-        "enable-funding": "venmo",
-        "buyer-country": "US",
-        currency: "USD",
-        components: "buttons",
+    // Helper function to format price
+    const formatPrice = (price: number, currency: string) => {
+        if (price === 0) return "Free";
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency,
+            minimumFractionDigits: 0
+        }).format(price);
     };
 
-    // Fetch course details
     useEffect(() => {
         const fetchCourse = async () => {
             try {
@@ -50,9 +45,8 @@ export default function PayPalPaymentPage() {
             }
         };
 
-        if (courseId) {
-            fetchCourse();
-        } else {
+        if (courseId) fetchCourse();
+        else {
             setError("Course ID is missing from the URL");
             setLoading(false);
         }
@@ -89,10 +83,7 @@ export default function PayPalPaymentPage() {
         );
     }
 
-    // Get pricing information
     const pricing = course.aboutCourse.pricing;
-    const price = pricing.discountPrice || pricing.basePrice;
-    const currency = pricing.currency || "USD";
 
     return (
         <div className="container mx-auto p-6 max-w-2xl">
@@ -104,29 +95,35 @@ export default function PayPalPaymentPage() {
                 <p className="text-muted-foreground mb-4">{course.aboutCourse.shortDescription}</p>
 
                 {/* Pricing display */}
-                <div className="flex justify-between items-center border-t pt-4">
-                    <span className="font-medium">Total:</span>
-                    <div className="text-right">
-                        {pricing.discountPrice && (
-                            <p className="text-sm text-muted-foreground line-through">
-                                {currency} {pricing.basePrice.toFixed(2)}
-                            </p>
-                        )}
-                        <p className="text-2xl font-bold">
-                            {currency} {price.toFixed(2)}
-                        </p>
-                        {pricing.discountPrice && (
-                            <p className="text-sm text-green-600">
-                                Save {(((pricing.basePrice - pricing.discountPrice) / pricing.basePrice) * 100).toFixed(0)}%
-                            </p>
-                        )}
+                {pricing && (
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                            <span className="font-semibold text-gray-900">XAF:</span>
+                            <span className="text-xl font-semibold text-gray-900">
+                                {formatPrice(pricing.xafPrice, "XAF")}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <span className="font-semibold text-gray-900">USD:</span>
+                            <span className="text-xl font-semibold text-gray-900">
+                                {formatPrice(pricing.usdPrice, "USD")}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <span className="font-semibold text-gray-900">EUR:</span>
+                            <span className="text-xl font-semibold text-gray-900">
+                                {formatPrice(pricing.euroPrice, "EUR")}
+                            </span>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
-            {/* PayPal Button Component */}
+            {/* PayPal Button */}
             <div className="paypal-button-container">
-                <PayPalButton amount={Number(pricing.basePrice) / 650} description={course.aboutCourse.title} />
+                <PayPalButton amount={pricing.usdPrice} courseId={courseId} description={course.aboutCourse.title} />
             </div>
         </div>
     );

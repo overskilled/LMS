@@ -24,6 +24,7 @@ const steps: Step[] = [
 
 interface CompleteStepperProps {
     onSaveAsDraft?: (data: Partial<CourseData>) => void
+    isEditing?: boolean
     onPublishCourse?: (data: CourseData) => void
     onCancel?: () => void
     initialData?: Partial<CourseData>
@@ -33,6 +34,7 @@ interface CompleteStepperProps {
 export function CompleteStepper({
     onSaveAsDraft,
     onPublishCourse,
+    isEditing,
     onCancel,
     initialData,
     courseId
@@ -226,6 +228,7 @@ export function CompleteStepper({
                     <CourseDetailsStep
                         ref={(ref) => { stepRefs.current[0] = ref }}
                         initialData={courseData.courseDetails}
+                        isEditing
                         onDataChange={(data, isValid) => handleStepDataChange(0, data, isValid)}
                         onNext={handleNext}
                         onPrevious={undefined}
@@ -238,6 +241,7 @@ export function CompleteStepper({
                     <VideoUploadStep
                         ref={(ref) => { stepRefs.current[1] = ref }}
                         initialData={courseData.videos}
+                        isEditing
                         onDataChange={(data, isValid) => handleStepDataChange(1, data, isValid)}
                         onNext={handleNext}
                         onPrevious={handlePrevious}
@@ -249,7 +253,8 @@ export function CompleteStepper({
                 return (
                     <AboutCourseStep
                         ref={(ref) => { stepRefs.current[2] = ref }}
-                        initialData={courseData.aboutCourse}
+                        // initialData={courseData.aboutCourse}
+                        isEditing
                         onDataChange={(data, isValid) => handleStepDataChange(2, data, isValid)}
                         onNext={handleNext}
                         onPrevious={handlePrevious}
@@ -261,6 +266,7 @@ export function CompleteStepper({
                     <QuizCreationStep
                         ref={(ref) => { stepRefs.current[3] = ref }}
                         onDataChange={(data, isValid) => handleStepDataChange(3, data, isValid)}
+                        isEditing
                         onNext={handleNext}
                         onPrevious={handlePrevious}
                         onCancel={handleCancel}
@@ -272,6 +278,7 @@ export function CompleteStepper({
                         ref={(ref) => { stepRefs.current[4] = ref }}
                         // courseData={courseData}
                         // initialSettings={courseData.publishSettings}
+                        isEditing
                         onDataChange={(data, isValid) => handleStepDataChange(4, data, isValid)}
                         onNext={handleNext}
                         onPrevious={handlePrevious}
@@ -295,8 +302,11 @@ export function CompleteStepper({
                                 Home
                             </a>
                             <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
-                            <span className="text-blue-500" aria-current="page">
-                                Create Course
+                            <span
+                                className={isEditing ? "text-green-500" : "text-blue-500"}
+                                aria-current="page"
+                            >
+                                {isEditing ? "Edit Course" : "Create Course"}
                             </span>
                         </nav>
 

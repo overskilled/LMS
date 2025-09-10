@@ -6,6 +6,7 @@ import { CompleteStepper } from "../components/course-stepper-component"
 import Loading from "../loading"
 import type { CourseData } from "@/types/course"
 import { courseApi } from "@/utils/courseApi"
+import { useRouter } from "next/navigation"
 
 // Keys for localStorage
 const LOCAL_STORAGE_KEYS = {
@@ -41,6 +42,8 @@ export default function CompleteCourseCreator() {
     const [error, setError] = useState<string | null>(null)
     const [initialData, setInitialData] = useState<CourseData | null>(null)
 
+    const router = useRouter()
+
     // Load all data from localStorage on mount
     useEffect(() => {
         setInitialData(getAllCourseData())
@@ -71,9 +74,12 @@ export default function CompleteCourseCreator() {
             // Replace this with your API call
             console.log("Publishing course:", data)
             await courseApi.publishCourse(data)
+
             alert("Course published successfully!")
             // Optionally clear localStorage
             Object.values(LOCAL_STORAGE_KEYS).forEach((key) => localStorage.removeItem(key))
+
+            router.push("admin/courses")
         } catch (err) {
             setError("Failed to publish course")
         } finally {

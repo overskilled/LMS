@@ -52,7 +52,7 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                         alt={course.aboutCourse.title}
                         className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    {course.aboutCourse?.pricing?.basePrice === 0 && (
+                    {course.aboutCourse?.pricing?.xafPrice === 0 && (
                         <Badge className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
                             {t('course.free')}
                         </Badge>
@@ -71,20 +71,35 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                     </div>
                     {/* <p className="text-sm text-gray-600 mb-3">By {course.instructor?.name || "Unknown Instructor"}</p> */}
 
-                    <div className="mt-auto flex items-center justify-between">
-                        <span className="text-xl font-semibold text-gray-900">
-                            {formatPrice(course.aboutCourse?.pricing?.basePrice || 0, course.aboutCourse?.pricing?.currency || "XAF")}
-                        </span>
-                        {/* <div className="flex items-center gap-1 text-yellow-500">
-                        {[...Array(5)].map((_, i) => (
-                            <Star
-                                key={i}
-                                className={`h-4 w-4 ${i < (course.rating || 0) ? 'fill-current' : ''}`}
-                            />
-                        ))}
-                        <span className="text-sm text-gray-600">({course.reviews || 0})</span>
-                    </div> */}
+                    <div className="mt-auto flex flex-col gap-2">
+                        {/* Prices */}
+                        {course.aboutCourse?.pricing && (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-gray-900">XAF:</span>
+                                    <span className="text-xl font-semibold text-gray-900">
+                                        {formatPrice(course.aboutCourse.pricing.xafPrice, "XAF")}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-gray-900">USD:</span>
+                                    <span className="text-xl font-semibold text-gray-900">
+                                        {formatPrice(course.aboutCourse.pricing.usdPrice, "USD")}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-gray-900">EUR:</span>
+                                    <span className="text-xl font-semibold text-gray-900">
+                                        {formatPrice(course.aboutCourse.pricing.euroPrice, "EUR")}
+                                    </span>
+                                </div>
+                            </>
+                        )}
                     </div>
+
+
                 </div>
 
             </Link>

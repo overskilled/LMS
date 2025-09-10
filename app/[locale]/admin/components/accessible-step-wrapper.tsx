@@ -22,6 +22,7 @@ interface AccessibleStepWrapperProps {
     description?: string
     isActive: boolean
     isCompleted: boolean
+    isEditing?: boolean
     isValid: boolean
     isLoading?: boolean
     error?: string | null
@@ -40,6 +41,7 @@ export const AccessibleStepWrapper = forwardRef<StepRef, AccessibleStepWrapperPr
             title,
             description,
             isActive,
+            isEditing = false,
             isCompleted,
             isValid,
             isLoading = false,
@@ -65,6 +67,18 @@ export const AccessibleStepWrapper = forwardRef<StepRef, AccessibleStepWrapperPr
                 // Override in child components
             },
         }))
+
+        // Determine the next button text based on step and edit mode
+        const getNextButtonText = () => {
+            if (isLoading) {
+                return isEditing ? "Updating..." : "Processing..."
+            }
+
+            if (stepNumber === 5) {
+                return isEditing ? "Update Course" : "Publish Course"
+            }
+            return "Continue"
+        }
 
         if (!isActive) {
             return null
@@ -102,9 +116,16 @@ export const AccessibleStepWrapper = forwardRef<StepRef, AccessibleStepWrapperPr
                             </div>
                             <div>
                                 <CardTitle id={`step-${stepNumber}-heading`} className="text-xl">
-                                    {title}
+                                    {isEditing ? `Edit ${title}` : title}
                                 </CardTitle>
-                                {description && <p className="text-sm text-gray-600 mt-1">{description}</p>}
+                                {description && (
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {isEditing 
+                                            ? `Update your course ${description.toLowerCase()}`
+                                            : description
+                                        }
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </CardHeader>
@@ -123,11 +144,16 @@ export const AccessibleStepWrapper = forwardRef<StepRef, AccessibleStepWrapperPr
 
                         {showNavigation && (
                             <div className="flex justify-between pt-6 border-t" role="navigation" aria-label="Step navigation">
-                                <Button variant="outline" onClick={onCancel} disabled={isLoading} aria-describedby="cancel-help">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={onCancel} 
+                                    disabled={isLoading} 
+                                    aria-describedby="cancel-help"
+                                >
                                     Cancel
                                 </Button>
                                 <div id="cancel-help" className="sr-only">
-                                    Cancel course creation and return to dashboard
+                                    {isEditing ? "Cancel course editing" : "Cancel course creation and return to dashboard"}
                                 </div>
 
                                 <div className="flex gap-3">
@@ -151,23 +177,24 @@ export const AccessibleStepWrapper = forwardRef<StepRef, AccessibleStepWrapperPr
                                         <>
                                             <Button
                                                 onClick={onNext}
-                                                // disabled={!isValid || isLoading}
+                                                disabled={isLoading}
                                                 aria-describedby="next-help"
                                                 className="min-w-[120px]"
                                             >
                                                 {isLoading ? (
                                                     <>
                                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                        Processing...
+                                                        {isEditing ? "Updating..." : "Processing..."}
                                                     </>
-                                                ) : stepNumber === 5 ? (
-                                                    "Publish Course"
                                                 ) : (
-                                                    "Continue"
+                                                    getNextButtonText()
                                                 )}
                                             </Button>
                                             <div id="next-help" className="sr-only">
-                                                {stepNumber === 5 ? "Publish your course" : "Continue to the next step"}
+                                                {stepNumber === 5 
+                                                    ? (isEditing ? "Update your course" : "Publish your course")
+                                                    : "Continue to the next step"
+                                                }
                                             </div>
                                         </>
                                     )}

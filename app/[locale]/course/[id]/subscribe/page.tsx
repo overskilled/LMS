@@ -85,7 +85,7 @@ export default function CoursePayment() {
                 depositId,
                 courseId,
                 courseTitle: course?.aboutCourse.title,
-                amount: course?.aboutCourse.pricing.basePrice,
+                amount: course?.aboutCourse.pricing.xafPrice,
                 currency: "XAF",
                 paymentMethod: selectedMobileMethod === "mtn" ? "MTN Mobile Money" : "Orange Money",
                 phoneNumber: `+237${phoneNumber}`,
@@ -135,7 +135,7 @@ export default function CoursePayment() {
                     body: JSON.stringify({
                          depositId,
                         // amount: 10,
-                        amount: course.aboutCourse.pricing.basePrice.toString(),
+                        amount: course.aboutCourse.pricing.xafPrice.toString(),
                         currency: "XAF",
                         correspondent: selectedMobileMethod === "mtn" ? "MTN_MOMO_CMR" : "ORANGE_CMR",
                         payer: { address: { value: `237${phoneNumber}` }, type: "MSISDN" },
@@ -232,13 +232,13 @@ export default function CoursePayment() {
                                     <div className="flex justify-between mb-2">
                                         <span className="text-gray-600">Price</span>
                                         <span className="font-medium">
-                                            {course.aboutCourse.pricing.basePrice.toLocaleString()} XAF
+                                            {course.aboutCourse.pricing.xafPrice.toLocaleString()} XAF
                                         </span>
                                     </div>
                                     <div className="border-t border-gray-200 my-2"></div>
                                     <div className="flex justify-between font-bold">
                                         <span>Total</span>
-                                        <span>{course.aboutCourse.pricing.basePrice.toLocaleString()} XAF</span>
+                                        <span>{course.aboutCourse.pricing.xafPrice.toLocaleString()} XAF</span>
                                     </div>
                                 </div>
 
@@ -325,7 +325,7 @@ export default function CoursePayment() {
                                                 Processing...
                                             </>
                                         ) : (
-                                            `Pay ${course.aboutCourse.pricing.basePrice.toLocaleString()} XAF`
+                                            `Pay ${course.aboutCourse.pricing.xafPrice.toLocaleString()} XAF`
                                         )}
                                     </Button>
                                 </form>

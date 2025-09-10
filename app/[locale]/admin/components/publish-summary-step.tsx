@@ -36,6 +36,7 @@ interface PublishSettings {
 interface PublishSummaryStepProps {
     onDataChange: (data: PublishSettings, isValid: boolean) => void
     onNext?: () => void
+    isEditing?: boolean
     onPrevious?: () => void
     onCancel?: () => void
 }
@@ -69,7 +70,7 @@ const getLocalStorageItem = <T,>(key: string, defaultValue: T): T => {
 }
 
 export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
-    ({ onDataChange, onNext, onPrevious, onCancel }, ref) => {
+    ({ onDataChange, onNext, onPrevious, onCancel, isEditing }, ref) => {
         // Get all course data from localStorage
         const getAllCourseData = () => {
             const videoUploadData = getLocalStorageItem(LOCAL_STORAGE_KEYS.VIDEO_UPLOAD, { chapters: [], videos: [] })
@@ -99,7 +100,9 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                     subtitles: [],
                     tags: [],
                     pricing: {
-                        basePrice: 0,
+                        xafPrice: 0,
+                        euroPrice: 0,
+                        usdPrice: 0,
                         currency: "USD",
                         pricingTier: "basic",
                         paymentOptions: ["one-time"],
@@ -207,7 +210,7 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                 courseData.videos?.reduce((acc: number, video: any) => acc + (video.metadata?.duration || 0), 0) || 0,
             totalQuestions: courseData.quiz?.questions?.length || 0,
             estimatedRevenue:
-                (courseData.aboutCourse?.pricing?.basePrice || 0) * (courseData.aboutCourse?.metrics?.expectedEnrollments || 0),
+                (courseData.aboutCourse?.pricing?.xafPrice || 0) * (courseData.aboutCourse?.metrics?.expectedEnrollments || 0),
         }
 
         const formatDuration = (seconds: number) => {
@@ -250,6 +253,7 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                 title="Publish Course"
                 description="Review your course and configure publishing settings"
                 isActive={true}
+                isEditing
                 isCompleted={false}
                 isValid={isValid}
                 onNext={onNext}
@@ -307,7 +311,7 @@ export const PublishSummaryStep = forwardRef<StepRef, PublishSummaryStepProps>(
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-sm font-medium text-green-900">Course Price:</span>
                                             <span className="text-lg font-bold text-green-900">
-                                                {courseData.aboutCourse?.pricing?.basePrice || 0} {courseData.aboutCourse?.pricing?.currency}
+                                                {courseData.aboutCourse?.pricing?.xafPrice || 0} {courseData.aboutCourse?.pricing?.currency}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">

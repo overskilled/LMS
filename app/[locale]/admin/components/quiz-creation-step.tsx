@@ -13,6 +13,9 @@ import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { AccessibleStepWrapper, type StepRef } from "./accessible-step-wrapper"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/context/authContext"
+import { useParams, useRouter } from "next/navigation"
+import { courseApi } from "@/utils/courseApi"
 
 interface QuizQuestion {
     id: string
@@ -48,35 +51,26 @@ interface QuizData {
 interface QuizCreationStepProps {
     initialData?: Partial<QuizData>
     onDataChange: (data: QuizData, isValid: boolean) => void
+    isEditing?: boolean
     onNext?: () => void
     onPrevious?: () => void
     onCancel?: () => void
 }
 
 export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
-    ({ onDataChange, onNext, onPrevious, onCancel }, ref) => {
-        const [chapters, setChapters] = useState<Chapter[]>([])
-        const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null)
-        const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set())
-        const [questionCounter, setQuestionCounter] = useState(0)
-        const QUIZ_STORAGE_KEY = "quizFormData"
+    ({ onDataChange, onNext, onPrevious, onCancel, isEditing }, ref) => {
+        const { user } = useAuth();
+        const router = useRouter();
+        const params = useParams();
 
-        const getInitialData = (): Partial<QuizData> => {
-            try {
-                if (typeof window !== 'undefined') {
-                    const savedData = localStorage.getItem(QUIZ_STORAGE_KEY);
-                    if (savedData) {
-                        return JSON.parse(savedData);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to parse saved form data:', error);
-            }
+        const [chapters, setChapters] = useState<Chapter[]>([]);
+        const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+        const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+        const [questionCounter, setQuestionCounter] = useState(0);
+        const QUIZ_STORAGE_KEY = "quizFormData";
 
-            return {}
-        };
-
-        const [formData, setFormData] = useState<QuizData>({
+        // Default template for formData
+        const defaultFormData: QuizData = {
             questions: [],
             passingScore: 70,
             timeLimit: 30,
@@ -85,66 +79,135 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
             showCorrectAnswers: true,
             randomizeQuestions: false,
             certificateRequired: false,
-            ...getInitialData()
-        })
+        };
 
-        const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-        const [isValid, setIsValid] = useState(false)
-        const [editingQuestion, setEditingQuestion] = useState<string | null>(null)
+        const [initialData, setInitialData] = useState<Partial<QuizData>>({});
+        const [loading, setLoading] = useState(false);
 
-        // Save to localStorage whenever formData changes
+        // LocalStorage fallback - only for non-edit mode
+        const getInitialData = (): Partial<QuizData> => {
+            // If we're editing, don't use localStorage
+            if (isEditing) return {};
+
+            try {
+                if (typeof window !== "undefined") {
+                    const savedData = localStorage.getItem(QUIZ_STORAGE_KEY);
+                    if (savedData) {
+                        return JSON.parse(savedData);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to parse saved form data:", error);
+            }
+            return {};
+        };
+
+        // Fetch course if editing
+        useEffect(() => {
+            const fetchCourse = async () => {
+                if (isEditing) {
+                    setLoading(true);
+                    try {
+                        const idFromUrl = params?.id as string | undefined;
+                        const idToUse = idFromUrl;
+
+                        if (!idToUse) return;
+
+                        const response = await courseApi.getCourseById(idToUse);
+                        if (response.success && response.data) {
+                            setInitialData(response.data.quiz || {});
+                        } else {
+                            console.error("Failed to fetch course:", response.message);
+                        }
+                    } catch (err) {
+                        console.error("Error while fetching course:", err);
+                    } finally {
+                        setLoading(false);
+                    }
+                } else {
+                    setInitialData(getInitialData());
+                }
+            };
+
+            fetchCourse();
+        }, [isEditing, params?.id]);
+
+        // 🔑 Sync formData with defaults + initialData
+        const [formData, setFormData] = useState<QuizData>({
+            ...defaultFormData,
+            ...getInitialData(),
+        });
+
+        useEffect(() => {
+            setFormData({
+                ...defaultFormData,
+                ...initialData,
+            });
+        }, [initialData]);
+
+        const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+        const [isValid, setIsValid] = useState(false);
+        const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
+
+        // Save to localStorage whenever formData changes (but 🚫 not in edit mode)
         useEffect(() => {
             try {
                 localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(formData));
             } catch (error) {
-                console.error('Failed to save form data:', error);
+                console.error("Failed to save form data:", error);
             }
-        }, [formData]);
+        }, [formData, isEditing]);
 
-
+        // Load chapters from video upload data
         useEffect(() => {
             try {
-                const videoData = localStorage.getItem("videoUploadFormData")
+                const videoData = localStorage.getItem("videoUploadFormData");
                 if (videoData) {
-                    const parsedData = JSON.parse(videoData)
+                    const parsedData = JSON.parse(videoData);
                     if (parsedData.chapters && Array.isArray(parsedData.chapters)) {
-                        setChapters(parsedData.chapters)
+                        setChapters(parsedData.chapters);
                         // Auto-expand first chapter if available
                         if (parsedData.chapters.length > 0) {
-                            setExpandedChapters(new Set([parsedData.chapters[0].id]))
+                            setExpandedChapters(new Set([parsedData.chapters[0].id]));
                         }
                     }
                 }
 
-                // Load existing quiz data
-                const quizData = localStorage.getItem(QUIZ_STORAGE_KEY)
-                if (quizData) {
-                    const parsedQuizData = JSON.parse(quizData)
-                    if (parsedQuizData.questions) {
-                        setFormData((prev) => ({ ...prev, questions: parsedQuizData.questions }))
+                // Only load existing quiz data from localStorage if not editing
+                if (!isEditing) {
+                    const quizData = localStorage.getItem(QUIZ_STORAGE_KEY);
+                    if (quizData) {
+                        const parsedQuizData = JSON.parse(quizData);
+                        if (parsedQuizData.questions) {
+                            setFormData((prev) => ({ ...prev, questions: parsedQuizData.questions }));
+                        }
                     }
                 }
             } catch (error) {
-                console.error("Failed to load chapter or quiz data:", error)
+                console.error("Failed to load chapter or quiz data:", error);
             }
-        }, [])
+        }, [isEditing]);
 
+        // Save questions to localStorage whenever they change (but 🚫 not in edit mode)
         useEffect(() => {
             try {
-                localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify({
-                    questions: formData.questions,
-                    passingScore: formData.passingScore,
-                    timeLimit: formData.timeLimit,
-                    allowRetakes: formData.allowRetakes,
-                    maxAttempts: formData.maxAttempts,
-                    showCorrectAnswers: formData.showCorrectAnswers,
-                    randomizeQuestions: formData.randomizeQuestions,
-                    certificateRequired: formData.certificateRequired,
-                }))
+                localStorage.setItem(
+                    QUIZ_STORAGE_KEY,
+                    JSON.stringify({
+                        questions: formData.questions,
+                        passingScore: formData.passingScore,
+                        timeLimit: formData.timeLimit,
+                        allowRetakes: formData.allowRetakes,
+                        maxAttempts: formData.maxAttempts,
+                        showCorrectAnswers: formData.showCorrectAnswers,
+                        randomizeQuestions: formData.randomizeQuestions,
+                        certificateRequired: formData.certificateRequired,
+                    })
+                );
             } catch (error) {
-                console.error("Failed to save quiz data:", error)
+                console.error("Failed to save quiz data:", error);
             }
-        }, [formData.questions])
+        }, [formData.questions, isEditing]);
 
         const validateForm = useCallback((): boolean => {
             const errors: Record<string, string> = {}
@@ -301,24 +364,25 @@ export const QuizCreationStep = forwardRef<StepRef, QuizCreationStepProps>(
             validate: async () => validateForm(),
             getData: () => formData,
             focus: () => {
-                document.getElementById("add-question-button")?.focus()
+                document.getElementById("add-question-button")?.focus();
             },
             reset: () => {
                 setFormData({
-                    questions: [],
-                    passingScore: 70,
-                    timeLimit: 30,
-                    allowRetakes: true,
-                    maxAttempts: 3,
-                    showCorrectAnswers: true,
-                    randomizeQuestions: false,
-                    certificateRequired: false,
-                })
-                setValidationErrors({})
-                setEditingQuestion(null)
-                setQuestionCounter(0)
+                    ...defaultFormData,
+                });
+                setValidationErrors({});
+                setEditingQuestion(null);
+                setQuestionCounter(0);
+                // Only clear localStorage if not in edit mode
+                if (!isEditing) {
+                    try {
+                        localStorage.removeItem(QUIZ_STORAGE_KEY);
+                    } catch (error) {
+                        console.error("Failed to clear saved form data:", error);
+                    }
+                }
             },
-        }))
+        }));
 
         const passingScoreValue = useMemo(() => [formData.passingScore], [formData.passingScore])
 

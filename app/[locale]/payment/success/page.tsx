@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Download, ArrowRight, Mail } from "lucide-react";
-import { CourseData } from "@/types/course"; // Adjust import path as needed
+import { CourseData } from "@/types/course"; 
 import { courseApi } from "@/utils/courseApi";
 
 export default function PaymentSuccessPage() {
@@ -127,13 +127,13 @@ export default function PaymentSuccessPage() {
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4">
                     <Button asChild className="flex-1">
-                        <Link href={`/course/${courseId}/learn`}>
+                        <Link href={`/`}>
                             Start Learning <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>
 
                     <Button variant="outline" asChild className="flex-1">
-                        <Link href="/dashboard">
+                        <Link href="/">
                             Go to Dashboard
                         </Link>
                     </Button>

@@ -14,6 +14,9 @@ import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { useAuth } from "@/context/authContext"
+import { useParams, useRouter } from "next/navigation"
+import { courseApi } from "@/utils/courseApi"
 
 interface AboutCourseData {
     title: string
@@ -26,7 +29,9 @@ interface AboutCourseData {
     subtitles: string[]
     tags: string[]
     pricing: {
-        basePrice: number
+        xafPrice: number
+        euroPrice: number
+        usdPrice: number
         currency: string
         discountPrice?: number
         discountPercentage?: number
@@ -47,8 +52,8 @@ interface AboutCourseData {
 }
 
 interface AboutCourseStepProps {
-    initialData?: Partial<AboutCourseData>
     onDataChange: (data: AboutCourseData, isValid: boolean) => void
+    isEditing?: boolean
     onNext?: () => void
     onPrevious?: () => void
     onCancel?: () => void
@@ -57,23 +62,15 @@ interface AboutCourseStepProps {
 const LOCAL_STORAGE_KEY = 'aboutCourseFormData';
 
 export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
-    ({ initialData, onDataChange, onNext, onPrevious, onCancel }, ref) => {
-        // Load initial data from localStorage if available
-        const getInitialData = (): Partial<AboutCourseData> => {
-            try {
-                if (typeof window !== 'undefined') {
-                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (savedData) {
-                        return JSON.parse(savedData);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to parse saved course data:', error);
-            }
-            return initialData || {};
-        };
+    ({ onDataChange, onNext, onPrevious, onCancel, isEditing }, ref) => {
+        const { user } = useAuth();
+        const router = useRouter();
+        const params = useParams();
 
-        const [formData, setFormData] = useState<AboutCourseData>({
+        const [initialData, setInitialData] = useState<Partial<AboutCourseData>>({});
+
+        // Default template for formData
+        const defaultFormData: AboutCourseData = {
             title: "",
             shortDescription: "",
             fullDescription: "",
@@ -84,7 +81,9 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
             subtitles: [],
             tags: [],
             pricing: {
-                basePrice: 0,
+                xafPrice: 0,
+                euroPrice: 0,
+                usdPrice: 0,
                 currency: "XAF",
                 discountPrice: 0,
                 discountPercentage: 0,
@@ -100,8 +99,70 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
             availabilityDate: undefined,
             earlyAccessEnabled: false,
             earlyAccessPrice: undefined,
+        };
+
+        const [loading, setLoading] = useState(false);
+
+        // LocalStorage fallback - only for non-edit mode
+        const getInitialData = (): Partial<AboutCourseData> => {
+            // If we're editing, don't use localStorage
+            if (isEditing) return {};
+
+            try {
+                if (typeof window !== "undefined") {
+                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (savedData) {
+                        return JSON.parse(savedData);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to parse saved form data:", error);
+            }
+            return initialData || {};
+        };
+
+        // Fetch course if editing
+        useEffect(() => {
+            const fetchCourse = async () => {
+                if (isEditing) {
+                    setLoading(true);
+                    try {
+                        const idFromUrl = params?.id as string | undefined;
+                        const idToUse = idFromUrl;
+
+                        if (!idToUse) return;
+
+                        const response = await courseApi.getCourseById(idToUse);
+                        if (response.success && response.data) {
+                            setInitialData(response.data.aboutCourse || {});
+                        } else {
+                            console.error("Failed to fetch course:", response.message);
+                        }
+                    } catch (err) {
+                        console.error("Error while fetching course:", err);
+                    } finally {
+                        setLoading(false);
+                    }
+                } else {
+                    setInitialData(getInitialData());
+                }
+            };
+
+            fetchCourse();
+        }, [isEditing, params?.id]);
+
+        // 🔑 Sync formData with defaults + initialData
+        const [formData, setFormData] = useState<AboutCourseData>({
+            ...defaultFormData,
             ...getInitialData(),
         });
+
+        useEffect(() => {
+            setFormData({
+                ...defaultFormData,
+                ...initialData,
+            });
+        }, [initialData]);
 
         const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
         const [isValid, setIsValid] = useState(false);
@@ -109,14 +170,14 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
         const [newPrerequisite, setNewPrerequisite] = useState("");
         const [newTag, setNewTag] = useState("");
 
-        // Save to localStorage whenever formData changes
+        // Save to localStorage whenever formData changes 
         useEffect(() => {
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
             } catch (error) {
-                console.error('Failed to save course data:', error);
+                console.error("Failed to save form data:", error);
             }
-        }, [formData]);
+        }, [formData, isEditing]);
 
         // Validation function
         const validateForm = (): boolean => {
@@ -148,8 +209,16 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                 errors.targetAudience = "Target audience is required";
             }
 
-            if (formData.pricing.basePrice <= 0) {
-                errors.basePrice = "Course price must be greater than 0";
+            if (formData.pricing.xafPrice <= 0) {
+                errors.xafPrice = "Course price must be greater than 0";
+            }
+
+            if (formData.pricing.euroPrice <= 0) {
+                errors.xafPrice = "Course price must be greater than 0";
+            }
+
+            if (formData.pricing.usdPrice <= 0) {
+                errors.xafPrice = "Course price must be greater than 0";
             }
 
             // Additional validation for upcoming courses
@@ -174,7 +243,7 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
 
                 // Auto-calculate target revenue
                 if (updates.pricing || updates.metrics) {
-                    newData.metrics.targetRevenue = newData.pricing.basePrice * (newData.metrics.expectedEnrollments || 0);
+                    newData.metrics.targetRevenue = newData.pricing.xafPrice * (newData.metrics.expectedEnrollments || 0);
                 }
 
                 // If turning off upcoming status, clear related fields
@@ -250,6 +319,7 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
             updateFormData({ availabilityDate: date });
         };
 
+
         useImperativeHandle(ref, () => ({
             validate: async () => validateForm(),
             getData: () => formData,
@@ -258,38 +328,16 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
             },
             reset: () => {
                 setFormData({
-                    title: "",
-                    shortDescription: "",
-                    fullDescription: "",
-                    learningObjectives: [],
-                    prerequisites: [],
-                    targetAudience: "",
-                    language: "English",
-                    subtitles: [],
-                    tags: [],
-                    pricing: {
-                        basePrice: 0,
-                        currency: "XAF",
-                        discountPrice: 0,
-                        discountPercentage: 0,
-                        pricingTier: "basic",
-                        paymentOptions: ["one-time"],
-                    },
-                    metrics: {
-                        expectedEnrollments: 100,
-                        targetRevenue: 0,
-                        marketingBudget: 0,
-                    },
-                    isUpcoming: false,
-                    availabilityDate: undefined,
-                    earlyAccessEnabled: false,
-                    earlyAccessPrice: undefined,
+                    ...defaultFormData,
                 });
                 setValidationErrors({});
-                try {
-                    localStorage.removeItem(LOCAL_STORAGE_KEY);
-                } catch (error) {
-                    console.error('Failed to clear saved course data:', error);
+                // Only clear localStorage if not in edit mode
+                if (!isEditing) {
+                    try {
+                        localStorage.removeItem(LOCAL_STORAGE_KEY);
+                    } catch (error) {
+                        console.error("Failed to clear saved form data:", error);
+                    }
                 }
             },
         }));
@@ -671,63 +719,86 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Base Price */}
-                                <div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="flex flex-col">
+
                                     <Label htmlFor="base-price-input" className="text-sm font-medium">
-                                        Course Price{" "}
+                                        Course Price{" "} in XAF
                                         <span className="text-red-500" aria-label="required">
                                             *
                                         </span>
                                     </Label>
-                                    <div className="flex mt-2">
-                                        <Select
-                                            value={formData.pricing.currency}
-                                            onValueChange={(value) => {
-                                                if (value !== formData.pricing.currency) {
-                                                    updateFormData({
-                                                        pricing: { ...formData.pricing, currency: value }
-                                                    });
-                                                }
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-20">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="XAF">XAF</SelectItem>
-                                                <SelectItem value="XOF">XOF</SelectItem>
-                                                <SelectItem value="USD">$</SelectItem>
-                                                <SelectItem value="EUR">€</SelectItem>
-                                                <SelectItem value="GBP">£</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <Input
-                                            id="base-price-input"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            placeholder="99.00"
-                                            value={formData.pricing.basePrice || ""}
-                                            onChange={(e) =>
-                                                updateFormData({
-                                                    pricing: { ...formData.pricing, basePrice: Number.parseFloat(e.target.value) || 0 },
-                                                })
-                                            }
-                                            className={cn("rounded-l-none", validationErrors.basePrice && "border-red-500")}
-                                            aria-describedby="base-price-help base-price-error"
-                                            aria-invalid={!!validationErrors.basePrice}
-                                        />
-                                    </div>
-                                    <div id="base-price-help" className="sr-only">
-                                        Set the price students will pay for your course.
-                                    </div>
-                                    {validationErrors.basePrice && (
-                                        <p id="base-price-error" className="text-sm text-red-600 mt-1" role="alert">
-                                            {validationErrors.basePrice}
-                                        </p>
-                                    )}
+                                    <Input
+                                        id="base-price-input"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        placeholder="10000.00"
+                                        value={formData.pricing.xafPrice || ""}
+                                        onChange={(e) =>
+                                            updateFormData({
+                                                pricing: { ...formData.pricing, xafPrice: Number.parseFloat(e.target.value) || 0 },
+                                            })
+                                        }
+                                        className={cn("rounded-l-none", validationErrors.xafPrice && "border-red-500")}
+                                        aria-describedby="base-price-help base-price-error"
+                                        aria-invalid={!!validationErrors.xafPrice}
+                                    />
                                 </div>
+                                <div className="flex flex-col">
+
+                                    <Label htmlFor="base-price-input" className="text-sm font-medium">
+                                        Course Price{" "} in Euro
+                                        <span className="text-red-500" aria-label="required">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        id="base-price-input"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        placeholder="99.00"
+                                        value={formData.pricing.euroPrice || ""}
+                                        onChange={(e) =>
+                                            updateFormData({
+                                                pricing: { ...formData.pricing, euroPrice: Number.parseFloat(e.target.value) || 0 },
+                                            })
+                                        }
+                                        className={cn("rounded-l-none", validationErrors.euroPrice && "border-red-500")}
+                                        aria-describedby="base-price-help base-price-error"
+                                        aria-invalid={!!validationErrors.euroPrice}
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+
+                                    <Label htmlFor="base-price-input" className="text-sm font-medium">
+                                        Course Price{" "} in USD
+                                        <span className="text-red-500" aria-label="required">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        id="base-price-input"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        placeholder="99.00"
+                                        value={formData.pricing.usdPrice || ""}
+                                        onChange={(e) =>
+                                            updateFormData({
+                                                pricing: { ...formData.pricing, usdPrice: Number.parseFloat(e.target.value) || 0 },
+                                            })
+                                        }
+                                        className={cn("rounded-l-none", validationErrors.usdPrice && "border-red-500")}
+                                        aria-describedby="base-price-help base-price-error"
+                                        aria-invalid={!!validationErrors.usdPrice}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+
 
                                 {/* Expected Enrollments */}
                                 <div>
@@ -778,7 +849,7 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                                     {formData.pricing.currency === "USD" && "$"}
                                     {formData.pricing.currency === "EUR" && "€"}
                                     {formData.pricing.currency === "GBP" && "£"}
-                                    {formData.pricing.basePrice} each
+                                    {formData.pricing.xafPrice} each
                                 </p>
                             </div>
                         </CardContent>

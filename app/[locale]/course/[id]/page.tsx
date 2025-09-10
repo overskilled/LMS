@@ -295,9 +295,9 @@ export default function CourseDetailPage() {
                                 {/* {course.aboutCourse.pricing.discountPrice && (
                                     <Badge className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
                                         {Math.round(
-                                            ((course.aboutCourse.pricing.basePrice -
+                                            ((course.aboutCourse.pricing.xafPrice -
                                                 course.aboutCourse.pricing.discountPrice) /
-                                                course.aboutCourse.pricing.basePrice) *
+                                                course.aboutCourse.pricing.xafPrice) *
                                             100
                                         )}
                                         % {t("course.off")}
@@ -419,14 +419,14 @@ export default function CourseDetailPage() {
                                                     <span className="text-3xl font-bold text-white">
                                                         {formatPrice(
                                                             course.aboutCourse.pricing.discountPrice ||
-                                                            course.aboutCourse.pricing.basePrice,
+                                                            course.aboutCourse.pricing.xafPrice,
                                                             course.aboutCourse.pricing.currency
                                                         )}
                                                     </span>
                                                     {course.aboutCourse.pricing.discountPrice && (
                                                         <span className="text-md text-gray-400 line-through">
                                                             {formatPrice(
-                                                                course.aboutCourse.pricing.basePrice,
+                                                                course.aboutCourse.pricing.xafPrice,
                                                                 course.aboutCourse.pricing.currency
                                                             )}
                                                         </span>
