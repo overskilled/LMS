@@ -22,22 +22,15 @@ const client = new Client({
     environment: Environment.Sandbox,
     logging: {
         logLevel: LogLevel.Info,
-        logRequest: {
-            logBody: true,
-        },
-        logResponse: {
-            logHeaders: true,
-        },
+        logRequest: { logBody: true },
+        logResponse: { logHeaders: true },
     },
 });
 
 const ordersController = new OrdersController(client);
 
 const captureOrder = async (orderID: string) => {
-    const collect = {
-        id: orderID,
-        prefer: "return=minimal" as const,
-    };
+    const collect = { id: orderID, prefer: "return=minimal" as const };
 
     try {
         const { body, ...httpResponse } = await ordersController.captureOrder(collect);
@@ -46,35 +39,24 @@ const captureOrder = async (orderID: string) => {
             httpStatusCode: httpResponse.statusCode,
         };
     } catch (error) {
-        if (error instanceof ApiError) {
-            throw new Error(error.message);
-        }
+        if (error instanceof ApiError) throw new Error(error.message);
         throw error;
     }
 };
 
-// ✅ Fix: Next.js expects this type for the second argument
-export async function POST(
-    request: NextRequest,
-    context: { params: { orderID: string } }
-) {
+// ✅ Important: Do NOT type the second argument!
+export async function POST(request: NextRequest, context: any) {
     try {
-        const { orderID } = context.params;
+        const { orderID } = context.params; // access dynamically
         const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
         return NextResponse.json(jsonResponse, { status: httpStatusCode });
     } catch (error) {
         console.error("Failed to capture order:", error);
 
         if (error instanceof Error) {
-            return NextResponse.json(
-                { error: error.message },
-                { status: 500 }
-            );
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json(
-            { error: "Failed to capture order." },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Failed to capture order." }, { status: 500 });
     }
 }
