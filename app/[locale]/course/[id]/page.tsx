@@ -72,6 +72,12 @@ export default function Page() {
 
     const { trackClick } = useTrackAffiliateClickClient();
 
+    const priceLabels: Record<string, string> = {
+        xafPrice: "XAF",
+        usdPrice: "USD",
+        euroPrice: "EUR",
+    };
+
     // Check if course is upcoming
     const isUpcoming = course?.aboutCourse?.isUpcoming && course?.aboutCourse?.availabilityDate && isFuture(new Date(course?.aboutCourse?.availabilityDate))
     const isEarlyAccess = isUpcoming && course?.aboutCourse?.earlyAccessEnabled
@@ -264,11 +270,11 @@ export default function Page() {
     return (
         <MainLayout>
             {/* <Head> */}
-                {/* <title>{course.aboutCourse.title}</title>
+            {/* <title>{course.aboutCourse.title}</title>
                 <meta name="description" content={course.aboutCourse.shortDescription} /> */}
 
-                {/* Open Graph / Facebook */}
-                {/* <meta property="og:type" content="website" />
+            {/* Open Graph / Facebook */}
+            {/* <meta property="og:type" content="website" />
                 <meta property="og:url" content={`https://learning.nanosatellitemissions.com/fr/course/${courseId}`} />
                 <meta property="og:title" content={course.aboutCourse.title} />
                 <meta property="og:description" content={course.aboutCourse.shortDescription} />
@@ -276,8 +282,8 @@ export default function Page() {
                 <meta property="og:image:width" content="1200" />
                 <meta property="og:image:height" content="630" /> */}
 
-                {/* Twitter */}
-                {/* <meta property="twitter:card" content="summary_large_image" />
+            {/* Twitter */}
+            {/* <meta property="twitter:card" content="summary_large_image" />
                 <meta property="twitter:url" content={`https://yourdomain.com/course/${courseId}`} />
                 <meta property="twitter:title" content={course.aboutCourse.title} />
                 <meta property="twitter:description" content={course.aboutCourse.shortDescription} />
@@ -355,10 +361,10 @@ export default function Page() {
                                     <span className="text-gray-600">
                                         {course.enrollmentCount || 0} {t("course.alreadyEnrolled")}
                                     </span>
-                                    <span className="text-gray-600">
+                                    {/* <span className="text-gray-600">
                                         {(course?.aboutCourse?.metrics?.targetRevenue || 0).toLocaleString()}{" "}
                                         {course.aboutCourse.pricing.currency} {t("course.revenue")}
-                                    </span>
+                                    </span> */}
                                 </div>
                             ) : (
                                 <></>
@@ -454,21 +460,23 @@ export default function Page() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="text-3xl font-bold text-white">
-                                                        {formatPrice(
-                                                            course.aboutCourse.pricing.discountPrice ||
-                                                            course.aboutCourse.pricing.xafPrice,
-                                                            course.aboutCourse.pricing.currency
-                                                        )}
+                                                    <span className="text-2xl font-bold text-white flex gap-4">
+                                                        {Object.entries(course.aboutCourse.pricing)
+                                                            .filter(([key]) => key in priceLabels) // only keep xafPrice, usdPrice, euroPrice
+                                                            .map(([key, value]) => (
+                                                                <span key={key}>
+                                                                    {formatPrice(value as number, priceLabels[key])}
+                                                                </span>
+                                                            ))}
                                                     </span>
-                                                    {course.aboutCourse.pricing.discountPrice && (
+                                                    {/* {course.aboutCourse.pricing.discountPrice && (
                                                         <span className="text-md text-gray-400 line-through">
                                                             {formatPrice(
                                                                 course.aboutCourse.pricing.xafPrice,
                                                                 course.aboutCourse.pricing.currency
                                                             )}
                                                         </span>
-                                                    )}
+                                                    )} */}
                                                 </>
                                             )}
                                         </div>

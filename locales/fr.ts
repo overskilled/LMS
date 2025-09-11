@@ -26,6 +26,10 @@ export default {
         "cancelButton": "Annuler"
     },
     "course": {
+        "allCourses": "All Courses",
+        "masterclasses": "Masterclasses",
+        "partnerCourses": "Partner Courses",
+        "noFilteredCourses": "No {type} available",
         "earlyAccessPrice": "Prix Accès Anticipé",
         "level": "Niveau",
         "duration": "Durée",

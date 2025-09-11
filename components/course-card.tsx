@@ -13,9 +13,11 @@ import { useI18n } from "@/locales/client"
 interface CourseCardProps {
     course: CourseData
     idx: number
+    courseType?: string
+    courseTypeDisplay?: string
 }
 
-export function CourseCard({ course, idx }: CourseCardProps) {
+export function CourseCard({ course, idx, courseType, courseTypeDisplay }: CourseCardProps) {
     const ref = useRef(null)
     const isInView = useInView(ref, {
         once: true,
@@ -35,6 +37,19 @@ export function CourseCard({ course, idx }: CourseCardProps) {
         }).format(price)
     }
 
+    // Get badge styling based on course type
+    const getTypeBadgeStyle = () => {
+        switch (courseType) {
+            case "masterclass":
+                return "bg-purple-100 text-purple-800 border-purple-200";
+            case "partner":
+                return "bg-green-100 text-green-800 border-green-200";
+            case "course":
+            default:
+                return "bg-blue-100 text-blue-800 border-blue-200";
+        }
+    }
+
     return (
         <motion.div
             ref={ref}
@@ -52,16 +67,24 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                         alt={course.aboutCourse.title}
                         className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    {course.aboutCourse?.pricing?.xafPrice === 0 && (
-                        <Badge className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
-                            {t('course.free')}
+                    <div className="absolute top-3 left-3 flex flex-col gap-2">
+                        {/* Course Type Badge */}
+                        <Badge className={`${getTypeBadgeStyle()} px-2 py-1 rounded-md text-xs font-semibold border`}>
+                            {courseTypeDisplay}
                         </Badge>
-                    )}
+
+                        {/* Free Badge */}
+                        {course.aboutCourse?.pricing?.xafPrice === 0 && (
+                            <Badge className="bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+                                {t('course.free')}
+                            </Badge>
+                        )}
+                    </div>
                 </div>
 
                 <div className="p-4 flex-grow flex flex-col">
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-600 mb-2 w-fit capitalize">
-                        {course.courseDetails.difficulty || course.courseDetails.courseLevel}
+                    <Badge variant="secondary" className="bg-gray-100 text-gray-600 mb-2 w-fit capitalize">
+                        {course.courseDetails.courseLevel}
                     </Badge>
                     <h3 className="text-lg font-semibold hover:underline hover:text-blue-400 text-gray-900 mb-2 line-clamp-2">
                         {course.aboutCourse.title}
@@ -69,7 +92,6 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                     <div className="space-y-4 text-gray-400 text-sm mb-2 font-meduim leading-relaxed whitespace-pre-line break-words">
                         {truncate(course.aboutCourse.shortDescription, 90)}
                     </div>
-                    {/* <p className="text-sm text-gray-600 mb-3">By {course.instructor?.name || "Unknown Instructor"}</p> */}
 
                     <div className="mt-auto flex flex-col gap-2">
                         {/* Prices */}
@@ -98,10 +120,7 @@ export function CourseCard({ course, idx }: CourseCardProps) {
                             </>
                         )}
                     </div>
-
-
                 </div>
-
             </Link>
             <motion.div
                 initial={{ opacity: 0, x: 10 }}

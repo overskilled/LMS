@@ -1,11 +1,14 @@
 import CourseListing from '@/components/course-list'
 import React from 'react'
+import MainLayout from '../main-layout'
+import PublishedCourseListing from '@/components/published-courses'
 
 const page = () => {
     return (
-        <div>
-            <CourseListing />
-        </div>
+        <MainLayout>
+            {/* <CourseListing /> */}
+            <PublishedCourseListing />
+        </MainLayout>
     )
 }
 

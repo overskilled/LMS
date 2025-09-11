@@ -12,12 +12,10 @@ export default function PublishedCourseListing() {
     const [courses, setCourses] = useState<CourseData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [filter, setFilter] = useState<string>("all"); // "all", "masterclass", "course", "partner"
 
-    const t = useI18n()
-
-    const { user } = useAuth()
-
-    console.log("Logged In user: ", user)
+    const t = useI18n();
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -44,6 +42,39 @@ export default function PublishedCourseListing() {
         fetchCourses();
     }, []);
 
+    // Helper function to get display text for course type
+    const getCourseTypeDisplay = (courseType: string | undefined) => {
+        switch (courseType) {
+            case "masterclass":
+                return "NMD Masterclass";
+            case "partner":
+                return "NMD Partner Course";
+            case "course":
+            default:
+                return "NMD Course";
+        }
+    };
+
+    // Group courses by type
+    const groupedCourses = {
+        masterclass: courses.filter(course => {
+            const courseType = course.courseDetails?.courseType || "course";
+            return courseType === "masterclass";
+        }),
+        course: courses.filter(course => {
+            const courseType = course.courseDetails?.courseType || "course";
+            return courseType === "course";
+        }),
+        partner: courses.filter(course => {
+            const courseType = course.courseDetails?.courseType || "course";
+            return courseType === "partner";
+        })
+    };
+
+    // Filter courses based on selected filter
+    const filteredCourses = filter === "all"
+        ? courses
+        : groupedCourses[filter as keyof typeof groupedCourses];
 
     if (loading) {
         return (
@@ -98,17 +129,143 @@ export default function PublishedCourseListing() {
                         {t("course.courses")}
                         <span className="absolute left-0 right-0 bottom-0 h-1 bg-yellow-400 rounded-full -mb-2" />
                     </h2>
+
+                    {/* Filter buttons */}
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            variant={filter === "all" ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setFilter("all")}
+                        >
+                            {t("course.allCourses")}
+                        </Button>
+                        <Button
+                            variant={filter === "masterclass" ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setFilter("masterclass")}
+                        >
+                            {t("course.masterclasses")}
+                        </Button>
+                        <Button
+                            variant={filter === "course" ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setFilter("course")}
+                        >
+                            {t("course.courses")}
+                        </Button>
+                        <Button
+                            variant={filter === "partner" ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setFilter("partner")}
+                        >
+                            {t("course.partnerCourses")}
+                        </Button>
+                    </div>
                 </div>
 
-                {courses.length === 0 ? (
+                {filteredCourses.length === 0 ? (
                     <div className="text-center py-16 sm:py-20">
-                        <p className="text-gray-500">{t('course.noCourses')}</p>
+                        <p className="text-gray-500">
+                            {filter === "all"
+                                ? t('course.noCourses')
+                                : t('course.noFilteredCourses', { type: getCourseTypeDisplay(filter) })
+                            }
+                        </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                        {courses.map((course, idx) => (
-                            <CourseCard key={course.id} course={course} idx={idx} />
-                        ))}
+                    <div className="space-y-12">
+                        {/* Show all courses grouped by type when filter is "all" */}
+                        {filter === "all" ? (
+                            <>
+                                {/* Masterclass Section */}
+                                {groupedCourses.masterclass.length > 0 && (
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold relative inline-block">
+                                            {getCourseTypeDisplay("masterclass")}
+                                            <span className="absolute left-0 right-0 bottom-0 h-1 bg-purple-400 rounded-full -mb-1" />
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                            {groupedCourses.masterclass.map((course, idx) => {
+                                                const courseType = course.courseDetails?.courseType || "course";
+                                                return (
+                                                    <CourseCard
+                                                        key={course.id}
+                                                        course={course}
+                                                        idx={idx}
+                                                        courseType={courseType as any}
+                                                        courseTypeDisplay={getCourseTypeDisplay(courseType)}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Course Section */}
+                                {groupedCourses.course.length > 0 && (
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold relative inline-block">
+                                            {getCourseTypeDisplay("course")}
+                                            <span className="absolute left-0 right-0 bottom-0 h-1 bg-blue-400 rounded-full -mb-1" />
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                            {groupedCourses.course.map((course, idx) => {
+                                                const courseType = course.courseDetails?.courseType || "course";
+                                                return (
+                                                    <CourseCard
+                                                        key={course.id}
+                                                        course={course}
+                                                        idx={idx}
+                                                        courseType={courseType}
+                                                        courseTypeDisplay={getCourseTypeDisplay(courseType)}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Partner Course Section */}
+                                {groupedCourses.partner.length > 0 && (
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold relative inline-block">
+                                            {getCourseTypeDisplay("partner")}
+                                            <span className="absolute left-0 right-0 bottom-0 h-1 bg-green-400 rounded-full -mb-1" />
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                            {groupedCourses.partner.map((course, idx) => {
+                                                const courseType = course.courseDetails?.courseType || "course";
+                                                return (
+                                                    <CourseCard
+                                                        key={course.id}
+                                                        course={course}
+                                                        idx={idx}
+                                                        courseType={courseType}
+                                                        courseTypeDisplay={getCourseTypeDisplay(courseType)}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            /* Show only filtered courses when a specific filter is selected */
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                {filteredCourses.map((course, idx) => {
+                                    const courseType = course.courseDetails?.courseType || "course";
+                                    return (
+                                        <CourseCard
+                                            key={course.id}
+                                            course={course}
+                                            idx={idx}
+                                            courseType={courseType}
+                                            courseTypeDisplay={getCourseTypeDisplay(courseType)}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
