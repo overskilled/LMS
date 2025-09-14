@@ -210,7 +210,7 @@ export default function AdminLoginForm() {
                             </Label>
                         </div>
                         <Link
-                            href="#"
+                            href="/reset"
                             className="text-sm font-medium text-blue-600 hover:underline"
                         >
                             Forgot Password?
