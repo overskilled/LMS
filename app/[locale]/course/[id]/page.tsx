@@ -77,6 +77,11 @@ export default function Page() {
         usdPrice: "USD",
         euroPrice: "EUR",
     };
+    
+    const earlyPriceLabels: Record<string, string> = {
+        usdPrice: "USD",
+        euroPrice: "EUR",
+    };
 
     // Check if course is upcoming
     const isUpcoming = course?.aboutCourse?.isUpcoming && course?.aboutCourse?.availabilityDate && isFuture(new Date(course?.aboutCourse?.availabilityDate))
@@ -450,19 +455,27 @@ export default function Page() {
                                         <div className="flex items-baseline gap-2">
                                             {isEarlyAccess && course?.aboutCourse?.earlyAccessPrice ? (
                                                 <>
-                                                    <span className="text-3xl font-bold text-white">
+                                                    <span className="text-2xl font-bold flex text-white gap-2">
                                                         {formatPrice(
                                                             course?.aboutCourse?.earlyAccessPrice!,
                                                             course.aboutCourse.pricing.currency
                                                         )}
+                                                        {Object.entries(course.aboutCourse.pricing)
+                                                            .filter(([key]) => key in earlyPriceLabels) 
+                                                            .map(([key, value]) => (
+                                                                <span key={key}>
+                                                                    {formatPrice(value as number, earlyPriceLabels[key])}
+                                                                </span>
+                                                            ))}
                                                     </span>
-                                                    <span className="text-sm text-gray-300">{t("course.earlyAccessPrice")}</span>
+
+                                                    <span className="text-xs text-gray-300">{t("course.earlyAccessPrice")}</span>
                                                 </>
                                             ) : (
                                                 <>
                                                     <span className="text-2xl font-bold text-white flex gap-4">
                                                         {Object.entries(course.aboutCourse.pricing)
-                                                            .filter(([key]) => key in priceLabels) // only keep xafPrice, usdPrice, euroPrice
+                                                            .filter(([key]) => key in priceLabels) 
                                                             .map(([key, value]) => (
                                                                 <span key={key}>
                                                                     {formatPrice(value as number, priceLabels[key])}
