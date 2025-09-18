@@ -35,6 +35,8 @@ const getAllCourseData = (): any => ({
     aboutCourse: getLocalStorageItem(LOCAL_STORAGE_KEYS.ABOUT_COURSE, {}),
     quiz: getLocalStorageItem(LOCAL_STORAGE_KEYS.QUIZ_DATA, { questions: [] }),
     publishSettings: getLocalStorageItem(LOCAL_STORAGE_KEYS.PUBLISH_SETTINGS, {}),
+    revenue: 0,
+    enrollmentCount: Math.floor(Math.random() * 10) + 3
 })
 
 export default function CompleteCourseCreator() {

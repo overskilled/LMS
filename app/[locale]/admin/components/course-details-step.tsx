@@ -618,7 +618,7 @@ export const CourseDetailsStep = forwardRef<StepRef, CourseDetailsStepProps>(
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Satallite Engineering">Satellite Engineering</SelectItem>
+                                        <SelectItem value="Satellite Engineering">Satellite Engineering</SelectItem>
                                         <SelectItem value="Geomatics">Geomatics</SelectItem>
                                         <SelectItem value="Artificial intelligence">Artificial Intelligence</SelectItem>
                                         <SelectItem value="Mission Operations">Mission Operations</SelectItem>

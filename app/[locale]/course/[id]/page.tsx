@@ -372,18 +372,17 @@ export default function Page() {
                                     </span> */}
                                 </div>
                             ) : (
-                                <></>
-                                // <div className="flex items-center gap-4 text-gray-600 text-lg">
-                                //     <span className="font-bold">4.8 / 5</span>
-                                //     <div className="flex items-center gap-1 text-yellow-400">
-                                //         {[...Array(5)].map((_, i) => (
-                                //             <Star key={i} className={`h-5 w-5 ${i < 4 ? "fill-current" : ""}`} />
-                                //         ))}
-                                //     </div>
-                                //     <span>
-                                //         ({course.enrollmentCount || 0} {t("course.students")})
-                                //     </span>
-                                // </div>
+                                <div className="flex items-center gap-4 text-gray-600 text-lg">
+                                    {/* <span className="font-bold">4.8 / 5</span>
+                                    <div className="flex items-center gap-1 text-yellow-400">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} className={`h-5 w-5 ${i < 4 ? "fill-current" : ""}`} />
+                                        ))}
+                                    </div> */}
+                                    <span>
+                                        ({course.enrollmentCount || 0} {t("course.students")})
+                                    </span>
+                                </div>
                             )}
                         </div>
 
