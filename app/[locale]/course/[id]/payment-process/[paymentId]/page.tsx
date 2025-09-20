@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { doc, updateDoc } from "firebase/firestore"
+import { collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore"
 import Link from "next/link"
 import {
     CheckCircle,
@@ -55,41 +55,85 @@ export default function PaymentProcessingPage() {
     const [progress, setProgress] = useState(0)
     const [pollingCount, setPollingCount] = useState(0)
 
-    const {user} = useAuth()
+    const { user } = useAuth()
     const [loading, setLoading] = useState<boolean>(false)
     const { recordConversion } = useRecordAffiliateConversion();
-
     const handleSubscribe = async () => {
         try {
-            setLoading(true)
+            setLoading(true);
+
             if (!user) {
-                toast.error("User not authenticated!")
-                return
+                toast.error("User not authenticated!");
+                return;
             }
 
-            console.log(user)
-
-            await courseApi.purchaseCourse(user.uid, courseId)
-
-            console.log("courseid in process: ", courseId)
-
-            const refCode = searchParams.get("ref");
-
-            if (refCode !== null) {
-                recordConversion(refCode, courseId,  Number((transaction.depositedAmount) - 4000));
-            }
-
+            console.log("Authenticated user:", user);
             
+            
+            console.log("Course ID in process:", courseId);
 
-            toast.success("Subscription activated successfully!")
-            router.push(`/course/${courseId}`)
+            // Fetch course details
+            const courseSnap = await getDoc(doc(db, "courses", courseId));
+            const course = courseSnap.data();
+
+            // Fetch transaction record using depositId
+            const txQuery = query(
+                collection(db, "transactions"),
+                where("depositId", "==", transaction?.depositId)
+            );
+            const txSnap = await getDocs(txQuery);
+            
+            if (txSnap.empty) {
+                throw new Error("Transaction not found for this depositId");
+            }
+            
+            const txData = txSnap.docs[0].data();
+            const txID = txSnap.docs[0].id;
+            
+            // Purchase the course
+            await courseApi.purchaseCourse(user.uid, courseId, txID);
+
+
+            // Record conversion if refCode exists
+            const refCode = searchParams.get("ref");
+            if (refCode !== null && course) {
+                const amount = Number(txData.amount) - 4000;
+                recordConversion(refCode, courseId, amount);
+            }
+
+            toast.success("Subscription activated successfully!");
+
+            // Send invoice email with clean data
+            await fetch("/en/api/send-invoice", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user: {
+                        name: user.name,
+                        email: user.email,
+                    },
+                    course: {
+                        title: course?.aboutCourse.title,
+                        amount: course?.aboutCourse.pricing.xafPrice,
+                        currency: "FCFA",
+                    },
+                    transaction: {
+                        id: txID,
+                        amount: txData.amount,
+                        date: txData.createdAt || new Date().toISOString(),
+                    },
+                }),
+            });
+
+            router.push(`/course/${courseId}`);
         } catch (error) {
-            console.error("Error subscribing:", error)
-            toast.error("Failed to activate subscription. Please try again.")
+            console.error("Error subscribing:", error);
+            toast.error("Failed to activate subscription. Please try again.");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
+
 
     const handleManualRefresh = async () => {
         if (status !== "SUBMITTED") return
@@ -120,7 +164,7 @@ export default function PaymentProcessingPage() {
 
         const fetchStatus = async () => {
             try {
-                const res = await fetch(`/api/check-deposit-status?id=${depositId}`)
+                const res = await fetch(`/en/api/check-deposit-status?id=${depositId}`)
                 const data = await res.json()
 
                 if (res.ok && Array.isArray(data) && data.length > 0) {

@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid"
 import { Check, Loader2, Shield } from "lucide-react"
 import { initializeApp } from "firebase/app"
 import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { useAuth } from "@/context/authContext"
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -38,6 +39,8 @@ export default function CoursePayment() {
     const [error, setError] = useState<string | null>(null)
     const [course, setCourse] = useState<any>(null)
     const router = useRouter()
+
+    const { user } = useAuth()
 
     const searchParams = useSearchParams();
 
@@ -89,6 +92,9 @@ export default function CoursePayment() {
                 currency: "XAF",
                 paymentMethod: selectedMobileMethod === "mtn" ? "MTN Mobile Money" : "Orange Money",
                 phoneNumber: `+237${phoneNumber}`,
+                userEmail: user?.email || "",
+                userId: user?.uid,
+                userName: user?.name, 
                 status,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
@@ -134,8 +140,8 @@ export default function CoursePayment() {
                     },
                     body: JSON.stringify({
                          depositId,
-                        // amount: 10,
-                        amount: course.aboutCourse.pricing.xafPrice.toString(),
+                        amount: "10",
+                        // amount: course.aboutCourse.pricing.xafPrice.toString(),
                         currency: "XAF",
                         correspondent: selectedMobileMethod === "mtn" ? "MTN_MOMO_CMR" : "ORANGE_CMR",
                         payer: { address: { value: `237${phoneNumber}` }, type: "MSISDN" },
@@ -145,7 +151,8 @@ export default function CoursePayment() {
                         preAuthorisationCode: "PMxQYqfDx",
                         metadata: [
                             { fieldName: "courseId", fieldValue: courseId },
-                            { fieldName: "customerId", fieldValue: "customer@email.com", isPII: true },
+                            { fieldName: "customerId", fieldValue: user?.uid, isPII: true },
+                            { fieldName: "customerEmail", fieldValue: user?.email, isPII: true },
                         ],
                     }),
                 });

@@ -9,6 +9,7 @@ import {
     getDoc,
     arrayUnion,
     Timestamp,
+    increment,
 } from "firebase/firestore";
 import type { CourseData } from "../types/course";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -43,7 +44,7 @@ export const courseApi = {
             if (validationErrors.length > 0) {
                 return {
                     success: false,
-                    message: "Course validation failed", 
+                    message: "Course validation failed",
                     errors: validationErrors,
                 };
             }
@@ -86,17 +87,37 @@ export const courseApi = {
 
     // Save purchased course 
 
-    purchaseCourse: async (userId: string, courseId: string): Promise<ApiResponse<any>> => {
+    purchaseCourse: async (userId: string, courseId: string, transactionId?: string): Promise<ApiResponse<any>> => {
         try {
             const userRef = doc(db, "users", userId);
+            const courseRef = doc(db, "courses", courseId);
+            
+            // 1. Increment enrollment count
+            await updateDoc(courseRef, {
+                enrollmentCount: increment(1),
+            });
+            
+            if (transactionId){
 
-            // console.log("User in process: ", userId)
-            // console.log("courseid in process: ", courseId)
+                const transactionRef = doc(db, "transactions", transactionId);
+                // 2. Mark transaction as completed
+                await updateDoc(transactionRef, {
+                    status: "completed",
+                    completedAt: new Date(),
+                });
+            }
 
-            // This will create the courses array if it doesn't exist yet
-            await setDoc(userRef, {
-                courses: arrayUnion(courseId),
-            }, { merge: true });
+            // 3. Add course to user (creates courses array if not exist)
+            await setDoc(
+                userRef,
+                {
+                    courses: arrayUnion(courseId),
+                },
+                { merge: true }
+            );
+
+
+            // send validation email with invoice attached
 
             return {
                 success: true,
@@ -110,7 +131,7 @@ export const courseApi = {
                 message: "Failed to purchase course",
                 errors: ["FIRESTORE_ERROR"],
             };
-        }
+        } 
     },
 
     // Add this to your courseApi object

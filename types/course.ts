@@ -8,6 +8,7 @@ export interface CourseData {
     status: "draft" | "published" | "archived" | string
     revenue: number
     enrollmentCount: number
+    redeemCodes?: any
     createdAt: number | string
     updatedAt: number | string
     publishedAt?: {
