@@ -24,9 +24,9 @@ export type WhatsAppFloatingProps = {
 };
 
 export default function WhatsAppFloating({
-    href = "https://chat.whatsapp.com/FEeas0ZegOIGLHxnRqXo04",
+    href = "https://chat.whatsapp.com/J4Stb4yqfnmLPT7TgDAgJa",
     label,
-    communityName = "JFN TECHNOVERS",
+    communityName = "Nanosatellite Missions Design Ltd",
 }: WhatsAppFloatingProps) {
     const [open, setOpen] = useState(false);
     const t = useI18n();

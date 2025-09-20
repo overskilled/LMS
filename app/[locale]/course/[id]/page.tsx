@@ -959,9 +959,9 @@ export default function Page() {
 
                 {/* Floating scroll to top button */}
                 <WhatsAppFloating
-                    href="https://chat.whatsapp.com/JuiXcG9AqDKCwNpqPnopBw"
+                    href="https://chat.whatsapp.com/JInHyERsWK37QHnPQztDBo"
                     label="Join Whatsapp Community"
-                    communityName="INTELLIGENCE ARTIFICIELLE"
+                    communityName="SATELLITES AND SPACE MISSIONS"
                 />
             </div >
         </MainLayout >
