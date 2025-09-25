@@ -94,14 +94,14 @@ export default function CoursePayment() {
                 phoneNumber: `+237${phoneNumber}`,
                 userEmail: user?.email || "",
                 userId: user?.uid,
-                userName: user?.name, 
+                userName: user?.name,
                 status,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 ref: searchParams.get("ref") || null,
                 metadata: {
                     platform: "web",
-                    attemptCount: 3 
+                    attemptCount: 3
                 }
             };
 
@@ -139,9 +139,8 @@ export default function CoursePayment() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                         depositId,
-                        amount: "10",
-                        // amount: course.aboutCourse.pricing.xafPrice.toString(),
+                        depositId,
+                        amount: course.aboutCourse.pricing.xafPrice.toString(),
                         currency: "XAF",
                         correspondent: selectedMobileMethod === "mtn" ? "MTN_MOMO_CMR" : "ORANGE_CMR",
                         payer: { address: { value: `237${phoneNumber}` }, type: "MSISDN" },
