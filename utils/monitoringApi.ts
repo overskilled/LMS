@@ -37,7 +37,7 @@ export interface CoursePerformance {
     id: string;
     title: string;
     enrollments: number;
-    revenue: number;
+    revenue?: number;
     completion: number;
     target: number;
     affiliatePercentage: number;
@@ -73,7 +73,7 @@ export interface UserDistribution {
 // Recent activity data
 export interface RecentActivity {
     id: string;
-    type: "course" | "enrollment" | "affiliate" | "completion";
+    type: "course" | "enrollment" | "affiliate" | "completion" | "sales";
     title: string;
     timestamp: Date;
     userId?: string;
@@ -85,33 +85,39 @@ export const dashboardApi = {
     // Get summary metrics for dashboard
     getSummaryMetrics: async (): Promise<ApiResponse<DashboardSummary>> => {
         try {
-            const [coursesSnapshot, usersSnapshot, affiliatesSnapshot] = await Promise.all([
+            const [coursesSnapshot, usersSnapshot, affiliatesSnapshot, transactionsSnapshot] = await Promise.all([
                 getDocs(collection(db, "courses")),
                 getDocs(collection(db, "users")),
                 getDocs(collection(db, "affiliates")),
+                getDocs(collection(db, "transactions")),
             ]);
 
-            // Calculate total revenue and affiliate revenue
+            // Initialize totals
             let totalRevenue = 0;
+            let enrollments = 0;
             let affiliateRevenue = 0;
-            coursesSnapshot.forEach((doc) => {
-                const courseData = doc.data();
-                totalRevenue += courseData.revenue || 0;
+
+            // Step 1: Calculate totals from completed transactions
+            transactionsSnapshot.forEach((doc) => {
+                const tx = doc.data();
+                const amount = tx.amount || 0;
+                const status = tx.status;
+
+                if (status === "completed") {
+                    totalRevenue += amount;   // ✅ add only completed revenue
+                    enrollments += 1;         // ✅ count only completed enrollments
+                }
             });
+
+
+
 
             affiliatesSnapshot.forEach((doc) => {
                 const affiliateData = doc.data();
                 affiliateRevenue += affiliateData.totalEarnings || 0;
             });
 
-            // Count enrollments
-            let enrollments = 0;
-            usersSnapshot.forEach((doc) => {
-                const userData = doc.data();
-                if (userData.courses && Array.isArray(userData.courses)) {
-                    enrollments += userData.courses.length;
-                }
-            });
+
 
             // Calculate conversion rate from affiliates
             let totalClicks = 0;
@@ -150,29 +156,75 @@ export const dashboardApi = {
     // Get course performance data
     getCoursePerformance: async (limitCount = 5): Promise<ApiResponse<CoursePerformance[]>> => {
         try {
-            const q = query(
-                collection(db, "courses"),
-                orderBy("enrollmentCount", "desc"),
-                limit(limitCount)
-            );
 
-            const querySnapshot = await getDocs(q);
+
+            const [coursesSnapshot, transactionsSnapshot] = await Promise.all([
+                getDocs(query(collection(db, "courses"), orderBy("publishedAt", "desc"))),
+                getDocs(query(collection(db, "transactions"), orderBy("updatedAt", "desc"))),
+            ]);
+
+
+            // Use a dictionary (map) for revenues
+            const revenueByCourse: Record<string, number> = {};
+
+            // Collect transactions revenue grouped by courseId
+            transactionsSnapshot.forEach((doc: any) => {
+                const data = doc.data();
+                const courseId = data.courseId; // adjust if the field differs
+                const amount = data.amount || 0;
+                const status = data.status;
+
+                // Only accumulate completed transactions
+                if (!courseId || status !== "completed") return;
+
+
+
+                if (!revenueByCourse[courseId]) {
+                    revenueByCourse[courseId] = 0;
+                }
+                revenueByCourse[courseId] += amount;
+            });
+
+            const statsByCourse: Record<string, { revenue: number; enrollments: number }> = {};
+
+            // Step 1: Aggregate from completed transactions
+            transactionsSnapshot.forEach((doc: any) => {
+                const data = doc.data();
+                const courseId = data.courseId; // adjust if field differs
+                const amount = data.amount || 0;
+                const status = data.status;
+
+                if (!courseId || status !== "completed") return;
+
+                if (!statsByCourse[courseId]) {
+                    statsByCourse[courseId] = { revenue: 0, enrollments: 0 };
+                }
+
+                statsByCourse[courseId].revenue += amount;
+                statsByCourse[courseId].enrollments += 1; // each completed transaction = 1 enrollment
+            });
+
+
+            // Build CoursePerformance[] array
             const courses: CoursePerformance[] = [];
 
-            querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+            coursesSnapshot.forEach((doc: any) => {
                 const data = doc.data();
+                const courseId = doc.id;
+
                 courses.push({
-                    id: doc.id,
-                    title: data.title || "Untitled Course",
-                    enrollments: data.enrollmentCount || 0,
-                    revenue: data.revenue || 0,
+                    id: courseId,
+                    title: data.aboutCourse?.title || "Untitled Course",
+                    enrollments: statsByCourse[courseId]?.enrollments || 0,
+                    revenue: revenueByCourse[courseId] || 0,
                     completion: calculateCompletionRate(data),
-                    target: data.metrics?.targetRevenue || 0,
+                    target: data.aboutCourse?.metrics?.targetRevenue || 0,
                     affiliatePercentage: calculateAffiliatePercentage(data),
                     thumbnailUrl: data.thumbnailImage?.downloadURL,
                     createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
                 });
             });
+
 
             return {
                 success: true,
@@ -192,14 +244,44 @@ export const dashboardApi = {
     // Get enrollment trends
     getEnrollmentTrends: async (months = 6): Promise<ApiResponse<EnrollmentTrend[]>> => {
         try {
-            const trends: EnrollmentTrend[] = [
-                { month: "Jan", enrollments: 145 },
-                { month: "Feb", enrollments: 178 },
-                { month: "Mar", enrollments: 234 },
-                { month: "Apr", enrollments: 198 },
-                { month: "May", enrollments: 267 },
-                { month: "Jun", enrollments: 312 },
-            ].slice(0, months);
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+            const trends: EnrollmentTrend[] = []
+
+            const [transactionsSnapShot] = await Promise.all([
+                // getDocs(query(collection(db, "courses"), orderBy("publishedAt", "desc"))),
+                // getDocs(query(collection(db, "affiliates"), orderBy("updatedAt", "desc"))),
+                getDocs(query(collection(db, "transactions"), orderBy("updatedAt", "desc"))),
+            ])
+
+            // Create a map { monthIndex: count }
+            const monthlyCounts: Record<number, number> = {}
+
+            transactionsSnapShot.forEach((doc) => {
+                const data = doc.data()
+
+                if (data.status === "completed" && data.updatedAt) {
+                    const ts = data.updatedAt.toDate() as Date
+                    const monthIndex = ts.getMonth()
+
+                    monthlyCounts[monthIndex] = (monthlyCounts[monthIndex] || 0) + 1
+                }
+            })
+
+            // Convert map → trends array
+            Object.entries(monthlyCounts).forEach(([monthIndex, count]) => {
+                const idx = parseInt(monthIndex, 10)
+                const data = new Date()
+
+                trends.push({
+                    month: monthNames[idx],
+                    enrollments: count
+                })
+            })
+
+
+
+
 
             return {
                 success: true,
@@ -305,9 +387,10 @@ export const dashboardApi = {
     // Get recent activities
     getRecentActivities: async (limitCount = 10): Promise<ApiResponse<RecentActivity[]>> => {
         try {
-            const [coursesSnapshot, affiliatesSnapshot] = await Promise.all([
+            const [coursesSnapshot, affiliatesSnapshot, transactionsSnapShot] = await Promise.all([
                 getDocs(query(collection(db, "courses"), orderBy("publishedAt", "desc"), limit(Math.floor(limitCount / 2)))),
                 getDocs(query(collection(db, "affiliates"), orderBy("updatedAt", "desc"), limit(Math.floor(limitCount / 2)))),
+                getDocs(query(collection(db, "transactions"), orderBy("updatedAt", "desc"), limit(Math.floor(limitCount / 2)))),
             ]);
 
 
@@ -319,7 +402,7 @@ export const dashboardApi = {
                 activities.push({
                     id: doc.id,
                     type: "course",
-                    title: `New course published: ${data.title}`,
+                    title: `New course published: ${data.aboutCourse.title}`,
                     timestamp: data.publishedAt?.toDate?.() || new Date(data.publishedAt),
                     courseId: doc.id,
                 });
@@ -337,6 +420,17 @@ export const dashboardApi = {
                     userId: data.userId,
                 });
             });
+
+            // transaction activity
+            transactionsSnapShot.forEach((doc) => {
+                const data = doc.data()
+                activities.push({
+                    id: doc.id,
+                    type: "sales",
+                    title: `Sales alert: ${data.userName} made a purchase request for the course ${data.courseTitle} of ${data.amount} with number ${data.phoneNumber} and it ended up being ${data.status}`,
+                    timestamp: data.updatedAt?.toDate?.() || new Date(data.updatedAt)
+                })
+            })
 
             // Sort by timestamp
             activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());

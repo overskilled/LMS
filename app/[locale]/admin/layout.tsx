@@ -14,17 +14,23 @@ export default function AdminLayout({
     children: React.ReactNode;
 }>) {
     const router = useRouter();
-    const { user } = useAuth()
+    const [isAuthorized, setIsAuthorized] = useState(false);
+    const { user } = useAuth();
 
-    // useEffect(() => {
-      
-    //     // if (!userData.admin) {
-    //     //     router.push('/admin/login');
-    //     // } else {
-    //     //     setIsAuthorized(true);
-    //     // }
-    // }, [router]);
+    useEffect(() => {
+        if (user === undefined) return; // still loading auth state
 
+        if (!user || !user.admin) {
+            router.push("/admin/login");
+        } else {
+            setIsAuthorized(true);
+        }
+    }, [user, router]);
+
+    
+    if (!isAuthorized) {
+        return <Loading />;
+    }
 
 
 

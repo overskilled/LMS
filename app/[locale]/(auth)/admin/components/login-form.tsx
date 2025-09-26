@@ -77,7 +77,7 @@ export default function AdminLoginForm() {
             localStorage.setItem("user-info", JSON.stringify(docSnap.data()));
             console.log("finished with data: ", JSON.stringify(docSnap.data()))
             toast.success("Logging successful, welcome back!")
-            router.push("/admin")
+            router.push("/admin/monitoring")
 
         } catch (error: any) {
             let message = "An unexpected error occurred.";

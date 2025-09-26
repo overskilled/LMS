@@ -49,7 +49,7 @@ const sidebarData = () => [
     {
         title: "Dashboard",
         icon: LayoutDashboard,
-        href: "/admin",
+        href: "/admin/monitoring",
     },
     {
         title: "Courses",

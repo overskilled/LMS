@@ -90,7 +90,10 @@ export function LMSDashboard() {
                     dashboardApi.getUserDistribution(),
                     dashboardApi.getRecentActivities(),
                 ])
-
+                console.log("Fetched activities data", activitiesResponse.data)
+                console.log("Fetched summary data", summaryResponse.data)
+                console.log("Fetched trends data", trendsResponse.data)
+                console.log("Fetched course performance data", coursesResponse.data)
                 if (summaryResponse.data) setSummaryMetrics(summaryResponse.data)
                 if (coursesResponse.data) setCoursePerformance(coursesResponse.data)
                 if (trendsResponse.data) setEnrollmentTrends(trendsResponse.data)
@@ -151,7 +154,7 @@ export function LMSDashboard() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Super Admin Dashboard</h1>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Monitoring</h1>
                         <p className="text-slate-600 dark:text-slate-400 mt-1">
                             Monitor courses, affiliates, and user engagement
                         </p>
@@ -312,7 +315,7 @@ export function LMSDashboard() {
                                                 </div>
                                             </div>
                                             <Badge variant={course.completion >= 85 ? "default" : "secondary"}>
-                                                {course.completion}% complete
+                                                {(course.revenue!/course.target)}% objective reach
                                             </Badge>
                                         </div>
 
@@ -320,18 +323,18 @@ export function LMSDashboard() {
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm font-medium">Revenue Progress</span>
                                                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                    ${course.revenue.toLocaleString()} / ${course.target.toLocaleString()}
+                                                    {course?.revenue!.toLocaleString()} / {course.target.toLocaleString()} FCFA
                                                 </span>
                                             </div>
-                                            <Progress value={(course.revenue / course.target) * 100} className="h-2" />
+                                            <Progress value={(course?.revenue! / course.target) * 100} className="h-2" />
 
-                                            <div className="flex justify-between items-center pt-2">
+                                            {/* <div className="flex justify-between items-center pt-2">
                                                 <div className="flex items-center gap-1 text-sm">
                                                     <Target className="w-4 h-4 text-orange-500" />
                                                     <span>{course.affiliatePercentage}% affiliate</span>
                                                 </div>
                                                 <ChevronRight className="w-4 h-4 text-slate-400" />
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -515,14 +518,15 @@ export function LMSDashboard() {
                                     <Activity className="w-5 h-5 text-blue-600" />
                                     Recent Activity Feed
                                 </CardTitle>
-                                <CardDescription>Latest updates across your LMS platform</CardDescription>
+                                <CardDescription>Latest updates across the platform</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
                                     {recentActivities.map((activity, index) => {
                                         const Icon = activity.type === "course" ? BookOpen :
                                             activity.type === "enrollment" ? Users :
-                                                activity.type === "affiliate" ? DollarSign : Award
+                                                activity.type === "affiliate" ? Award : 
+                                                    activity.type === "sales" ? DollarSign : Award
 
                                         return (
                                             <div
