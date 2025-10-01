@@ -95,7 +95,16 @@ export function CourseCard({ course, idx, courseType, courseTypeDisplay }: Cours
 
                     <div className="mt-auto flex flex-col gap-2">
                         {/* Prices */}
-                        {course.aboutCourse?.pricing && (
+                        {course.aboutCourse?.pricing.isFree == true ? (
+                            <>
+                                <div className="flex items-center justify-between ">
+                                    {/* <span className="font-semibold text-gray-900">XAF:</span> */}
+                                    <span className="text-xl font-semibold text-gray-900 py-8 px-4 bg-blue-50 border border-blue-200 rounded-lg w-full text-center">
+                                        {t('course.free')}
+                                    </span>
+                                </div>
+                            </>
+                        ) : (
                             <>
                                 <div className="flex items-center justify-between">
                                     <span className="font-semibold text-gray-900">XAF:</span>

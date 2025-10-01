@@ -100,6 +100,7 @@ export interface CourseData {
             xafPrice: number;
             usdPrice: number;
             euroPrice: number;
+            isFree?: boolean;
             discountPrice?: number | undefined;
             discountPercentage?: number | undefined;
             discountEndDate?: string | Date | undefined;

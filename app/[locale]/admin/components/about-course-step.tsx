@@ -17,6 +17,7 @@ import { format } from "date-fns"
 import { useAuth } from "@/context/authContext"
 import { useParams, useRouter } from "next/navigation"
 import { courseApi } from "@/utils/courseApi"
+import { Switch } from "@/components/ui/switch"
 
 interface AboutCourseData {
     title: string
@@ -34,6 +35,7 @@ interface AboutCourseData {
         usdPrice: number
         currency: string
         discountPrice?: number
+        isFree?: boolean
         discountPercentage?: number
         discountEndDate?: Date | string
         pricingTier: "free" | "basic" | "premium" | "enterprise"
@@ -85,6 +87,7 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                 euroPrice: 0,
                 usdPrice: 0,
                 currency: "XAF",
+                isFree: false,
                 discountPrice: 0,
                 discountPercentage: 0,
                 pricingTier: "basic",
@@ -209,16 +212,16 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                 errors.targetAudience = "Target audience is required";
             }
 
-            if (formData.pricing.xafPrice <= 0) {
-                errors.xafPrice = "Course price must be greater than 0";
+            if (formData.pricing.xafPrice < 0) {
+                errors.xafPrice = "Course price must be alteast than 0";
             }
 
-            if (formData.pricing.euroPrice <= 0) {
-                errors.xafPrice = "Course price must be greater than 0";
+            if (formData.pricing.euroPrice < 0) {
+                errors.xafPrice = "Course price must be alteast than 0";
             }
 
-            if (formData.pricing.usdPrice <= 0) {
-                errors.xafPrice = "Course price must be greater than 0";
+            if (formData.pricing.usdPrice < 0) {
+                errors.xafPrice = "Course price must be alteast than 0";
             }
 
             // Additional validation for upcoming courses
@@ -647,6 +650,23 @@ export const AboutCourseStep = forwardRef<StepRef, AboutCourseStepProps>(
                                             {formData.earlyAccessEnabled ? "Enabled" : "Disabled"}
                                         </Button>
                                     </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <Label className="text-sm font-medium">
+                                                Make this course free
+                                            </Label>
+                                            <p className="text-xs text-gray-500">
+                                                Make this course complety free for all users
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={formData.pricing.isFree}
+                                            onCheckedChange={() => updateFormData({ pricing: { ...formData.pricing, isFree: !formData.pricing.isFree } })}
+                                            aria-readonly
+                                        />
+                                    </div>
+
 
                                     {formData.earlyAccessEnabled && (
                                         <div>

@@ -9,6 +9,7 @@ import { doc, onSnapshot, getDoc, DocumentData } from "firebase/firestore"
 
 interface AppUser extends User {
     admin: boolean
+    superAdmin: boolean
     courses: string[]
     createdAt: Date
     name: string
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 ...authUser,
                 uid: authUser.uid,
                 email: userData.email || authUser.email || '',
+                superAdmin: userData.superAdmin || false,
                 admin: userData.admin || false,
                 courses: userData.courses || [],
                 createdAt: userData.createdAt?.toDate?.() || new Date(),

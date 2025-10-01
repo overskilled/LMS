@@ -450,7 +450,7 @@ export default function Page() {
 
                                 <div className="p-6 space-y-4">
                                     {/* Pricing Display */}
-                                    {!hasPurchased && (
+                                    {!hasPurchased && !course?.aboutCourse?.pricing?.isFree && (
                                         <div className="flex items-baseline gap-2">
                                             {isEarlyAccess && course?.aboutCourse?.earlyAccessPrice ? (
                                                 <>
@@ -556,23 +556,57 @@ export default function Page() {
                                     {user?.admin ? (
                                         <div className="space-y-3">
                                             <Link href={`/admin/edit-course/${courseId}`}>
-                                                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold rounded-md">
+                                                <Button className="w-full text-white py-3 text-lg font-semibold ">
                                                     {t("course.updateCourse")}
                                                 </Button>
                                             </Link>
 
                                             <Button
                                                 variant="outline"
-                                                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-3 text-lg font-semibold rounded-md bg-transparent"
+                                                disabled={generatingLinks}
+                                                className="w-full text-md mt-3"
+                                                onClick={() => generateCode(courseId)}
                                             >
-                                                {t("course.viewAnalytics")}
+                                                {generatingLinks ? (
+                                                    <>
+                                                        <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
+                                                        {t("course.generating")}
+                                                    </>
+                                                ) : (
+                                                    t("course.generateAffiliate")
+                                                )}
+                                            </Button>
+
+                                        </div>
+                                    ) : user?.admin && user?.superAdmin ? (
+                                        <div className="space-y-3">
+                                            <Link href={`/admin/edit-course/${courseId}`}>
+                                                <Button className="w-full text-white py-3 text-lg font-semibold ">
+                                                    {t("course.updateCourse")}
+                                                </Button>
+                                            </Link>
+
+                                            <Button
+                                                variant="outline"
+                                                disabled={generatingLinks}
+                                                className="w-full text-md mt-3"
+                                                onClick={() => generateCode(courseId)}
+                                            >
+                                                {generatingLinks ? (
+                                                    <>
+                                                        <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
+                                                        {t("course.generating")}
+                                                    </>
+                                                ) : (
+                                                    t("course.generateAffiliate")
+                                                )}
                                             </Button>
 
                                             <Button
                                                 onClick={() => setOpen(true)}
                                                 variant="destructive"
                                                 disabled={isDeleting}
-                                                className="w-full border-gray-600 text-white bg-red-500 hover:bg-red-400 py-3 text-lg font-semibold rounded-md"
+                                                className="w-full border-gray-600 text-white bg-red-500 hover:bg-red-400 py-3 text-lg font-semibold"
                                             >
                                                 {t("course.deleteCourse")}
                                             </Button>
@@ -604,6 +638,7 @@ export default function Page() {
                                                 </DialogContent>
                                             </Dialog>
                                         </div>
+
                                     ) : user?.uid && hasPurchased ? (
                                         <div className="space-y-3">
                                             <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md flex items-center gap-2">
@@ -753,6 +788,13 @@ export default function Page() {
                         </div>
                     </div>
                 </section>
+
+
+                <CurriculumSection
+                    course={course}
+                // hasPurchased={hasPurchased}
+                // isUpcoming={isUpcoming}
+                />
 
                 {/* Waitlist Modal */}
                 {
@@ -951,11 +993,7 @@ export default function Page() {
 
                 <CourseDetails course={course} />
 
-                <CurriculumSection
-                    course={course}
-                // hasPurchased={hasPurchased}
-                // isUpcoming={isUpcoming}
-                />
+                
 
                 {/* Floating scroll to top button */}
                 <WhatsAppFloating
