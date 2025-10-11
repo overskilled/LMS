@@ -121,14 +121,25 @@ export default {
             "title": "Partager ce cours"
         },
         "curriculum": {
-            "title": "Programme du cours",
-            "gettingStarted": "Pour commencer",
-            "section": "Section",
+            "title": "Programme du Cours",
+            "subtitle": "Maîtrisez vos compétences avec notre parcours d'apprentissage complet",
+            "chapters": "chapitres",
             "lectures": "leçons",
-            "lecture": "Leçon",
+            "totalTime": "total",
+            "previewLectures": "leçons d'aperçu",
             "preview": "Aperçu",
+            "noDescription": "Aucune description disponible",
+            "nowPlaying": "En cours de lecture",
+            "readyToStart": "Prêt à commencer à apprendre ?",
+            "enrollDescription": "Inscrivez-vous maintenant pour obtenir un accès complet à tous les supports de cours, y compris les vidéos, exercices et certificats.",
+            "loginToEnroll": "Se connecter pour s'inscrire",
+            "createAccount": "Créer un compte",
+            "enrollNow": "S'inscrire maintenant",
+            "previewLecturesAvailable": "leçons d'aperçu disponibles - essayez avant d'acheter !",
+            "section": "Section",
+            "gettingStarted": "Pour commencer",
             "total": "Total",
-            "totalHours": "heures au total"
+            "totalHours": "heures totales"
         },
         "details": {
             "title": "Ce que vous devez savoir",

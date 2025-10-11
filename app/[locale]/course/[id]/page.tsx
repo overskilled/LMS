@@ -77,7 +77,7 @@ export default function Page() {
         usdPrice: "USD",
         euroPrice: "EUR",
     };
-    
+
     const earlyPriceLabels: Record<string, string> = {
         usdPrice: "USD",
         euroPrice: "EUR",
@@ -320,469 +320,391 @@ export default function Page() {
                 </div>
 
                 {/* Hero Section */}
-                <section className="bg-blue-50 text-black py-12 md:py-20">
-                    <div className="container mx-auto px-4 md:px-6 grid lg:grid-cols-2 gap-12 items-start">
-                        {/* Left Content */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                {isUpcoming && (
-                                    <Badge className="bg-purple-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
-                                        {t("course.comingSoon")}
+                <section className="bg-blue-50 text-black py-8 md:py-12 lg:py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+                            {/* Left Content */}
+                            <div className="space-y-4 md:space-y-6">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {isUpcoming && (
+                                        <Badge className="bg-purple-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
+                                            {t("course.comingSoon")}
+                                        </Badge>
+                                    )}
+                                    <Badge className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md text-sm font-semibold capitalize">
+                                        {course.courseDetails.courseCategory}
                                     </Badge>
-                                )}
-                                {/* {course.aboutCourse.pricing.discountPrice && (
-                                    <Badge className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
-                                        {Math.round(
-                                            ((course.aboutCourse.pricing.xafPrice -
-                                                course.aboutCourse.pricing.discountPrice) /
-                                                course.aboutCourse.pricing.xafPrice) *
-                                            100
-                                        )}
-                                        % {t("course.off")}
-                                    </Badge>
-                                )} */}
-                                <Badge className="bg-gray-700 text-gray-200 px-3 py-1 rounded-md text-sm font-semibold capitalize">
-                                    {course.courseDetails.courseCategory}
-                                </Badge>
-                            </div>
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
-                                {course.aboutCourse.title}
-                            </h1>
-                            <div className="flex items-center gap-4 text-gray-600 text-lg flex-wrap">
-                                <span>
-                                    {t("course.lastUpdate")} {formatDate(course.updatedAt)}
-                                </span>
-                                {isUpcoming && course?.aboutCourse?.availabilityDate && (
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="h-5 w-5" />
+                                </div>
+
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
+                                    {course.aboutCourse.title}
+                                </h1>
+
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-gray-600 text-base md:text-lg flex-wrap">
+                                    <span>
+                                        {t("course.lastUpdate")} {formatDate(course.updatedAt)}
+                                    </span>
+                                    {isUpcoming && course?.aboutCourse?.availabilityDate && (
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="h-4 w-4 md:h-5 md:w-5" />
+                                            <span>
+                                                {t("course.starts")} {formatDate(course?.aboutCourse?.availabilityDate)}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {user?.admin ? (
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-gray-600">
+                                            {course.enrollmentCount || 0} {t("course.alreadyEnrolled")}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-4 text-gray-600 text-base md:text-lg">
                                         <span>
-                                            {t("course.starts")} {formatDate(course?.aboutCourse?.availabilityDate)}
+                                            ({course.enrollmentCount || 0} {t("course.students")})
                                         </span>
                                     </div>
                                 )}
                             </div>
-                            {user?.admin ? (
-                                <div className="flex items-center gap-4">
-                                    <span className="text-gray-600">
-                                        {course.enrollmentCount || 0} {t("course.alreadyEnrolled")}
-                                    </span>
-                                    {/* <span className="text-gray-600">
-                                        {(course?.aboutCourse?.metrics?.targetRevenue || 0).toLocaleString()}{" "}
-                                        {course.aboutCourse.pricing.currency} {t("course.revenue")}
-                                    </span> */}
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-4 text-gray-600 text-lg">
-                                    {/* <span className="font-bold">4.8 / 5</span>
-                                    <div className="flex items-center gap-1 text-yellow-400">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className={`h-5 w-5 ${i < 4 ? "fill-current" : ""}`} />
-                                        ))}
-                                    </div> */}
-                                    <span>
-                                        ({course.enrollmentCount || 0} {t("course.students")})
-                                    </span>
-                                </div>
-                            )}
-                        </div>
 
+                            {/* Right Content - Video and Price Box */}
+                            <div className="flex flex-col items-center lg:items-end w-full">
+                                <div className="w-full max-w-md lg:max-w-full bg-gray-600 rounded-lg overflow-hidden shadow-lg">
+                                    <div className="relative w-full aspect-video bg-black flex items-center justify-center text-gray-400 overflow-hidden">
+                                        {course.courseDetails.previewVideo?.downloadURL ? (
+                                            <iframe
+                                                src={course.courseDetails.previewVideo.downloadURL}
+                                                title={`Preview of ${course.aboutCourse.title}`}
+                                                frameBorder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                            />
+                                        ) : course.courseDetails.thumbnailImage?.downloadURL ? (
+                                            <img
+                                                src={course.courseDetails.thumbnailImage.downloadURL}
+                                                alt={`Thumbnail of ${course.aboutCourse.title}`}
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                                <p className="text-white">Video not available</p>
+                                            </div>
+                                        )}
 
-                        {/* Right Content - Video and Price Box */}
-                        <div className="flex flex-col items-center lg:items-end">
-                            <div className="w-full max-w-md bg-gray-600 rounded-lg overflow-hidden shadow-lg">
-                                <div className="relative w-full aspect-video bg-black flex items-center justify-center text-gray-400 overflow-hidden">
-                                    {course.courseDetails.previewVideo?.downloadURL ? (
-                                        <iframe
-                                            src={course.courseDetails.previewVideo.downloadURL}
-                                            title={`Preview of ${course.aboutCourse.title}`}
-                                            frameBorder="0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
-                                    ) : course.courseDetails.thumbnailImage?.downloadURL ? (
-                                        <img
-                                            src={course.courseDetails.thumbnailImage.downloadURL}
-                                            alt={`Thumbnail of ${course.aboutCourse.title}`}
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                                            <p className="text-white">Video not available</p>
-                                        </div>
-                                    )}
+                                        {/* ✅ Overlay only if upcoming */}
+                                        {isUpcoming && (
+                                            <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-4 md:p-6">
+                                                <ClockIcon className="h-8 w-8 md:h-12 md:w-12 text-white mb-3 md:mb-4" />
+                                                <h3 className="text-lg md:text-xl font-bold text-white mb-2">
+                                                    {t("course.upcoming.title")}
+                                                </h3>
 
-                                    {/* ✅ Overlay only if upcoming */}
-                                    {isUpcoming && (
-                                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-6">
-                                            <ClockIcon className="h-12 w-12 text-white mb-4" />
-                                            <h3 className="text-xl font-bold text-white mb-2">
-                                                {t("course.upcoming.title")}
-                                            </h3>
+                                                {course?.aboutCourse?.availabilityDate && (
+                                                    <CountdownTimer
+                                                        targetDate={new Date(course.aboutCourse.availabilityDate)}
+                                                        className="text-white mb-3 md:mb-4"
+                                                    />
+                                                )}
 
-                                            {course?.aboutCourse?.availabilityDate && (
-                                                <CountdownTimer
-                                                    targetDate={new Date(course.aboutCourse.availabilityDate)}
-                                                    className="text-white mb-4"
-                                                />
-                                            )}
+                                                <p className="text-gray-300 text-sm md:text-base mb-3 md:mb-4">
+                                                    {t("course.upcoming.expectedLaunch", {
+                                                        date: formatDate(course?.aboutCourse?.availabilityDate!),
+                                                    })}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
 
-                                            <p className="text-gray-300 mb-4">
-                                                {t("course.upcoming.expectedLaunch", {
-                                                    date: formatDate(course?.aboutCourse?.availabilityDate!),
-                                                })}
-                                            </p>
-
-                                            {/* Example: Waitlist button */}
-                                            {/* 
-      <Button
-        variant="default"
-        onClick={() => setShowWaitlistForm(true)}
-        className="flex items-center gap-2"
-      >
-        <Bell className="h-4 w-4" />
-        Join Waitlist
-      </Button> 
-      */}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="p-6 space-y-4">
-                                    {/* Pricing Display */}
-                                    {!hasPurchased && !course?.aboutCourse?.pricing?.isFree && (
-                                        <div className="flex items-baseline gap-2">
-                                            {isEarlyAccess && course?.aboutCourse?.earlyAccessPrice ? (
-                                                <>
-                                                    <span className="text-2xl font-bold flex text-white gap-2">
-                                                        {formatPrice(
-                                                            course?.aboutCourse?.earlyAccessPrice!,
-                                                            course.aboutCourse.pricing.currency
-                                                        )}
+                                    <div className="p-4 md:p-6 space-y-4">
+                                        {/* Pricing Display */}
+                                        {!hasPurchased && !course?.aboutCourse?.pricing?.isFree && (
+                                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+                                                {isEarlyAccess && course?.aboutCourse?.earlyAccessPrice ? (
+                                                    <>
+                                                        <div className="flex items-baseline gap-2">
+                                                            <span className="text-xl md:text-2xl font-bold flex text-white gap-2">
+                                                                {formatPrice(
+                                                                    course?.aboutCourse?.earlyAccessPrice!,
+                                                                    course.aboutCourse.pricing.currency
+                                                                )}
+                                                                {Object.entries(course.aboutCourse.pricing)
+                                                                    .filter(([key]) => key in earlyPriceLabels)
+                                                                    .map(([key, value]) => (
+                                                                        <span key={key}>
+                                                                            {formatPrice(value as number, earlyPriceLabels[key])}
+                                                                        </span>
+                                                                    ))}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xs text-gray-300">{t("course.earlyAccessPrice")}</span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-xl md:text-2xl font-bold text-white flex flex-wrap gap-2 md:gap-4">
                                                         {Object.entries(course.aboutCourse.pricing)
-                                                            .filter(([key]) => key in earlyPriceLabels) 
-                                                            .map(([key, value]) => (
-                                                                <span key={key}>
-                                                                    {formatPrice(value as number, earlyPriceLabels[key])}
-                                                                </span>
-                                                            ))}
-                                                    </span>
-
-                                                    <span className="text-xs text-gray-300">{t("course.earlyAccessPrice")}</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span className="text-2xl font-bold text-white flex gap-4">
-                                                        {Object.entries(course.aboutCourse.pricing)
-                                                            .filter(([key]) => key in priceLabels) 
+                                                            .filter(([key]) => key in priceLabels)
                                                             .map(([key, value]) => (
                                                                 <span key={key}>
                                                                     {formatPrice(value as number, priceLabels[key])}
                                                                 </span>
                                                             ))}
                                                     </span>
-                                                    {/* {course.aboutCourse.pricing.discountPrice && (
-                                                        <span className="text-md text-gray-400 line-through">
-                                                            {formatPrice(
-                                                                course.aboutCourse.pricing.xafPrice,
-                                                                course.aboutCourse.pricing.currency
-                                                            )}
-                                                        </span>
-                                                    )} */}
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Course Metadata */}
-                                    <div className="grid grid-cols-2 gap-4 text-gray-300">
-                                        <div className="flex items-center gap-2">
-                                            <GraduationCap className="h-5 w-5" />
-                                            <span>{t("course.level")}</span>
-                                        </div>
-                                        <span className="capitalize">
-                                            {course.courseDetails.difficulty || course.courseDetails.courseLevel}
-                                        </span>
-
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="h-5 w-5" />
-                                            <span>{t("course.duration")}</span>
-                                        </div>
-                                        <span>{course.courseDetails.estimatedHours} {t("course.hours")}</span>
-
-                                        <div className="flex items-center gap-2">
-                                            <Book className="h-5 w-5" />
-                                            <span>{t("course.lectures")}</span>
-                                        </div>
-                                        <span>{course.videos?.videos?.length || 0} {t("course.lectures")}</span>
-
-                                        <div className="flex items-center gap-2">
-                                            <GraduationCap className="h-5 w-5" />
-                                            <span>{t("course.subject")}</span>
-                                        </div>
-                                        <span className="capitalize">{course.courseDetails.courseCategory}</span>
-
-                                        <div className="flex items-center gap-2">
-                                            <Globe className="h-5 w-5" />
-                                            <span>{t("course.language")}</span>
-                                        </div>
-                                        <span>{t("course.languagesAvailable")}</span>
-                                    </div>
-
-                                    {/* Material Includes */}
-                                    <div className="space-y-2 pt-4">
-                                        <h4 className="text-lg font-semibold text-white">
-                                            {t("course.materialIncludes")}
-                                        </h4>
-                                        <div className="flex items-center gap-2 text-gray-300">
-                                            <Check className="h-5 w-5 text-green-400" />
-                                            <span>{t("course.videos")}</span>
-                                        </div>
-                                        {course.publishSettings.downloadableResources && (
-                                            <div className="flex items-center gap-2 text-gray-300">
-                                                <Check className="h-5 w-5 text-green-400" />
-                                                <span>{t("course.resources")}</span>
+                                                )}
                                             </div>
                                         )}
-                                        {course.publishSettings.certificateEnabled && (
-                                            <div className="flex items-center gap-2 text-gray-300">
-                                                <Check className="h-5 w-5 text-green-400" />
-                                                <span>{t("course.certificate")}</span>
+
+                                        {/* Course Metadata */}
+                                        <div className="grid grid-cols-2 gap-3 md:gap-4 text-gray-300 text-sm md:text-base">
+                                            <div className="flex items-center gap-2">
+                                                <GraduationCap className="h-4 w-4 md:h-5 md:w-5" />
+                                                <span>{t("course.level")}</span>
                                             </div>
-                                        )}
+                                            <span className="capitalize">
+                                                {course.courseDetails.difficulty || course.courseDetails.courseLevel}
+                                            </span>
+
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="h-4 w-4 md:h-5 md:w-5" />
+                                                <span>{t("course.duration")}</span>
+                                            </div>
+                                            <span>{course.courseDetails.estimatedHours} {t("course.hours")}</span>
+
+                                            <div className="flex items-center gap-2">
+                                                <Book className="h-4 w-4 md:h-5 md:w-5" />
+                                                <span>{t("course.lectures")}</span>
+                                            </div>
+                                            <span>{course.videos?.videos?.length || 0} {t("course.lectures")}</span>
+
+                                            <div className="flex items-center gap-2">
+                                                <GraduationCap className="h-4 w-4 md:h-5 md:w-5" />
+                                                <span>{t("course.subject")}</span>
+                                            </div>
+                                            <span className="capitalize">{course.courseDetails.courseCategory}</span>
+
+                                            <div className="flex items-center gap-2">
+                                                <Globe className="h-4 w-4 md:h-5 md:w-5" />
+                                                <span>{t("course.language")}</span>
+                                            </div>
+                                            <span>{t("course.languagesAvailable")}</span>
+                                        </div>
+
+                                        {/* Material Includes */}
+                                        <div className="space-y-2 pt-3 md:pt-4">
+                                            <h4 className="text-base md:text-lg font-semibold text-white">
+                                                {t("course.materialIncludes")}
+                                            </h4>
+                                            <div className="flex items-center gap-2 text-gray-300">
+                                                <Check className="h-4 w-4 md:h-5 md:w-5 text-green-400" />
+                                                <span className="text-sm md:text-base">{t("course.videos")}</span>
+                                            </div>
+                                            {course.publishSettings.downloadableResources && (
+                                                <div className="flex items-center gap-2 text-gray-300">
+                                                    <Check className="h-4 w-4 md:h-5 md:w-5 text-green-400" />
+                                                    <span className="text-sm md:text-base">{t("course.resources")}</span>
+                                                </div>
+                                            )}
+                                            {course.publishSettings.certificateEnabled && (
+                                                <div className="flex items-center gap-2 text-gray-300">
+                                                    <Check className="h-4 w-4 md:h-5 md:w-5 text-green-400" />
+                                                    <span className="text-sm md:text-base">{t("course.certificate")}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="space-y-3 pt-3">
+                                            {user?.admin ? (
+                                                <div className="space-y-3">
+                                                    <Link href={`/admin/edit-course/${courseId}`}>
+                                                        <Button className="w-full text-white py-2 md:py-3 text-base md:text-lg font-semibold">
+                                                            {t("course.updateCourse")}
+                                                        </Button>
+                                                    </Link>
+                                                    <Button
+                                                        variant="outline"
+                                                        disabled={generatingLinks}
+                                                        className="w-full text-sm md:text-md mt-2"
+                                                        onClick={() => generateCode(courseId)}
+                                                    >
+                                                        {generatingLinks ? (
+                                                            <>
+                                                                <Loader2Icon className="animate-spin mr-2 h-3 w-3 md:h-4 md:w-4" />
+                                                                {t("course.generating")}
+                                                            </>
+                                                        ) : (
+                                                            t("course.generateAffiliate")
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            ) : user?.admin && user?.superAdmin ? (
+                                                <div className="space-y-3">
+                                                    <Link href={`/admin/edit-course/${courseId}`}>
+                                                        <Button className="w-full text-white py-2 md:py-3 text-base md:text-lg font-semibold">
+                                                            {t("course.updateCourse")}
+                                                        </Button>
+                                                    </Link>
+                                                    <Button
+                                                        variant="outline"
+                                                        disabled={generatingLinks}
+                                                        className="w-full text-sm md:text-md"
+                                                        onClick={() => generateCode(courseId)}
+                                                    >
+                                                        {generatingLinks ? (
+                                                            <>
+                                                                <Loader2Icon className="animate-spin mr-2 h-3 w-3 md:h-4 md:w-4" />
+                                                                {t("course.generating")}
+                                                            </>
+                                                        ) : (
+                                                            t("course.generateAffiliate")
+                                                        )}
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => setOpen(true)}
+                                                        variant="destructive"
+                                                        disabled={isDeleting}
+                                                        className="w-full border-gray-600 text-white bg-red-500 hover:bg-red-400 py-2 md:py-3 text-base md:text-lg font-semibold"
+                                                    >
+                                                        {t("course.deleteCourse")}
+                                                    </Button>
+                                                </div>
+                                            ) : user?.uid && hasPurchased ? (
+                                                <div className="space-y-3">
+                                                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 md:py-3 text-base md:text-lg font-semibold rounded-md flex items-center justify-center gap-2">
+                                                        <Play className="h-4 w-4 md:h-5 md:w-5" />
+                                                        {t("course.continueLearning")}
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        disabled={generatingLinks}
+                                                        className="w-full text-sm md:text-md"
+                                                        onClick={() => generateCode(courseId)}
+                                                    >
+                                                        {generatingLinks ? (
+                                                            <>
+                                                                <Loader2Icon className="animate-spin mr-2 h-3 w-3 md:h-4 md:w-4" />
+                                                                {t("course.generating")}
+                                                            </>
+                                                        ) : (
+                                                            t("course.generateAffiliate")
+                                                        )}
+                                                    </Button>
+                                                    {links[courseId] && (
+                                                        <div className="mt-2 flex flex-col w-full">
+                                                            <ReferralCodeDisplay referralCode={links[courseId]} />
+                                                            <p className="mt-2 md:mt-4 w-full text-xs text-center text-gray-300">
+                                                                {t("course.copyReferral")}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : user?.uid && isUpcoming ? (
+                                                <div className="space-y-3">
+                                                    {isEarlyAccess ? (
+                                                        <Button
+                                                            onClick={() => router.push(`/course/${courseId}/choose-payment-method?ref=${searchParams.get("ref")}`)}
+                                                            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 md:py-3 text-base md:text-lg font-semibold"
+                                                        >
+                                                            {t("course.getEarlyAccess")}
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={() => setShowWaitlistForm(true)}
+                                                            className="w-full text-sm md:text-md"
+                                                        >
+                                                            <Bell className="h-4 w-4 md:h-5 md:w-5" />
+                                                            {t("course.joinWaitlist")}
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="outline"
+                                                        disabled={generatingLinks}
+                                                        className="w-full text-sm md:text-md"
+                                                        onClick={() => generateCode(courseId)}
+                                                    >
+                                                        {generatingLinks ? (
+                                                            <>
+                                                                <Loader2 className="animate-spin mr-2 h-3 w-3 md:h-4 md:w-4" />
+                                                                {t("course.generating")}
+                                                            </>
+                                                        ) : (
+                                                            t("course.generateAffiliate")
+                                                        )}
+                                                    </Button>
+                                                    {links[courseId] && (
+                                                        <div className="mt-2 flex flex-col w-full">
+                                                            <ReferralCodeDisplay referralCode={links[courseId]} />
+                                                            <p className="mt-2 md:mt-4 w-full text-xs text-center text-gray-300">
+                                                                {t("course.copyReferral")}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : user?.uid ? (
+                                                <div className="space-y-3">
+                                                    {isEarlyAccess ? (
+                                                        <Button
+                                                            variant="default"
+                                                            onClick={() => setShowWaitlistForm(true)}
+                                                            className="w-full text-sm md:text-md"
+                                                        >
+                                                            <Bell className="h-4 w-4 md:h-5 md:w-5" />
+                                                            {t("course.joinWaitlist")}
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            onClick={() => router.push(`/course/${courseId}/choose-payment-method?ref=${searchParams.get("ref")}`)}
+                                                            className="w-full text-sm md:text-md"
+                                                        >
+                                                            <CheckCircle className="h-4 w-4 md:h-5 md:w-5" />
+                                                            {t("course.enroll")}
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="outline"
+                                                        disabled={generatingLinks}
+                                                        className="w-full text-sm md:text-md"
+                                                        onClick={() => generateCode(courseId)}
+                                                    >
+                                                        {generatingLinks ? (
+                                                            <>
+                                                                <Loader2 className="animate-spin mr-2 h-3 w-3 md:h-4 md:w-4" />
+                                                                {t("course.generating")}
+                                                            </>
+                                                        ) : (
+                                                            t("course.generateAffiliate")
+                                                        )}
+                                                    </Button>
+                                                    {links[courseId] && (
+                                                        <div className="mt-2 flex flex-col w-full">
+                                                            <ReferralCodeDisplay referralCode={links[courseId]} />
+                                                            <p className="mt-2 md:mt-4 w-full text-xs text-center text-gray-300">
+                                                                {t("course.copyReferral")}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => router.push(`/login/?courseId=${courseId}&ref=${searchParams.get("ref")}`)}
+                                                        className="w-full text-sm md:text-md"
+                                                    >
+                                                        {t("auth.loginToContinue")}
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => router.push(`/register/?courseId=${courseId}&ref=${searchParams.get("ref")}`)}
+                                                        className="w-full text-sm md:text-md"
+                                                    >
+                                                        {t("course.purchaseNow")} <span className="text-xs md:text-sm">{t("course.getEarlyAccess")}</span>
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-
-                                    {/* Action Buttons */}
-                                    {user?.admin ? (
-                                        <div className="space-y-3">
-                                            <Link href={`/admin/edit-course/${courseId}`}>
-                                                <Button className="w-full text-white py-3 text-lg font-semibold ">
-                                                    {t("course.updateCourse")}
-                                                </Button>
-                                            </Link>
-
-                                            <Button
-                                                variant="outline"
-                                                disabled={generatingLinks}
-                                                className="w-full text-md mt-3"
-                                                onClick={() => generateCode(courseId)}
-                                            >
-                                                {generatingLinks ? (
-                                                    <>
-                                                        <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
-                                                        {t("course.generating")}
-                                                    </>
-                                                ) : (
-                                                    t("course.generateAffiliate")
-                                                )}
-                                            </Button>
-
-                                        </div>
-                                    ) : user?.admin && user?.superAdmin ? (
-                                        <div className="space-y-3">
-                                            <Link href={`/admin/edit-course/${courseId}`}>
-                                                <Button className="w-full text-white py-3 text-lg font-semibold ">
-                                                    {t("course.updateCourse")}
-                                                </Button>
-                                            </Link>
-
-                                            <Button
-                                                variant="outline"
-                                                disabled={generatingLinks}
-                                                className="w-full text-md mt-3"
-                                                onClick={() => generateCode(courseId)}
-                                            >
-                                                {generatingLinks ? (
-                                                    <>
-                                                        <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
-                                                        {t("course.generating")}
-                                                    </>
-                                                ) : (
-                                                    t("course.generateAffiliate")
-                                                )}
-                                            </Button>
-
-                                            <Button
-                                                onClick={() => setOpen(true)}
-                                                variant="destructive"
-                                                disabled={isDeleting}
-                                                className="w-full border-gray-600 text-white bg-red-500 hover:bg-red-400 py-3 text-lg font-semibold"
-                                            >
-                                                {t("course.deleteCourse")}
-                                            </Button>
-
-                                            {/* Delete Dialog */}
-                                            <Dialog open={open} onOpenChange={setOpen}>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>{t("course.deleteCourse")}</DialogTitle>
-                                                        <DialogDescription>{t("course.deleteWarning")}</DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter>
-                                                        <Button
-                                                            variant="secondary"
-                                                            onClick={() => setOpen(false)}
-                                                            disabled={isDeleting}
-                                                        >
-                                                            {t("common.cancel")}
-                                                        </Button>
-                                                        <Button
-                                                            variant="destructive"
-                                                            onClick={handleCourseDelete}
-                                                            disabled={isDeleting}
-                                                            className="bg-red-500 hover:bg-red-400"
-                                                        >
-                                                            {isDeleting ? t("course.deleting") : t("course.confirmDelete")}
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-
-                                    ) : user?.uid && hasPurchased ? (
-                                        <div className="space-y-3">
-                                            <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold rounded-md flex items-center gap-2">
-                                                <Play className="h-5 w-5" />
-                                                {t("course.continueLearning")}
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                disabled={generatingLinks}
-                                                className="w-full text-md"
-                                                onClick={() => generateCode(courseId)}
-                                            >
-                                                {generatingLinks ? (
-                                                    <>
-                                                        <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
-                                                        {t("course.generating")}
-                                                    </>
-                                                ) : (
-                                                    t("course.generateAffiliate")
-                                                )}
-                                            </Button>
-                                            {links[courseId] && (
-                                                <div className="mt-2 flex flex-col w-full">
-                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
-                                                    <p className="mt-4 w-full text-xs text-center text-gray-300">
-                                                        {t("course.copyReferral")}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : user?.uid && isUpcoming ? (
-                                        <div className="space-y-3">
-                                            {isEarlyAccess ? (
-                                                <Button
-                                                    onClick={() =>
-                                                        router.push(`/course/${courseId}/choose-payment-method?ref=${searchParams.get("ref")}`)
-                                                        // router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
-                                                    }
-                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold "
-                                                >
-                                                    {t("course.getEarlyAccess")}
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setShowWaitlistForm(true)}
-                                                    className="w-full text-md"
-                                                >
-                                                    <Bell className="h-5 w-5" />
-                                                    {t("course.joinWaitlist")}
-                                                </Button>
-                                            )}
-                                            <Button
-                                                variant="outline"
-                                                disabled={generatingLinks}
-                                                className="w-full text-md"
-                                                onClick={() => generateCode(courseId)}
-                                            >
-                                                {generatingLinks ? (
-                                                    <>
-                                                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                                        {t("course.generating")}
-                                                    </>
-                                                ) : (
-                                                    t("course.generateAffiliate")
-                                                )}
-                                            </Button>
-                                            {links[courseId] && (
-                                                <div className="mt-2 flex flex-col w-full">
-                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
-                                                    <p className="mt-4 w-full text-xs text-center text-gray-300">
-                                                        {t("course.copyReferral")}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : user?.uid ? (
-                                        <div className="space-y-3">
-                                            {isEarlyAccess ? (
-                                                <Button
-                                                    variant="default"
-                                                    onClick={() => setShowWaitlistForm(true)}
-                                                    className="w-full text-md"
-                                                >
-                                                    <Bell className="h-5 w-5" />
-                                                    {t("course.joinWaitlist")}
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    onClick={() =>
-                                                        router.push(`/course/${courseId}/choose-payment-method?ref=${searchParams.get("ref")}`)
-                                                        // router.push(`/course/${courseId}/subscribe?ref=${searchParams.get("ref")}`)
-                                                    }
-                                                    className="w-full text-md"
-                                                >
-                                                    <CheckCircle className="h-5 w-5" />
-                                                    {t("course.enroll")}
-                                                </Button>
-                                            )}
-                                            <Button
-                                                variant="outline"
-                                                disabled={generatingLinks}
-                                                className="w-full text-md"
-                                                onClick={() => generateCode(courseId)}
-                                            >
-                                                {generatingLinks ? (
-                                                    <>
-                                                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                                        {t("course.generating")}
-                                                    </>
-                                                ) : (
-                                                    t("course.generateAffiliate")
-                                                )}
-                                            </Button>
-                                            {links[courseId] && (
-                                                <div className="mt-2 flex flex-col w-full">
-                                                    <ReferralCodeDisplay referralCode={links[courseId]} />
-                                                    <p className="mt-4 w-full text-xs text-center text-gray-300">
-                                                        {t("course.copyReferral")}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <Button
-                                                variant="outline"
-                                                onClick={() =>
-                                                    router.push(`/login/?courseId=${courseId}&ref=${searchParams.get("ref")}`)
-                                                }
-                                                className="w-full text-md"
-                                            >
-                                                {t("auth.loginToContinue")}
-                                            </Button>
-                                            <Button
-                                                onClick={() =>
-                                                    router.push(`/register/?courseId=${courseId}&ref=${searchParams.get("ref")}`)
-                                                }
-                                                className="w-full text-md"
-                                            >
-                                                {t("course.purchaseNow")} <span className="text-sm">{t("course.getEarlyAccess")}</span>
-                                            </Button>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>
@@ -993,7 +915,7 @@ export default function Page() {
 
                 <CourseDetails course={course} />
 
-                
+
 
                 {/* Floating scroll to top button */}
                 <WhatsAppFloating

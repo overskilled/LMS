@@ -10,7 +10,7 @@ export default function HeroSection() {
   const t = useI18n();
 
   return (
-    <section className="relative h-screen w-full overflow-hidden py-16">
+    <section className="relative h-[50vh] w-full overflow-hidden py-8"> 
       {/* Background pattern */}
       <div className="absolute inset-0 flex items-center justify-center opacity-100">
         <img
@@ -22,24 +22,24 @@ export default function HeroSection() {
 
       {/* Main content */}
       <div className="relative z-10 flex h-full w-full items-center justify-center">
-        <div className="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-6 text-center px-4">
+        <div className="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-4 text-center px-4"> {/* Reduced gap from gap-6 to gap-4 */}
           <div className="rounded-xl bg-background/30 p-4 shadow-sm backdrop-blur-sm">
             <img
               src="/spaceship.webp"
               alt="logo"
-              className="h-16 w-16 rounded-full object-cover"
+              className="h-12 w-12 rounded-full object-cover"
             />
           </div>
 
-          <h1 className="mb-6 text-3xl font-extrabold leading-tight tracking-tight lg:text-6xl">
+          <h1 className="mb-4 text-2xl font-extrabold leading-tight tracking-tight lg:text-4xl"> {/* Reduced text size and margins */}
             {t("hero.title")} <span className="text-primary">NMD</span> & Partners
           </h1>
 
-          <p className="mx-auto max-w-3xl text-muted-foreground lg:text-xl">
+          <p className="mx-auto max-w-3xl text-muted-foreground lg:text-lg"> {/* Reduced text size */}
             {t("hero.subtitle")}
           </p>
 
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <div className="mt-4 flex flex-wrap justify-center gap-3"> {/* Reduced top margin */}
             <Link href={"/register"}>
               <Button className="shadow-sm transition-shadow hover:shadow">
                 {t("hero.getStarted")}

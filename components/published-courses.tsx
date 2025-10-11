@@ -51,7 +51,7 @@ export default function PublishedCourseListing() {
                 return "NMD Partner Course";
             case "course":
             default:
-                return "NMD Course";
+                return "NMD Courses";
         }
     };
 
@@ -177,30 +177,7 @@ export default function PublishedCourseListing() {
                         {/* Show all courses grouped by type when filter is "all" */}
                         {filter === "all" ? (
                             <>
-                                {/* Masterclass Section */}
-                                {groupedCourses.masterclass.length > 0 && (
-                                    <div className="space-y-6">
-                                        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold relative inline-block">
-                                            {getCourseTypeDisplay("masterclass")}
-                                            <span className="absolute left-0 right-0 bottom-0 h-1 bg-purple-400 rounded-full -mb-1" />
-                                        </h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                                            {groupedCourses.masterclass.map((course, idx) => {
-                                                const courseType = course.courseDetails?.courseType || "course";
-                                                return (
-                                                    <CourseCard
-                                                        key={course.id}
-                                                        course={course}
-                                                        idx={idx}
-                                                        courseType={courseType as any}
-                                                        courseTypeDisplay={getCourseTypeDisplay(courseType)}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
+                            
                                 {/* Course Section */}
                                 {groupedCourses.course.length > 0 && (
                                     <div className="space-y-6">
@@ -217,6 +194,31 @@ export default function PublishedCourseListing() {
                                                         course={course}
                                                         idx={idx}
                                                         courseType={courseType}
+                                                        courseTypeDisplay={getCourseTypeDisplay(courseType)}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+
+                                {/* Masterclass Section */}
+                                {groupedCourses.masterclass.length > 0 && (
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold relative inline-block">
+                                            {getCourseTypeDisplay("masterclass")}
+                                            <span className="absolute left-0 right-0 bottom-0 h-1 bg-purple-400 rounded-full -mb-1" />
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                            {groupedCourses.masterclass.map((course, idx) => {
+                                                const courseType = course.courseDetails?.courseType || "course";
+                                                return (
+                                                    <CourseCard
+                                                        key={course.id}
+                                                        course={course}
+                                                        idx={idx}
+                                                        courseType={courseType as any}
                                                         courseTypeDisplay={getCourseTypeDisplay(courseType)}
                                                     />
                                                 );

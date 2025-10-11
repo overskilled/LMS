@@ -72,13 +72,24 @@ export default {
         "courses": "Courses",
         "curriculum": {
             "title": "Course Curriculum",
-            "gettingStarted": "Getting Started",
-            "section": "Section",
+            "subtitle": "Master your skills with our comprehensive learning path",
+            "chapters": "chapters",
             "lectures": "lectures",
-            "lecture": "Lecture",
+            "totalTime": "total",
+            "previewLectures": "preview lectures",
             "preview": "Preview",
+            "noDescription": "No description available",
+            "nowPlaying": "Now playing",
+            "readyToStart": "Ready to start learning?",
+            "enrollDescription": "Enroll now to get full access to all course materials, including videos, exercises, and certificates.",
+            "loginToEnroll": "Login to Enroll",
+            "createAccount": "Create Account",
+            "enrollNow": "Enroll Now",
+            "previewLecturesAvailable": "preview lectures available - try before you buy!",
+            "section": "Section",
+            "gettingStarted": "Getting Started",
             "total": "Total",
-            "totalHours": "hours total length"
+            "totalHours": "total hours"
         },
         "learn": {
             "title": "What You’ll Learn"
