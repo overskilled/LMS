@@ -23,13 +23,13 @@ export default function HeroSection() {
       {/* Main content */}
       <div className="relative z-10 flex h-full w-full items-center justify-center">
         <div className="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-4 text-center px-4"> {/* Reduced gap from gap-6 to gap-4 */}
-          <div className="rounded-xl bg-background/30 p-4 shadow-sm backdrop-blur-sm">
+          {/* <div className="rounded-xl bg-background/30 p-4 shadow-sm backdrop-blur-sm">
             <img
               src="/spaceship.webp"
               alt="logo"
               className="h-12 w-12 rounded-full object-cover"
             />
-          </div>
+          </div> */}
 
           <h1 className="mb-4 text-2xl font-extrabold leading-tight tracking-tight lg:text-4xl"> {/* Reduced text size and margins */}
             {t("hero.title")} <span className="text-primary">NMD</span> & Partners
