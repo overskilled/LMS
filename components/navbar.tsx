@@ -79,7 +79,14 @@ export default function Navbar() {
       {/* Desktop navigation */}
       <nav className="hidden lg:flex items-center gap-4">
         {user ? (
-          <UserDropdownMenu />
+          <div className="flex flex-row gap-2">
+            <Link href="/become-affiliate">
+              <Button size="sm">
+                Become Affiliate
+              </Button>
+            </Link>
+            <UserDropdownMenu />
+          </div>
         ) : (
           <div className="flex items-center gap-2 border-l pl-4 ml-4">
             <Link href="/login">
@@ -120,6 +127,11 @@ export default function Navbar() {
               </Link>
               <Link href="/my-courses" className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">
                 My Courses
+              </Link>
+              <Link href="/become-affiliate">
+                <Button variant="secondary" size="sm">
+                  Become Affiliate
+                </Button>
               </Link>
               <button
                 onClick={handleLogout}
